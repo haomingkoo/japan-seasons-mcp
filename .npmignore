@@ -1,0 +1,8 @@
+src/
+.git/
+.gitignore
+.npmignore
+Dockerfile
+railway.json
+tsconfig.json
+*.test.ts
