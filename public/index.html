@@ -157,7 +157,8 @@
       </div>
       <div class="footer-link">
         Data: <a href="https://n-kishou.com">Japan Meteorological Corp</a> &middot;
-        MCP: <code>sakura.kooexperience.com/mcp</code><br>
+        Forecasts update Thursdays &middot; Bloom meters update daily 9AM JST<br>
+        MCP: <code>sakura.kooexperience.com/mcp</code> &middot;
         <a href="https://github.com/haomingkoo/japan-sakura-koyo-mcp">GitHub</a> &middot;
         <a href="https://www.npmjs.com/package/japan-sakura-koyo-mcp">npm</a>
       </div>
@@ -284,7 +285,7 @@ function setMode(m) {
 
 // ── SAKURA ──
 async function loadSakura() {
-  $('sidebar-header').innerHTML = '<h2>Cherry Blossom Forecast</h2><p>48 cities &middot; 1,012 spots across Japan</p>';
+  $('sidebar-header').innerHTML = '<h2>Cherry Blossom Forecast</h2><p>48 cities &middot; 1,012 spots &middot; Click a city to see spots</p>';
   $('sidebar-content').innerHTML = '<div class="loading">Loading...</div>';
   updateLegend('sakura');
 
@@ -355,9 +356,10 @@ async function loadPrefSpots(prefCode, prefName) {
     if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
 
     // Sidebar
+    const updated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Unknown';
     $('sidebar-header').innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h2>${prefName}</h2><p>${data.spots.length} spots</p></div>
+        <div><h2>${prefName}</h2><p>${data.spots.length} spots &middot; Updated: ${updated}</p></div>
         <button onclick="loadSakura()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
       </div>`;
 
