@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Sakura & Koyo Forecast — Cherry Blossom & Autumn Leaves</title>
+  <meta name="description" content="Real-time cherry blossom and autumn leaves forecast for Japan. 1,700+ spots with live bloom data. Find the perfect time to visit.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --pink: #e8a0bf;
+      --pink-dark: #c97b9e;
+      --pink-light: #fdf2f8;
+      --orange: #e8956a;
+      --orange-light: #fff7ed;
+      --green: #6ab087;
+      --gray-50: #fafafa;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-400: #a3a3a3;
+      --gray-600: #525252;
+      --gray-800: #262626;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #fce4ec 0%, #fff3e0 100%);
+      padding: 48px 20px 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .header p { color: var(--gray-600); font-size: 1.05rem; max-width: 520px; margin: 0 auto; }
+
+    /* ── Container ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Tab bar ── */
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1; padding: 10px 16px;
+      border: none; background: none;
+      border-radius: 8px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--gray-600); transition: all 0.2s;
+    }
+    .tab.active { background: white; color: var(--gray-800); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tab:hover:not(.active) { color: var(--gray-800); }
+
+    /* ── Search bar ── */
+    .search-bar {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+      padding: 10px 14px;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: white;
+      flex: 1; min-width: 140px;
+    }
+    .search-bar button {
+      padding: 10px 24px;
+      background: var(--pink-dark);
+      color: white;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-size: 0.95rem; font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .search-bar button:hover { opacity: 0.85; }
+    .search-bar button.koyo-btn { background: var(--orange); }
+
+    /* ── Region grid ── */
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .region-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .region-card:hover { border-color: var(--pink); box-shadow: 0 2px 8px rgba(232,160,191,0.15); }
+    .region-card.koyo:hover { border-color: var(--orange); box-shadow: 0 2px 8px rgba(232,149,106,0.15); }
+    .region-card h3 { font-size: 1rem; margin-bottom: 8px; }
+    .region-card .comment { font-size: 0.82rem; color: var(--gray-600); }
+
+    /* ── City row ── */
+    .city-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.9rem;
+    }
+    .city-row:last-child { border-bottom: none; }
+    .city-name { font-weight: 500; }
+    .city-dates { color: var(--gray-600); font-size: 0.82rem; }
+
+    /* ── Spot card ── */
+    .spot-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .spot-card h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .spot-meta { font-size: 0.82rem; color: var(--gray-600); margin-bottom: 8px; }
+
+    /* ── Bloom bar ── */
+    .bloom-bar-container {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 4px;
+    }
+    .bloom-bar-label { font-size: 0.78rem; color: var(--gray-600); width: 70px; }
+    .bloom-bar {
+      flex: 1; height: 20px;
+      background: var(--gray-100);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bloom-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.6s ease;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 6px;
+      font-size: 0.7rem; font-weight: 600; color: white;
+      min-width: 32px;
+    }
+    .bloom-bar-fill.bloom { background: linear-gradient(90deg, #f9a8d4, #ec4899); }
+    .bloom-bar-fill.full { background: linear-gradient(90deg, #f472b6, #be185d); }
+    .bloom-bar-fill.koyo { background: linear-gradient(90deg, #fdba74, #ea580c); }
+
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .status-badge.peak { background: #fce7f3; color: #be185d; }
+    .status-badge.blooming { background: #fdf2f8; color: #ec4899; }
+    .status-badge.coming { background: #ecfdf5; color: #059669; }
+    .status-badge.ended { background: var(--gray-100); color: var(--gray-400); }
+    .status-badge.koyo-peak { background: #fff7ed; color: #ea580c; }
+
+    /* ── Loading ── */
+    .loading { text-align: center; padding: 40px; color: var(--gray-400); }
+    .error { text-align: center; padding: 20px; color: #dc2626; background: #fef2f2; border-radius: 8px; }
+
+    /* ── Back button ── */
+    .back-btn {
+      background: none; border: 1px solid var(--gray-200);
+      padding: 6px 14px; border-radius: 6px;
+      cursor: pointer; font-size: 0.85rem;
+      margin-bottom: 16px; color: var(--gray-600);
+    }
+    .back-btn:hover { background: var(--gray-100); }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center; padding: 32px 16px;
+      color: var(--gray-400); font-size: 0.8rem;
+      border-top: 1px solid var(--gray-200);
+      margin-top: 40px;
+    }
+    .footer a { color: var(--gray-600); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.5rem; }
+      .region-grid { grid-template-columns: 1fr; }
+      .tabs { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Japan Sakura & Koyo Forecast</h1>
+  <p>Real-time cherry blossom and autumn leaves data for 1,700+ spots across Japan</p>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('sakura')">Cherry Blossom</button>
+    <button class="tab" onclick="switchTab('dates')">Find Best Dates</button>
+    <button class="tab" onclick="switchTab('koyo')">Autumn Leaves</button>
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading forecast data...</div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Data from <a href="https://n-kishou.com">Japan Meteorological Corporation</a> &middot;
+  <a href="https://github.com/haomingkoo/japan-sakura-koyo-mcp">GitHub</a> &middot;
+  <a href="https://www.npmjs.com/package/japan-sakura-koyo-mcp">npm</a></p>
+  <p style="margin-top:8px">MCP endpoint: <code>https://sakura.kooexperience.com/mcp</code></p>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const content = $('content');
+let currentTab = 'sakura';
+let sakuraData = null;
+let koyoData = null;
+
+// ── Tab switching ──
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['sakura','dates','koyo'][i] === tab);
+  });
+  if (tab === 'sakura') renderSakuraOverview();
+  if (tab === 'dates') renderDateFinder();
+  if (tab === 'koyo') renderKoyoOverview();
+}
+
+// ── Date formatting ──
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function statusBadge(status) {
+  let cls = 'ended';
+  if (status.includes('Full bloom') || status.includes('mankai') || status.includes('best viewing')) cls = 'peak';
+  else if (status.includes('bloom') || status.includes('Bloom') || status.includes('咲き')) cls = 'blooming';
+  else if (status.includes('Coming') || status.includes('soon') || status.includes('つぼみ') || status.includes('Bud')) cls = 'coming';
+  else if (status.includes('Peak')) cls = 'koyo-peak';
+  return `<span class="status-badge ${cls}">${status}</span>`;
+}
+
+// ── API calls ──
+
+async function api(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+// ── Sakura Overview ──
+
+async function renderSakuraOverview() {
+  content.innerHTML = '<div class="loading">Loading sakura forecast...</div>';
+  try {
+    if (!sakuraData) sakuraData = await api('/api/sakura/forecast');
+    let html = '<div class="region-grid">';
+    for (const region of sakuraData.regions) {
+      const comment = region.comment?.[0] || '';
+      html += `<div class="region-card" onclick="renderSakuraRegion('${region.code}')">
+        <h3>${region.nameEn}</h3>
+        <div class="comment">${comment.slice(0, 60)}${comment.length > 60 ? '...' : ''}</div>
+        <div style="margin-top:10px">`;
+      for (const city of region.cities) {
+        html += `<div class="city-row">
+          <span class="city-name">${city.cityName}</span>
+          <span>${statusBadge(city.status)}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+    html += '</div>';
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+// ── Sakura Region Detail (spots) ──
+
+async function renderSakuraRegion(regionCode) {
+  // Find which prefectures are in this region
+  const region = sakuraData.regions.find(r => r.code === regionCode);
+  if (!region) return;
+
+  // Get unique prefecture codes from the cities
+  const prefCodes = [...new Set(region.cities.map(c => c.prefCode))];
+
+  content.innerHTML = '<div class="loading">Loading spots...</div>';
+  try {
+    let allSpots = [];
+    let jmaStation = null;
+    let prefName = '';
+    for (const code of prefCodes) {
+      const data = await api(`/api/sakura/spots?pref=${code}`);
+      allSpots = allSpots.concat(data.spots || []);
+      if (data.jmaStation) jmaStation = data.jmaStation;
+      if (data.prefecture) prefName = data.prefecture;
+    }
+
+    let html = `<button class="back-btn" onclick="renderSakuraOverview()">&larr; Back to regions</button>`;
+    html += `<h2 style="margin-bottom:4px">${region.nameEn}</h2>`;
+    html += `<p style="color:var(--gray-600);margin-bottom:16px;font-size:0.9rem">${allSpots.length} cherry blossom spots</p>`;
+
+    if (jmaStation) {
+      html += `<div class="spot-card" style="border-color:var(--pink)">
+        <h4>JMA Station: ${jmaStation.name}</h4>
+        <div class="bloom-bar-container">
+          <span class="bloom-bar-label">Bloom</span>
+          <div class="bloom-bar"><div class="bloom-bar-fill bloom" style="width:${Math.min(jmaStation.bloomRate,100)}%">${jmaStation.bloomRate}%</div></div>
+        </div>
+        <div class="bloom-bar-container">
+          <span class="bloom-bar-label">Full bloom</span>
+          <div class="bloom-bar"><div class="bloom-bar-fill full" style="width:${Math.min(jmaStation.fullRate,100)}%">${jmaStation.fullRate}%</div></div>
+        </div>
+        <div class="spot-meta" style="margin-top:8px">
+          Bloom: ${fmtDate(jmaStation.bloomForecast)}${jmaStation.bloomObservation ? ' → observed '+fmtDate(jmaStation.bloomObservation) : ''} (avg ${jmaStation.bloomNormal || '—'})
+          &nbsp;|&nbsp; Full bloom: ${fmtDate(jmaStation.fullForecast)}${jmaStation.fullObservation ? ' → observed '+fmtDate(jmaStation.fullObservation) : ''} (avg ${jmaStation.fullNormal || '—'})
+        </div>
+      </div>`;
+    }
+
+    for (const spot of allSpots) {
+      html += `<div class="spot-card">
+        <h4>${spot.name}${spot.nameReading ? ` <span style="font-weight:400;color:var(--gray-400)">${spot.nameReading}</span>` : ''}</h4>
+        <div class="spot-meta">${statusBadge(spot.status)} &nbsp; Forecast: bloom ${fmtDate(spot.bloomForecast)} → full ${fmtDate(spot.fullBloomForecast)}</div>
+        <div class="bloom-bar-container">
+          <span class="bloom-bar-label">Bloom</span>
+          <div class="bloom-bar"><div class="bloom-bar-fill bloom" style="width:${Math.min(spot.bloomRate,100)}%">${spot.bloomRate}%</div></div>
+        </div>
+        <div class="bloom-bar-container">
+          <span class="bloom-bar-label">Full bloom</span>
+          <div class="bloom-bar"><div class="bloom-bar-fill full" style="width:${Math.min(spot.fullRate,100)}%">${spot.fullRate}%</div></div>
+        </div>
+      </div>`;
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+// ── Date Finder ──
+
+function renderDateFinder() {
+  const today = new Date().toISOString().slice(0, 10);
+  const nextWeek = new Date(Date.now() + 7*86400000).toISOString().slice(0, 10);
+  content.innerHTML = `
+    <div style="margin-bottom:20px">
+      <h2 style="margin-bottom:8px">When are you traveling?</h2>
+      <p style="color:var(--gray-600);font-size:0.9rem">We'll find which cities have cherry blossoms during your dates.</p>
+    </div>
+    <div class="search-bar">
+      <input type="date" id="start-date" value="${today}">
+      <input type="date" id="end-date" value="${nextWeek}">
+      <button onclick="searchBestDates()">Find blooms</button>
+    </div>
+    <div id="date-results"></div>`;
+}
+
+async function searchBestDates() {
+  const start = $('start-date').value;
+  const end = $('end-date').value;
+  const results = $('date-results');
+  results.innerHTML = '<div class="loading">Searching...</div>';
+  try {
+    const data = await api(`/api/sakura/best?start=${start}&end=${end}`);
+    if (!data.matches || data.matches.length === 0) {
+      results.innerHTML = `<div class="error" style="color:var(--gray-600);background:var(--gray-100)">
+        No cities in bloom during ${start} to ${end}.<br>
+        Cherry blossom season: Okinawa Jan-Feb, Kyushu/Kansai late Mar, Kanto early Apr, Tohoku mid Apr, Hokkaido late Apr-May.
+      </div>`;
+      return;
+    }
+    let html = `<p style="margin-bottom:16px;color:var(--gray-600);font-size:0.9rem">${data.matches.length} cities with blooms during your dates:</p>`;
+    for (const city of data.matches) {
+      html += `<div class="spot-card">
+        <h4>${city.cityName} <span style="font-weight:400;color:var(--gray-400)">${city.prefName}</span></h4>
+        <div class="spot-meta">
+          ${statusBadge(city.status)}<br>
+          Bloom: ${fmtDate(city.bloom.forecast)}${city.bloom.observation ? ' → observed '+fmtDate(city.bloom.observation) : ''} (avg ${city.bloom.normal || '—'})<br>
+          Full bloom: ${fmtDate(city.fullBloom.forecast)}${city.fullBloom.observation ? ' → observed '+fmtDate(city.fullBloom.observation) : ''} (avg ${city.fullBloom.normal || '—'})
+        </div>
+      </div>`;
+    }
+    results.innerHTML = html;
+  } catch (e) {
+    results.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+// ── Koyo Overview ──
+
+async function renderKoyoOverview() {
+  content.innerHTML = '<div class="loading">Loading autumn leaves forecast...</div>';
+  try {
+    if (!koyoData) koyoData = await api('/api/koyo/forecast');
+    let html = '';
+    if (koyoData.forecastComment) {
+      html += `<div style="background:var(--orange-light);padding:16px;border-radius:var(--radius);margin-bottom:20px;font-size:0.9rem">${koyoData.forecastComment.slice(0, 300)}...</div>`;
+    }
+    html += '<div class="region-grid">';
+    for (const region of koyoData.regions) {
+      html += `<div class="region-card koyo" onclick="renderKoyoRegion('${region.code}')">
+        <h3>${region.name}</h3>
+        <div style="margin-top:10px">`;
+      for (const city of region.cities) {
+        const mapleDate = city.maple ? fmtDate(city.maple.forecast) : '—';
+        html += `<div class="city-row">
+          <span class="city-name">${city.name}</span>
+          <span class="city-dates">Maple: ${mapleDate}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+    html += '</div>';
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+// ── Koyo Region Detail ──
+
+async function renderKoyoRegion(regionCode) {
+  const region = koyoData.regions.find(r => r.code === regionCode);
+  if (!region) return;
+  const prefCodes = [...new Set(region.cities.map(c => c.code.slice(0,2)))];
+
+  content.innerHTML = '<div class="loading">Loading spots...</div>';
+  try {
+    let allSpots = [];
+    for (const code of prefCodes) {
+      try {
+        const data = await api(`/api/koyo/spots?pref=${code}`);
+        allSpots = allSpots.concat(data.spots || []);
+      } catch {} // some prefectures may have no spots
+    }
+
+    let html = `<button class="back-btn" onclick="renderKoyoOverview()">&larr; Back to regions</button>`;
+    html += `<h2 style="margin-bottom:4px">${region.name}</h2>`;
+    html += `<p style="color:var(--gray-600);margin-bottom:16px;font-size:0.9rem">${allSpots.length} autumn leaves spots</p>`;
+
+    for (const spot of allSpots) {
+      const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
+      html += `<div class="spot-card">
+        <h4>${spot.name}${spot.nameReading ? ` <span style="font-weight:400;color:var(--gray-400)">${spot.nameReading}</span>` : ''}</h4>
+        <div class="spot-meta">${statusBadge(spot.status)} &nbsp; ${spot.leafType} ${stars ? '&nbsp;'+stars : ''}</div>
+        <div class="spot-meta">Best viewing: ${fmtDate(spot.bestStart)} → peak <strong>${fmtDate(spot.bestPeak)}</strong> → end ${fmtDate(spot.bestEnd)}</div>
+      </div>`;
+    }
+    if (allSpots.length === 0) {
+      html += '<div style="color:var(--gray-400);padding:20px;text-align:center">No spot data available for this region yet.</div>';
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+// ── Init ──
+renderSakuraOverview();
+</script>
+</body>
+</html>

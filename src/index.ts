@@ -4,7 +4,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import { createServer } from "http";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
+import { handleApiRequest } from "./api.js";
 import {
   getSakuraForecast,
   getSakuraSpots,
@@ -488,17 +492,25 @@ async function startHttpServer() {
       return;
     }
 
+    // REST API endpoints (for the frontend)
+    if (url.pathname.startsWith("/api/")) {
+      const handled = await handleApiRequest(req, res, url.pathname, url.searchParams);
+      if (handled) return;
+    }
+
+    // Serve frontend
     if (url.pathname === "/") {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(`<!DOCTYPE html><html><head><title>japan-sakura-koyo-mcp</title></head>
-<body style="font-family:system-ui;max-width:600px;margin:40px auto;padding:0 20px">
-<h1>japan-sakura-koyo-mcp</h1>
-<p>MCP server for Japanese cherry blossom &amp; autumn leaves forecasting.</p>
-<p><b>MCP endpoint:</b> <code>https://${req.headers.host}/mcp</code></p>
-<p><b>7 tools:</b> sakura forecast, 1,012 sakura spots, best dates, Kawazu cherry, koyo forecast, 687 koyo spots, weather</p>
-<p>Add to Claude/ChatGPT: use the MCP endpoint URL above.</p>
-<p><a href="https://github.com/haomingkoo/japan-sakura-koyo-mcp">GitHub</a> · <a href="https://www.npmjs.com/package/japan-sakura-koyo-mcp">npm</a></p>
-</body></html>`);
+      try {
+        const __dirname = dirname(fileURLToPath(import.meta.url));
+        const htmlPath = join(__dirname, "..", "public", "index.html");
+        const html = readFileSync(htmlPath, "utf-8");
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(html);
+      } catch {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(`<!DOCTYPE html><html><body><h1>japan-sakura-koyo-mcp</h1>
+<p>MCP endpoint: <code>https://${req.headers.host}/mcp</code></p></body></html>`);
+      }
       return;
     }
 

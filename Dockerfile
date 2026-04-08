@@ -7,6 +7,7 @@ RUN npm ci --production=false
 
 COPY tsconfig.json ./
 COPY src ./src
+COPY public ./public
 RUN npm run build
 
 ENV PORT=3000
