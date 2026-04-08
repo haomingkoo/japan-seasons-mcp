@@ -1,3 +1,5 @@
+import { logger } from "./logger.js";
+
 interface CacheEntry<T> {
   data: T;
   expires: number;
@@ -19,7 +21,6 @@ export class Cache {
   }
 
   set<T>(key: string, data: T, ttlMs: number): void {
-    // Evict oldest entries if cache is full
     if (this.store.size >= MAX_CACHE_SIZE) {
       const oldest = this.store.keys().next().value;
       if (oldest !== undefined) this.store.delete(oldest);
@@ -43,6 +44,13 @@ export class Cache {
     }
   }
 
+  /** Flush entire cache */
+  flush(): void {
+    const count = this.store.size;
+    this.store.clear();
+    if (count > 0) logger.info(`Cache flushed: ${count} entries cleared`);
+  }
+
   get size(): number {
     return this.store.size;
   }
@@ -53,11 +61,44 @@ export const cache = new Cache();
 // Periodic cleanup every 10 minutes
 setInterval(() => cache.cleanup(), 10 * 60 * 1000).unref();
 
+// ─── Daily 9 AM JST cache flush ─────────────────────────────────────────────
+// n-kishou updates bloom meters at 9 AM JST (00:00 UTC).
+// Flush all cached data so users get fresh data immediately.
+
+function msUntilNext9amJST(): number {
+  const now = new Date();
+  // 9 AM JST = 00:00 UTC
+  const next = new Date(now);
+  next.setUTCHours(0, 0, 0, 0);
+  if (now.getTime() >= next.getTime()) {
+    next.setUTCDate(next.getUTCDate() + 1);
+  }
+  return next.getTime() - now.getTime();
+}
+
+function scheduleDailyFlush() {
+  const ms = msUntilNext9amJST();
+  const hours = Math.round(ms / 3600000 * 10) / 10;
+  logger.info(`Next cache flush (9 AM JST) in ${hours} hours`);
+
+  setTimeout(() => {
+    logger.info("9 AM JST — flushing cache for fresh bloom data");
+    cache.flush();
+    // Schedule again for tomorrow
+    setInterval(() => {
+      logger.info("9 AM JST — flushing cache for fresh bloom data");
+      cache.flush();
+    }, 24 * 60 * 60 * 1000).unref();
+  }, ms).unref();
+}
+
+scheduleDailyFlush();
+
 // TTL constants
 export const TTL = {
-  FORECAST: 1 * 60 * 60 * 1000,    // 1 hour — forecasts update a few times daily
-  SPOTS: 3 * 60 * 60 * 1000,       // 3 hours — spot status updates daily at 9 AM JST
-  HISTORICAL: 24 * 60 * 60 * 1000, // 24 hours — historical data rarely changes
-  WEATHER: 1 * 60 * 60 * 1000,     // 1 hour — weather changes frequently
-  AREAS: 7 * 24 * 60 * 60 * 1000,  // 7 days — area definitions are static
+  FORECAST: 1 * 60 * 60 * 1000,    // 1 hour
+  SPOTS: 3 * 60 * 60 * 1000,       // 3 hours
+  HISTORICAL: 24 * 60 * 60 * 1000, // 24 hours
+  WEATHER: 1 * 60 * 60 * 1000,     // 1 hour
+  AREAS: 7 * 24 * 60 * 60 * 1000,  // 7 days
 };
