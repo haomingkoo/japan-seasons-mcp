@@ -208,10 +208,10 @@ function fmtForecast(iso, rate) {
   if (!iso) return '—';
   return (rate >= 100 ? '' : '~') + fmtDate(iso);
 }
-// Full date line: "Bloomed" once confirmed, "~" drops from full bloom once hit
+// Full date line: confirmed = plain date, forecast = "(est.)" suffix
 function fmtDates(bloomForecast, bloomRate, fullBloomForecast, fullRate) {
-  const b = bloomRate >= 100 ? `Bloomed: ${fmtDate(bloomForecast)}` : `Bloom: ~${fmtDate(bloomForecast)}`;
-  const f = `Full bloom: ${fmtForecast(fullBloomForecast, fullRate)}`;
+  const b = bloomRate >= 100 ? `Bloomed: ${fmtDate(bloomForecast)}` : `Bloom: ${fmtDate(bloomForecast)} (est.)`;
+  const f = fullRate >= 100 ? `Full bloom: ${fmtDate(fullBloomForecast)}` : `Full bloom: ${fmtDate(fullBloomForecast)} (est.)`;
   return `${b} · ${f}`;
 }
 
