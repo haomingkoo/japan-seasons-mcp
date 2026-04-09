@@ -244,18 +244,19 @@ function sakuraRadius(bloomRate, fullRate) {
 
 // Returns human-readable stage name from the bloom/full rates
 function growthStage(bloomRate) {
-  if (bloomRate >= 100) return 'First bloom!';
+  if (bloomRate >= 100) return 'Bloomed';
   if (bloomRate >= 85) return 'Buds opening';
   if (bloomRate >= 60) return 'Buds swelling';
-  return 'Bud stage';
+  if (bloomRate > 0) return 'Bud stage';
+  return 'Dormant';
 }
 function floweringStage(fullRate) {
-  if (fullRate >= 100) return 'Full bloom!';
+  if (fullRate >= 100) return 'Full bloom';
   if (fullRate >= 90) return 'Nearly full';
-  if (fullRate >= 70) return '70% flowering';
-  if (fullRate >= 40) return '50% flowering';
-  if (fullRate >= 20) return '30% flowering';
-  if (fullRate > 0) return 'Just started';
+  if (fullRate >= 70) return '70%';
+  if (fullRate >= 40) return '50%';
+  if (fullRate >= 20) return '30%';
+  if (fullRate > 0) return 'Starting';
   return 'Not yet';
 }
 
@@ -938,7 +939,14 @@ async function loadAllSpotsOnMap() {
             className: '', iconSize: [22, 22], iconAnchor: [11, 11],
           })
         }).addTo(mapInstance);
-        m.bindPopup(`<b>${spot.name}</b> ${spot.nameRomaji || ''}<br><em>Kawazu Cherry (河津桜) — early bloom Jan-Feb</em><br>${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps</a>`);
+        const kStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || 'Kawazu Cherry';
+        m.bindPopup(
+          `<div style="min-width:200px"><b>${spot.name}</b> ${spot.nameRomaji || ''}<br>` +
+          `<em style="color:#db2777">Kawazu Cherry (河津桜)</em><br>` +
+          `<b>${kStatus}</b><br>` +
+          `<span style="font-size:11px;color:#888">Bloomed: ${fmtDate(spot.bloomForecast)} → Full bloom: ${fmtDate(spot.fullBloomForecast)}</span><br>` +
+          `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a></div>`
+        );
         markers.push(m);
       }
     } catch {} // Kawazu is bonus — don't break main view
