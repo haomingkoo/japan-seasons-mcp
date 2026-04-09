@@ -204,17 +204,35 @@ function fmtDate(iso) {
   return `${d.getMonth()+1}/${d.getDate()}`;
 }
 
-// ── Color by bloom rate ──
+// ── Color by bloom rate + date ──
 // Lifecycle: orange (bud/growth) → pink (flowering) → green (ended/leaves)
-function sakuraColor(bloomRate, fullRate) {
-  if (fullRate >= 100) return '#be185d';  // full bloom — deep pink
-  if (fullRate >= 70) return '#ec4899';   // 70%+ bloom — pink
-  if (fullRate >= 20) return '#f472b6';   // starting to bloom — medium pink
-  if (fullRate > 0) return '#f9a8d4';    // just started — light pink
-  if (bloomRate >= 85) return '#f97316';  // buds opening — orange
-  if (bloomRate >= 60) return '#fb923c';  // buds swelling — light orange
-  if (bloomRate > 0) return '#fdba74';   // bud stage — pale orange
-  return '#d4d4d4';                       // dormant — gray
+// fullRate stays at 100% forever after peak — use forecast date to detect "ended"
+function sakuraColor(bloomRate, fullRate, fullBloomForecast) {
+  if (fullRate >= 100) {
+    const daysSinceFull = fullBloomForecast ? Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000) : 0;
+    if (daysSinceFull > 10) return '#4ade80';  // green — ended, leaves out
+    if (daysSinceFull > 6) return '#86efac';   // light green — petals falling
+    return '#be185d';                           // deep pink — still at peak
+  }
+  if (fullRate >= 70) return '#ec4899';
+  if (fullRate >= 20) return '#f472b6';
+  if (fullRate > 0) return '#f9a8d4';
+  if (bloomRate >= 85) return '#f97316';
+  if (bloomRate >= 60) return '#fb923c';
+  if (bloomRate > 0) return '#fdba74';
+  return '#d4d4d4';
+}
+
+// Spot status text also needs the date check
+function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
+  if (fullRate >= 100 && fullBloomForecast) {
+    const days = Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000);
+    if (days > 10) return 'Ended — green leaves';
+    if (days > 6) return 'Falling — petals scattering';
+    if (days > 3) return 'Past peak — still some petals';
+    return 'Full bloom — best viewing!';
+  }
+  return null; // use default from growthStage/floweringStage
 }
 
 function sakuraRadius(bloomRate, fullRate) {
@@ -343,7 +361,7 @@ async function loadPrefSpots(prefCode, prefName) {
     const bounds = [];
     for (const spot of data.spots) {
       if (!spot.lat || !spot.lon) continue;
-      const color = sakuraColor(spot.bloomRate, spot.fullRate);
+      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const radius = sakuraRadius(spot.bloomRate, spot.fullRate);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5,
@@ -648,7 +666,7 @@ async function searchTrip() {
 
     // Add spot markers
     for (const spot of nearbySpots) {
-      const color = sakuraColor(spot.bloomRate, spot.fullRate);
+      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius: sakuraRadius(spot.bloomRate, spot.fullRate),
         fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
@@ -739,7 +757,7 @@ async function findNearMe() {
 
       // Add to map
       for (const spot of nearby) {
-        const color = sakuraColor(spot.bloomRate, spot.fullRate);
+        const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
         const marker = L.circleMarker([spot.lat, spot.lon], {
           radius: sakuraRadius(spot.bloomRate, spot.fullRate),
           fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
@@ -773,9 +791,10 @@ async function findNearMe() {
 
 function spotPopupHtml(spot) {
   const displayName = spot.nameRomaji ? `${spot.name} <span style="color:#888">${spot.nameRomaji}</span>` : spot.name;
+  const liveStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || spot.status;
   return `<b>${displayName}</b><br>
     ${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>
-    ${spot.status}<br>
+    <b>${liveStatus}</b><br>
     <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps</a>
     &middot; <a href="https://japantravel.navitime.com/en/area/jp/spot/${spot.lat},${spot.lon}/" target="_blank" style="color:#0369a1">Route (Navitime)</a>`;
 }
@@ -845,12 +864,24 @@ async function loadAllSpotsOnMap() {
         markers.forEach(m => { totalBloom += m.options.bloomRate || 0; totalFull += m.options.fullRate || 0; });
         const avgBloom = totalBloom / markers.length;
         const avgFull = totalFull / markers.length;
-        let color = '#e5e5e5';
-        if (avgFull >= 90) color = '#be185d';
-        else if (avgFull >= 40) color = '#ec4899';
-        else if (avgFull > 0) color = '#f9a8d4';
-        else if (avgBloom >= 60) color = '#86efac';
-        else if (avgBloom > 0) color = '#bbf7d0';
+        // Check if cluster spots are past peak by looking at forecast dates
+        let endedCount = 0;
+        markers.forEach(m => {
+          if (m.options.fullBloomForecast && m.options.fullRate >= 100) {
+            const days = Math.floor((Date.now() - new Date(m.options.fullBloomForecast).getTime()) / 86400000);
+            if (days > 7) endedCount++;
+          }
+        });
+        const mostlyEnded = endedCount > markers.length * 0.6;
+
+        let color = '#d4d4d4';
+        if (mostlyEnded) color = '#4ade80';              // green — ended
+        else if (avgFull >= 90) color = '#be185d';       // deep pink — full bloom
+        else if (avgFull >= 40) color = '#ec4899';       // pink — blooming
+        else if (avgFull > 0) color = '#f9a8d4';         // light pink — starting
+        else if (avgBloom >= 85) color = '#f97316';      // orange — buds opening
+        else if (avgBloom >= 60) color = '#fb923c';      // light orange — swelling
+        else if (avgBloom > 0) color = '#fdba74';        // pale orange — bud
         const size = Math.min(40 + markers.length * 0.5, 60);
         return L.divIcon({
           html: `<div style="background:${color};color:${avgFull>40?'white':'#333'};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${markers.length}</div>`,
@@ -862,11 +893,11 @@ async function loadAllSpotsOnMap() {
 
     for (const spot of allSpotsData.spots) {
       if (!spot.lat || !spot.lon) continue;
-      const color = sakuraColor(spot.bloomRate, spot.fullRate);
+      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const radius = sakuraRadius(spot.bloomRate, spot.fullRate);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
-        bloomRate: spot.bloomRate, fullRate: spot.fullRate,
+        bloomRate: spot.bloomRate, fullRate: spot.fullRate, fullBloomForecast: spot.fullBloomForecast,
       });
       const displayName = spot.nameRomaji ? `${spot.name} <span style="color:#888">${spot.nameRomaji}</span>` : spot.name;
       marker.bindPopup(`<b>${displayName}</b><br>${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>${spot.status}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Open in Google Maps &rarr;</a>`);
@@ -911,9 +942,7 @@ async function loadAllSpotsOnMap() {
 
 // ── Fuzzy search/filter ──
 function fuzzyMatch(text, query) {
-  // Exact substring match first
   if (text.includes(query)) return true;
-  // Fuzzy: check if all query chars appear in order in text
   let ti = 0;
   for (let qi = 0; qi < query.length; qi++) {
     const found = text.indexOf(query[qi], ti);
@@ -923,16 +952,67 @@ function fuzzyMatch(text, query) {
   return true;
 }
 
+let searchTimeout = null;
 function filterSidebar(query) {
   const q = query.toLowerCase().replace(/[\s\-]/g, '');
+
+  // If empty, restore the current view
   if (!q) {
     document.querySelectorAll('.spot-item').forEach(el => el.style.display = '');
     return;
   }
+
+  // If we have all spots loaded and query is 3+ chars, do a global search
+  if (allSpotsData && q.length >= 3) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => globalSpotSearch(q), 300);
+    return;
+  }
+
+  // Otherwise filter what's visible in sidebar
   document.querySelectorAll('.spot-item').forEach(el => {
     const text = el.textContent.toLowerCase().replace(/[\s\-]/g, '');
     el.style.display = fuzzyMatch(text, q) ? '' : 'none';
   });
+}
+
+function globalSpotSearch(q) {
+  const matches = allSpotsData.spots.filter(spot => {
+    const text = `${spot.name} ${spot.nameRomaji || ''} ${spot.nameReading || ''} ${spot.prefecture || ''}`.toLowerCase().replace(/[\s\-]/g, '');
+    return fuzzyMatch(text, q);
+  }).slice(0, 50); // limit to 50 results
+
+  if (matches.length === 0) {
+    // Fall back to sidebar filter
+    document.querySelectorAll('.spot-item').forEach(el => {
+      const text = el.textContent.toLowerCase().replace(/[\s\-]/g, '');
+      el.style.display = fuzzyMatch(text, q) ? '' : 'none';
+    });
+    return;
+  }
+
+  // Show results in sidebar
+  $('sidebar-header').innerHTML = `<h2>Search: "${q}"</h2><p>${matches.length} spots found${matches.length>=50?' (showing first 50)':''}</p>`;
+  let html = '';
+  for (const spot of matches) {
+    html += spotCardHtml(spot, spot.prefecture || '');
+  }
+  $('sidebar-content').innerHTML = html;
+
+  // Highlight on map
+  clearMarkers();
+  const bounds = [];
+  for (const spot of matches) {
+    if (!spot.lat || !spot.lon) continue;
+    const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+    const marker = L.circleMarker([spot.lat, spot.lon], {
+      radius: 8, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
+    }).addTo(mapInstance);
+    marker.bindPopup(spotPopupHtml(spot));
+    markers.push(marker);
+    bounds.push([spot.lat, spot.lon]);
+  }
+  if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
 }
 
 // ── Init ──
