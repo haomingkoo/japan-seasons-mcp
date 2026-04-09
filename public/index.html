@@ -518,30 +518,31 @@ function fruitSeasonLabel(months, peak) {
   return { season: `${MO[start-1]}–${MO[end-1]}`, peak: peakLabels };
 }
 
+let farmDataCache = null;
+let fruitSelectedMonth = new Date().getMonth() + 1;
+
 async function loadFruitPicking() {
-  $('sidebar-header').innerHTML = '<h2>Fruit Picking in Japan</h2><p>Loading farm locations...</p>';
+  $('sidebar-header').innerHTML = '<h2>Fruit Picking in Japan</h2><p>Loading...</p>';
   clearMarkers();
   updateLegend('fruit');
 
-  const now = new Date();
-  const m = now.getMonth() + 1;
-  const nextM = m === 12 ? 1 : m + 1;
-  const nextM2 = nextM === 12 ? 1 : nextM + 1;
+  if (!farmDataCache) {
+    try { farmDataCache = await api('/api/fruit/farms'); } catch {}
+  }
 
-  const inSeason = FRUITS.filter(f => f.months.includes(m));
-  const comingSoon = FRUITS.filter(f => !f.months.includes(m) && (f.months.includes(nextM) || f.months.includes(nextM2)));
-  const other = FRUITS.filter(f => !f.months.includes(m) && !f.months.includes(nextM) && !f.months.includes(nextM2));
+  fruitSelectedMonth = new Date().getMonth() + 1;
+  renderFruitMonth(fruitSelectedMonth);
+}
 
-  // Load farm data from cache
-  let farmData = null;
-  try { farmData = await api('/api/fruit/farms'); } catch {}
-
-  const farms = farmData?.spots || [];
-  const scrapedAt = farmData?.scraped_at
-    ? new Date(farmData.scraped_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+function renderFruitMonth(m) {
+  fruitSelectedMonth = m;
+  const farms = farmDataCache?.spots || [];
+  const scrapedAt = farmDataCache?.scraped_at
+    ? new Date(farmDataCache.scraped_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
 
-  // Place markers for in-season farms that have coordinates
+  // Rebuild map markers for selected month
+  clearMarkers();
   let markersAdded = 0;
   if (farms.length) {
     clusterGroup = L.markerClusterGroup({
@@ -557,25 +558,21 @@ async function loadFruitPicking() {
     });
     for (const farm of farms) {
       if (!farm.lat || !farm.lon) continue;
-      const farmInSeason = farm.fruits?.some(fr => FRUITS.find(f => f.name === fr && f.months.includes(m)));
-      if (!farmInSeason) continue;
-      const fruitEmoji = (() => {
-        const f = FRUITS.find(fr => farm.fruits?.includes(fr.name) && fr.months.includes(m));
-        return f ? f.emoji : '🌿';
-      })();
+      const seasonFruit = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m));
+      if (!seasonFruit) continue;
       const marker = L.marker([farm.lat, farm.lon], {
         icon: L.divIcon({
-          html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${fruitEmoji}</div>`,
+          html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${seasonFruit.emoji}</div>`,
           className: '', iconSize: [24, 24], iconAnchor: [12, 12],
         })
       });
       marker.bindPopup(`<div style="min-width:180px">
         <b>${farm.name}</b><br>
-        <span style="font-size:11px;color:#666">${farm.address}</span><br>
+        <span style="font-size:11px;color:#666">${farm.address || ''}</span><br>
         <span style="font-size:11px">${(farm.fruits||[]).join(', ')}</span><br>
         <div style="margin-top:6px">
           <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
-          ${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">Navitime</a>` : ''}
+          ${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">Details</a>` : ''}
         </div>
       </div>`);
       clusterGroup.addLayer(marker);
@@ -585,7 +582,35 @@ async function loadFruitPicking() {
     mapInstance.addLayer(clusterGroup);
   }
 
-  $('sidebar-header').innerHTML = `<h2>Fruit Picking in Japan</h2><p>${markersAdded > 0 ? markersAdded + ' farms in season on map · ' : ''}${farms.length ? farms.length + ' total farms' : 'Season guide'}</p>`;
+  // Month pill selector
+  const todayM = new Date().getMonth() + 1;
+  const monthPills = MO.map((mo, i) => {
+    const mn = i + 1;
+    const hasInSeason = FRUITS.some(f => f.months.includes(mn));
+    const isActive = mn === m;
+    const isToday = mn === todayM;
+    return `<button onclick="renderFruitMonth(${mn})" style="
+      flex:0 0 auto; padding:4px 8px; border-radius:6px; border:1px solid ${isActive ? '#16a34a' : 'var(--gray-200)'};
+      background:${isActive ? '#16a34a' : 'white'}; color:${isActive ? 'white' : hasInSeason ? 'var(--gray-800)' : 'var(--gray-400)'};
+      font-size:0.75rem; font-weight:${isActive || isToday ? '600' : '400'}; cursor:pointer;
+      ${isToday && !isActive ? 'border-color:#16a34a;color:#16a34a;' : ''}
+    ">${mo}</button>`;
+  }).join('');
+
+  // Update header
+  $('sidebar-header').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+      <h2 style="margin:0">Fruit Picking in Japan</h2>
+      <span style="font-size:0.78rem;color:var(--gray-400)">${markersAdded > 0 ? markersAdded+' farms on map · ' : ''}${farms.length || 0} total</span>
+    </div>
+    <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none">${monthPills}</div>`;
+
+  // Fruit list for selected month
+  const inSeason = FRUITS.filter(f => f.months.includes(m));
+  const nextM = m === 12 ? 1 : m + 1;
+  const nextM2 = nextM === 12 ? 1 : nextM + 1;
+  const comingSoon = FRUITS.filter(f => !f.months.includes(m) && (f.months.includes(nextM) || f.months.includes(nextM2)));
+  const other = FRUITS.filter(f => !f.months.includes(m) && !f.months.includes(nextM) && !f.months.includes(nextM2));
 
   function fruitCard(f) {
     const { season, peak } = fruitSeasonLabel(f.months, f.peak);
@@ -593,7 +618,7 @@ async function loadFruitPicking() {
     const farmCount = farms.filter(fm => fm.fruits?.includes(f.name)).length;
     return `<div class="spot-item">
       <h4>${f.emoji} ${f.name} <span style="font-weight:400;color:var(--gray-400)">${f.ja}</span>
-        ${isPeak ? '<span class="badge peak" style="background:#dcfce7;color:#16a34a;margin-left:6px">Peak now</span>' : ''}
+        ${isPeak ? '<span style="background:#dcfce7;color:#16a34a;font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:6px;font-weight:500">Peak</span>' : ''}
       </h4>
       <div class="sub">Season: ${season} · Peak: ${peak}</div>
       <div class="sub" style="margin-top:2px">Best regions: ${f.regions.join(', ')}</div>
@@ -602,13 +627,14 @@ async function loadFruitPicking() {
     </div>`;
   }
 
+  const isCurrentMonth = m === todayM;
   let html = `<div style="margin:10px 16px;padding:10px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:0.8rem;color:#166534">
     🌱 Season windows are typical regional averages — confirm with farms before visiting.
-    ${scrapedAt ? `<br>Farm database: <b>${farmData.total} spots</b> cached on ${scrapedAt} · <a href="${farmData.source_url}" target="_blank" style="color:#16a34a">Source: NAVITIME</a>` : ''}
+    ${scrapedAt ? `<br>Farm database: <b>${farmDataCache.total} spots</b> cached on ${scrapedAt}` : ''}
   </div>`;
 
   if (inSeason.length) {
-    html += `<div style="padding:10px 16px;background:#dcfce7;font-weight:600;font-size:0.85rem;color:#15803d;border-bottom:1px solid #bbf7d0">In Season Now — ${MO[m-1]}</div>`;
+    html += `<div style="padding:10px 16px;background:#dcfce7;font-weight:600;font-size:0.85rem;color:#15803d;border-bottom:1px solid #bbf7d0">In Season — ${MO[m-1]}${isCurrentMonth ? ' (now)' : ''}</div>`;
     inSeason.forEach(f => html += fruitCard(f));
   }
   if (comingSoon.length) {
