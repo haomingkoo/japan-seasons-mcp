@@ -879,8 +879,10 @@ function clearMarkers() {
 }
 
 function updateLegend(type) {
+  const el = $('legend');
   if (type === 'sakura') {
-    $('legend').innerHTML = `
+    el.style.display = '';
+    el.innerHTML = `
       <div style="font-weight:600;margin-bottom:4px">Bloom Lifecycle</div>
       <div class="legend-row"><div class="legend-dot" style="background:#d4d4d4"></div> Dormant</div>
       <div class="legend-row"><div class="legend-dot" style="background:#fdba74"></div> Bud stage</div>
@@ -891,12 +893,15 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:#be185d"></div> Full bloom (mankai)</div>
       <div class="legend-row"><div class="legend-dot" style="background:#4ade80"></div> Ended (green leaves)</div>
       <div class="legend-row"><div style="background:#db2777;color:white;width:12px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px">★</div> Kawazu cherry (early)</div>`;
-  } else {
-    $('legend').innerHTML = `
+  } else if (type === 'koyo') {
+    el.style.display = '';
+    el.innerHTML = `
       <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
       <div class="legend-row"><div class="legend-dot" style="background:#ea580c"></div> Peak colors</div>
       <div class="legend-row"><div class="legend-dot" style="background:#fdba74"></div> Turning</div>
       <div class="legend-row"><div class="legend-dot" style="background:#e5e5e5"></div> Not yet / ended</div>`;
+  } else {
+    el.style.display = 'none';
   }
 }
 
