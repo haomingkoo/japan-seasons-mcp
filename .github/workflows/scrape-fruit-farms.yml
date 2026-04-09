@@ -19,11 +19,15 @@ jobs:
 
       - name: Install Playwright
         run: |
-          pip install playwright
+          pip install playwright requests
           playwright install chromium
 
-      - name: Run scraper
+      - name: Scrape Navitime (base data)
         run: python3 scrape-fruit-farms.py
+        timeout-minutes: 15
+
+      - name: Scrape Jalan (merge with existing)
+        run: python3 scrape-jalan.py
         timeout-minutes: 30
 
       - name: Check if data changed
