@@ -229,13 +229,26 @@ function initMap() {
       const data = await api(`/api/weather?city=${encodeURIComponent(cityName)}`);
       const days = (data.forecasts || []).slice(0, 3);
       if (!days.length) { el.textContent = ''; return; }
-      el.innerHTML = '🌤 ' + days.map(day => {
+      const weatherLink = `https://www.google.com/search?q=weather+${encodeURIComponent(cityName)}+Japan`;
+      const cols = days.map(day => {
         const maxC = day.temperature?.max?.celsius;
         const rain = day.chanceOfRain || {};
         const rainHigh = Math.max(...Object.values(rain).map(v => parseInt(v) || 0));
         const icon = rainHigh >= 50 ? '🌧' : rainHigh >= 20 ? '🌦' : '☀️';
-        return `${icon} ${(day.date||'').slice(5)} ${maxC ? maxC+'°' : ''}`;
-      }).join(' · ');
+        const dateLabel = (day.date || '').slice(5);
+        const rainStr = rainHigh > 0 ? `<span style="color:#60a5fa">${rainHigh}%</span>` : '';
+        return `<div style="text-align:center;flex:1">
+          <div style="font-size:16px">${icon}</div>
+          <div style="font-weight:600">${maxC ? maxC+'°' : '—'}</div>
+          <div style="color:#999">${dateLabel}</div>
+          ${rainStr ? `<div>${rainStr}</div>` : ''}
+        </div>`;
+      }).join('');
+      el.innerHTML = `
+        <div style="display:flex;gap:4px;margin-bottom:5px">${cols}</div>
+        <a href="${weatherLink}" target="_blank" style="font-size:10px;color:#94a3b8">
+          Near ${cityName} · More weather →
+        </a>`;
     } catch { el.textContent = ''; }
   });
 }
@@ -1123,7 +1136,9 @@ function spotPopupHtml(spot) {
     ${barsHtml}
     <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
     <span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span>
-    <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:11px;color:#555;margin-top:5px;padding-top:5px;border-top:1px solid #eee;min-height:16px">Loading weather...</div>
+    <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:60px">
+      <div style="color:#ccc;font-size:11px">Loading weather…</div>
+    </div>
     <div style="margin-top:4px">
       <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
     </div>
