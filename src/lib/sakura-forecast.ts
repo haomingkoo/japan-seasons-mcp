@@ -308,20 +308,18 @@ function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
 //   90-100% 満開                  Full bloom (mankai)!
 
 function computeSpotStatus(bloomRate: number, fullRate: number): string {
-  // Post-bloom (fullRate already hit 100 and bloom is done — we infer from rates)
-  if (fullRate >= 100) return "満開 Full bloom (mankai) — best viewing!";
-  if (fullRate >= 90) return "満開間近 Nearly full bloom (90%+)";
-  if (fullRate >= 70) return "七分咲き 70% bloom (nanabu-zaki)";
-  if (fullRate >= 40) return "五分咲き 50% bloom (gobu-zaki)";
-  if (fullRate >= 20) return "三分咲き 30% bloom (sanbu-zaki)";
-  if (fullRate > 0) return "咲き始め Just started blooming";
+  if (fullRate >= 100) return "Full bloom — best viewing!";
+  if (fullRate >= 90) return "Nearly full bloom";
+  if (fullRate >= 70) return "70% bloom";
+  if (fullRate >= 40) return "50% bloom";
+  if (fullRate >= 20) return "30% bloom";
+  if (fullRate > 0) return "Just started blooming";
 
-  // Pre-bloom (using bloom rate = progress toward first bloom)
-  if (bloomRate >= 100) return "開花 First bloom — petals opening!";
-  if (bloomRate >= 85) return "つぼみ開き始め Buds starting to open (85%+)";
-  if (bloomRate >= 60) return "つぼみ膨らむ Buds swelling (60%+)";
-  if (bloomRate > 0) return "つぼみ Bud stage (" + bloomRate + "%)";
-  return "花芽 Dormant — not yet budding";
+  if (bloomRate >= 100) return "Blooming — petals opening!";
+  if (bloomRate >= 85) return "Buds opening";
+  if (bloomRate >= 60) return "Buds swelling";
+  if (bloomRate > 0) return "Bud stage";
+  return "Dormant";
 }
 
 export function getAvailablePrefectures(): string[] {

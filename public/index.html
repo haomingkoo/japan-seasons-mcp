@@ -235,7 +235,11 @@ function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
   return null; // use default from growthStage/floweringStage
 }
 
-function sakuraRadius(bloomRate, fullRate) {
+function sakuraRadius(bloomRate, fullRate, fullBloomForecast) {
+  if (fullRate >= 100 && fullBloomForecast) {
+    const days = Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000);
+    if (days > 6) return 5;  // ended — smaller
+  }
   if (fullRate >= 90) return 9;
   if (fullRate > 0) return 7;
   if (bloomRate > 0) return 5;
@@ -363,7 +367,7 @@ async function loadPrefSpots(prefCode, prefName) {
     for (const spot of data.spots) {
       if (!spot.lat || !spot.lon) continue;
       const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-      const radius = sakuraRadius(spot.bloomRate, spot.fullRate);
+      const radius = sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5,
         fillOpacity: 0.9,
@@ -668,11 +672,10 @@ async function searchTrip() {
     for (const spot of nearbySpots) {
       const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const marker = L.circleMarker([spot.lat, spot.lon], {
-        radius: sakuraRadius(spot.bloomRate, spot.fullRate),
+        radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
         fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
       });
-      const displayName = spot.nameRomaji ? `${spot.name} <span style="color:#888">${spot.nameRomaji}</span>` : spot.name;
-      marker.bindPopup(`<b>${displayName}</b><br>${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>${spot.distance}km from ${spot.nearCity}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps &rarr;</a>`);
+      marker.bindPopup(spotPopupHtml(spot));
       clusterGroup.addLayer(marker);
       bounds.push([spot.lat, spot.lon]);
     }
@@ -759,7 +762,7 @@ async function findNearMe() {
       for (const spot of nearby) {
         const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
         const marker = L.circleMarker([spot.lat, spot.lon], {
-          radius: sakuraRadius(spot.bloomRate, spot.fullRate),
+          radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
           fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
         }).addTo(mapInstance);
         marker.bindPopup(spotPopupHtml(spot));
@@ -928,7 +931,7 @@ async function loadAllSpotsOnMap() {
     for (const spot of allSpotsData.spots) {
       if (!spot.lat || !spot.lon) continue;
       const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-      const radius = sakuraRadius(spot.bloomRate, spot.fullRate);
+      const radius = sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
         bloomRate: spot.bloomRate, fullRate: spot.fullRate, fullBloomForecast: spot.fullBloomForecast,
@@ -974,7 +977,7 @@ async function loadAllSpotsOnMap() {
         const marker = L.circleMarker(coords, {
           radius, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
         }).addTo(mapInstance);
-        marker.bindPopup(`<b>${city.cityName}</b> (${city.prefName})<br>${city.status}`);
+        marker.bindPopup(`<div style="min-width:180px"><b>${city.cityName}</b> (${city.prefName})<br><b>${city.status}</b><br><span style="font-size:11px;color:#888">Bloom: ${fmtDate(city.bloom?.forecast)} · Full: ${fmtDate(city.fullBloom?.forecast)}</span></div>`);
         marker.on('click', () => loadPrefSpots(city.prefCode, city.prefName));
         markers.push(marker);
       }
