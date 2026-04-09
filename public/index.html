@@ -525,12 +525,29 @@ function updateLegend(type) {
   }
 }
 
-// ── Search/filter ──
+// ── Fuzzy search/filter ──
+function fuzzyMatch(text, query) {
+  // Exact substring match first
+  if (text.includes(query)) return true;
+  // Fuzzy: check if all query chars appear in order in text
+  let ti = 0;
+  for (let qi = 0; qi < query.length; qi++) {
+    const found = text.indexOf(query[qi], ti);
+    if (found === -1) return false;
+    ti = found + 1;
+  }
+  return true;
+}
+
 function filterSidebar(query) {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().replace(/[\s\-]/g, '');
+  if (!q) {
+    document.querySelectorAll('.spot-item').forEach(el => el.style.display = '');
+    return;
+  }
   document.querySelectorAll('.spot-item').forEach(el => {
-    const text = el.textContent.toLowerCase();
-    el.style.display = text.includes(q) ? '' : 'none';
+    const text = el.textContent.toLowerCase().replace(/[\s\-]/g, '');
+    el.style.display = fuzzyMatch(text, q) ? '' : 'none';
   });
 }
 
