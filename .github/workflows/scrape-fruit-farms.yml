@@ -1,0 +1,41 @@
+name: Scrape Fruit Farm Spots
+
+on:
+  schedule:
+    # Every Monday at 2am JST (Sunday 17:00 UTC)
+    - cron: '0 17 * * 0'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Run scraper
+        run: python3 scrape-fruit-farms.py
+        timeout-minutes: 30
+
+      - name: Check if data changed
+        id: check
+        run: |
+          git diff --quiet public/fruit-farms.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit updated farm data
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/fruit-farms.json
+          git commit -m "chore: update fruit farm spots (weekly scrape)"
+          git push

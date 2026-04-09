@@ -1,4 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import {
   getSakuraForecast,
   getSakuraSpots,
@@ -105,6 +107,19 @@ export async function handleApiRequest(
       if (!prefCode) { error(res, `Prefecture "${pref}" not found`); return true; }
       const spots = await getKoyoSpots(prefCode);
       json(res, spots);
+      return true;
+    }
+
+    // GET /api/fruit/farms — serve cached Navitime farm data
+    if (pathname === "/api/fruit/farms") {
+      try {
+        const farmsPath = resolve(process.cwd(), "public/fruit-farms.json");
+        const raw = readFileSync(farmsPath, "utf-8");
+        const data = JSON.parse(raw);
+        json(res, data);
+      } catch {
+        json(res, { spots: [], scraped_at: null, total: 0, error: "Farm data not yet available. Run scrape-fruit-farms.py to populate." });
+      }
       return true;
     }
 
