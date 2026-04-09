@@ -349,7 +349,7 @@ async function loadPrefSpots(prefCode, prefName) {
         radius, fillColor: color, color: 'white', weight: 1.5,
         fillOpacity: 0.9,
       }).addTo(mapInstance);
-      marker.bindPopup(`<b>${spot.name}</b><br>Bloom: ${spot.bloomRate}% &middot; Full: ${spot.fullRate}%<br>${spot.status}`);
+      marker.bindPopup(`<b>${spot.name}</b><br>${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>${spot.status}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Open in Google Maps &rarr;</a>`);
       markers.push(marker);
       bounds.push([spot.lat, spot.lon]);
     }
@@ -377,7 +377,10 @@ async function loadPrefSpots(prefCode, prefName) {
         <h4>${spot.name}</h4>
         <div class="bloom-row"><span class="bloom-label">Growth</span><div class="bloom-track"><div class="bloom-fill b" style="width:${Math.min(spot.bloomRate,100)}%">${spot.bloomRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${growthStage(spot.bloomRate)}</span></div>
         <div class="bloom-row"><span class="bloom-label">Flowering</span><div class="bloom-track"><div class="bloom-fill f" style="width:${Math.min(spot.fullRate,100)}%">${spot.fullRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${floweringStage(spot.fullRate)}</span></div>
-        <div class="sub" style="margin-top:4px">Forecast bloom: ${fmtDate(spot.bloomForecast)} → Full bloom: ${fmtDate(spot.fullBloomForecast)}</div>
+        <div class="sub" style="margin-top:4px">
+          Forecast bloom: ${fmtDate(spot.bloomForecast)} → Full bloom: ${fmtDate(spot.fullBloomForecast)}
+          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899">Google Maps &rarr;</a>
+        </div>
       </div>`;
     }
     $('sidebar-content').innerHTML = html;
@@ -433,7 +436,7 @@ async function loadKoyoSpots(prefCode, name) {
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius: 7, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
       }).addTo(mapInstance);
-      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}`);
+      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ea580c">Open in Google Maps &rarr;</a>`);
       markers.push(marker);
       bounds.push([spot.lat, spot.lon]);
     }
@@ -450,7 +453,9 @@ async function loadKoyoSpots(prefCode, name) {
       const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
       html += `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',0,0,'${spot.status.replace(/'/g,"\\'")}')">
         <h4>${spot.name} ${stars ? '<span style="color:#ea580c">'+stars+'</span>' : ''}</h4>
-        <div class="sub">${spot.leafType} &middot; Peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})</div>
+        <div class="sub">${spot.leafType} &middot; Peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})
+          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#ea580c">Google Maps &rarr;</a>
+        </div>
       </div>`;
     }
     $('sidebar-content').innerHTML = html;
