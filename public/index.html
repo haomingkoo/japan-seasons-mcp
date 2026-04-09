@@ -133,6 +133,7 @@
       <button class="mode-btn active" id="btn-sakura" onclick="setMode('sakura')">Cherry Blossom</button>
       <button class="mode-btn" id="btn-trip" onclick="setMode('trip')">Plan My Trip</button>
       <button class="mode-btn koyo" id="btn-koyo" onclick="setMode('koyo')">Autumn Leaves</button>
+      <button class="mode-btn" onclick="findNearMe()" id="btn-nearme" title="Find sakura spots near your current location">Near Me</button>
       <span style="color:var(--gray-200)">|</span>
       <input type="date" class="date-input" id="date-start">
       <span style="font-size:0.8rem;color:var(--gray-400)">to</span>
@@ -518,7 +519,8 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:#f9a8d4"></div> Starting to bloom</div>
       <div class="legend-row"><div class="legend-dot" style="background:#ec4899"></div> Blooming</div>
       <div class="legend-row"><div class="legend-dot" style="background:#be185d"></div> Full bloom (mankai)</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#4ade80"></div> Ended (green leaves)</div>`;
+      <div class="legend-row"><div class="legend-dot" style="background:#4ade80"></div> Ended (green leaves)</div>
+      <div class="legend-row"><div style="background:#db2777;color:white;width:12px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px">★</div> Kawazu cherry (early)</div>`;
   } else {
     $('legend').innerHTML = `
       <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
@@ -692,6 +694,104 @@ async function searchTrip() {
   }
 }
 
+// ── Find Near Me (geolocation) ──
+async function findNearMe() {
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser');
+    return;
+  }
+
+  $('btn-nearme').textContent = 'Locating...';
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    $('btn-nearme').textContent = 'Near Me';
+
+    $('sidebar-header').innerHTML = `<h2>Spots Near You</h2><p>Within 30km of your location</p>`;
+    $('sidebar-content').innerHTML = '<div class="loading">Loading nearby spots...</div>';
+    updateLegend('sakura');
+
+    try {
+      if (!allSpotsData) allSpotsData = await api('/api/sakura/all-spots');
+      clearMarkers();
+
+      // Your location marker
+      const myMarker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          html: '<div style="background:#3b82f6;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',
+          className: '', iconSize: [16, 16], iconAnchor: [8, 8],
+        })
+      }).addTo(mapInstance);
+      myMarker.bindPopup('<b>You are here</b>');
+      markers.push(myMarker);
+
+      // Find spots within 30km
+      const nearby = [];
+      for (const spot of allSpotsData.spots) {
+        if (!spot.lat || !spot.lon) continue;
+        const dist = haversineKm(lat, lon, spot.lat, spot.lon);
+        if (dist <= 30) {
+          nearby.push({ ...spot, distance: Math.round(dist * 10) / 10 });
+        }
+      }
+      nearby.sort((a, b) => a.distance - b.distance);
+
+      // Add to map
+      for (const spot of nearby) {
+        const color = sakuraColor(spot.bloomRate, spot.fullRate);
+        const marker = L.circleMarker([spot.lat, spot.lon], {
+          radius: sakuraRadius(spot.bloomRate, spot.fullRate),
+          fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
+        }).addTo(mapInstance);
+        marker.bindPopup(spotPopupHtml(spot));
+        markers.push(marker);
+      }
+
+      mapInstance.setView([lat, lon], 12);
+
+      // Sidebar
+      $('sidebar-header').innerHTML = `<h2>Spots Near You</h2><p>${nearby.length} spots within 30km</p>`;
+      let html = '';
+      for (const spot of nearby) {
+        html += spotCardHtml(spot, `${spot.distance}km away`);
+      }
+      if (nearby.length === 0) {
+        html = '<div style="padding:20px;text-align:center;color:var(--gray-400)">No sakura spots within 30km. Are you in Japan?</div>';
+      }
+      $('sidebar-content').innerHTML = html;
+    } catch (e) {
+      $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    }
+  }, (err) => {
+    $('btn-nearme').textContent = 'Near Me';
+    alert('Could not get your location. Make sure location access is enabled.');
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+// ── Shared spot popup/card HTML builders ──
+
+function spotPopupHtml(spot) {
+  const displayName = spot.nameRomaji ? `${spot.name} <span style="color:#888">${spot.nameRomaji}</span>` : spot.name;
+  return `<b>${displayName}</b><br>
+    ${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>
+    ${spot.status}<br>
+    <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps</a>
+    &middot; <a href="https://japantravel.navitime.com/en/area/jp/spot/${spot.lat},${spot.lon}/" target="_blank" style="color:#0369a1">Route (Navitime)</a>`;
+}
+
+function spotCardHtml(spot, extra) {
+  return `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',${spot.bloomRate},${spot.fullRate},'${spot.status.replace(/'/g,"\\'")}')">
+    <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
+    <div class="bloom-row"><span class="bloom-label">Growth</span><div class="bloom-track"><div class="bloom-fill b" style="width:${Math.min(spot.bloomRate,100)}%">${spot.bloomRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${growthStage(spot.bloomRate)}</span></div>
+    <div class="bloom-row"><span class="bloom-label">Flowering</span><div class="bloom-track"><div class="bloom-fill f" style="width:${Math.min(spot.fullRate,100)}%">${spot.fullRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${floweringStage(spot.fullRate)}</span></div>
+    <div class="sub" style="margin-top:4px">
+      ${extra ? extra + ' &middot; ' : ''}Bloom: ${fmtDate(spot.bloomForecast)} → Full: ${fmtDate(spot.fullBloomForecast)}
+      &middot; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899">Maps</a>
+      &middot; <a href="https://japantravel.navitime.com/en/area/jp/spot/${spot.lat},${spot.lon}/" target="_blank" onclick="event.stopPropagation()" style="color:#0369a1">Route</a>
+    </div>
+  </div>`;
+}
+
 // ── Weather card ──
 async function loadWeatherCard(cityName) {
   try {
@@ -772,6 +872,23 @@ async function loadAllSpotsOnMap() {
       clusterGroup.addLayer(marker);
     }
     mapInstance.addLayer(clusterGroup);
+
+    // Also load Kawazu cherry spots with distinct markers (★ star, magenta)
+    try {
+      const kawazu = await api('/api/kawazu');
+      for (const spot of kawazu.spots || []) {
+        if (!spot.lat || !spot.lon) continue;
+        const m = L.marker([spot.lat, spot.lon], {
+          icon: L.divIcon({
+            html: `<div style="background:#db2777;color:white;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)" title="Kawazu Cherry">★</div>`,
+            className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+          })
+        }).addTo(mapInstance);
+        m.bindPopup(`<b>${spot.name}</b> ${spot.nameRomaji || ''}<br><em>Kawazu Cherry (河津桜) — early bloom Jan-Feb</em><br>${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps</a>`);
+        markers.push(m);
+      }
+    } catch {} // Kawazu is bonus — don't break main view
+
   } catch (e) {
     // Fallback to city markers if all-spots fails
     for (const region of (sakuraData?.regions || [])) {
