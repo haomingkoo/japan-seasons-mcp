@@ -83,8 +83,8 @@
       justify-content: flex-end; padding-right: 4px;
       font-size: 0.65rem; font-weight: 600; color: white; min-width: 24px;
     }
-    .bloom-fill.b { background: linear-gradient(90deg, #f9a8d4, #ec4899); }
-    .bloom-fill.f { background: linear-gradient(90deg, #f472b6, #be185d); }
+    .bloom-fill.b { background: linear-gradient(90deg, #fdba74, #f97316); }
+    .bloom-fill.f { background: linear-gradient(90deg, #f9a8d4, #be185d); }
 
     /* ── Badge ── */
     .badge {
@@ -202,13 +202,16 @@ function fmtDate(iso) {
 }
 
 // ── Color by bloom rate ──
+// Lifecycle: orange (bud/growth) → pink (flowering) → green (ended/leaves)
 function sakuraColor(bloomRate, fullRate) {
-  if (fullRate >= 90) return '#be185d';   // full bloom — deep pink
-  if (fullRate >= 40) return '#ec4899';   // half+ bloom — pink
-  if (fullRate > 0) return '#f9a8d4';    // starting bloom — light pink
-  if (bloomRate >= 85) return '#86efac';  // buds opening — green
-  if (bloomRate >= 60) return '#bbf7d0';  // buds swelling — light green
-  return '#e5e5e5';                       // dormant — gray
+  if (fullRate >= 100) return '#be185d';  // full bloom — deep pink
+  if (fullRate >= 70) return '#ec4899';   // 70%+ bloom — pink
+  if (fullRate >= 20) return '#f472b6';   // starting to bloom — medium pink
+  if (fullRate > 0) return '#f9a8d4';    // just started — light pink
+  if (bloomRate >= 85) return '#f97316';  // buds opening — orange
+  if (bloomRate >= 60) return '#fb923c';  // buds swelling — light orange
+  if (bloomRate > 0) return '#fdba74';   // bud stage — pale orange
+  return '#d4d4d4';                       // dormant — gray
 }
 
 function sakuraRadius(bloomRate, fullRate) {
@@ -240,9 +243,9 @@ function statusToColor(status) {
   if (status.includes('Full bloom') || status.includes('best')) return '#be185d';
   if (status.includes('Falling') || status.includes('scattering')) return '#f9a8d4';
   if (status.includes('Blooming') || status.includes('Approaching')) return '#ec4899';
-  if (status.includes('Coming') || status.includes('soon')) return '#86efac';
-  if (status.includes('Ended')) return '#d4d4d4';
-  return '#e5e5e5';
+  if (status.includes('Coming') || status.includes('soon')) return '#f97316';
+  if (status.includes('Ended')) return '#4ade80';  // green — leaves out
+  return '#d4d4d4';
 }
 function statusToRadius(status) {
   if (status.includes('Full bloom') || status.includes('best')) return 10;
@@ -502,13 +505,14 @@ function clearMarkers() {
 function updateLegend(type) {
   if (type === 'sakura') {
     $('legend').innerHTML = `
-      <div style="font-weight:600;margin-bottom:4px">Bloom Status</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#be185d"></div> Full bloom (mankai)</div>
+      <div style="font-weight:600;margin-bottom:4px">Bloom Lifecycle</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#d4d4d4"></div> Dormant</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#fdba74"></div> Bud stage</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#f97316"></div> Buds opening</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#f9a8d4"></div> Starting to bloom</div>
       <div class="legend-row"><div class="legend-dot" style="background:#ec4899"></div> Blooming</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#f9a8d4"></div> Starting</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#86efac"></div> Buds opening</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#bbf7d0"></div> Buds swelling</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#e5e5e5"></div> Dormant</div>`;
+      <div class="legend-row"><div class="legend-dot" style="background:#be185d"></div> Full bloom (mankai)</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#4ade80"></div> Ended (green leaves)</div>`;
   } else {
     $('legend').innerHTML = `
       <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
