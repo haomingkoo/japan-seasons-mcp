@@ -838,7 +838,6 @@ function spotPopupHtml(spot) {
     <span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>
     <div style="margin-top:4px">
       <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
-      &middot; <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}" target="_blank" style="color:#0369a1;font-size:12px">Directions</a>
     </div>
   </div>`;
 }
@@ -850,7 +849,6 @@ function spotCardHtml(spot, extra) {
     <div class="sub" style="margin-top:4px">
       ${extra ? extra + ' &middot; ' : ''}${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}
       &middot; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899">Maps</a>
-      &middot; <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#0369a1">Directions</a>
     </div>
   </div>`;
 }
@@ -970,8 +968,7 @@ async function loadAllSpotsOnMap() {
           `<em style="color:#db2777">Kawazu Cherry (河津桜)</em><br>` +
           `<b>${kStatus}</b><br>` +
           `<span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>` +
-          `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>` +
-          ` &middot; <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}" target="_blank" style="color:#0369a1;font-size:12px">Directions</a></div>`
+          `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a></div>`
         );
         markers.push(m);
       }
