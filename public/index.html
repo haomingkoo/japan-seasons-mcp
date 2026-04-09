@@ -792,11 +792,33 @@ async function findNearMe() {
 function spotPopupHtml(spot) {
   const displayName = spot.nameRomaji ? `${spot.name} <span style="color:#888">${spot.nameRomaji}</span>` : spot.name;
   const liveStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || spot.status;
-  return `<b>${displayName}</b><br>
-    ${growthStage(spot.bloomRate)} ${spot.bloomRate}% &middot; ${floweringStage(spot.fullRate)} ${spot.fullRate}%<br>
-    <b>${liveStatus}</b><br>
-    <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899">Google Maps</a>
-    &middot; <a href="https://japantravel.navitime.com/en/area/jp/spot/${spot.lat},${spot.lon}/" target="_blank" style="color:#0369a1">Route (Navitime)</a>`;
+  const bColor = spot.bloomRate >= 100 ? '#f97316' : '#fdba74';
+  const fColor = spot.fullRate >= 90 ? '#be185d' : '#f9a8d4';
+  return `<div style="min-width:220px">
+    <b>${displayName}</b><br>
+    <div style="margin:6px 0">
+      <div style="display:flex;align-items:center;gap:4px;margin:3px 0">
+        <span style="font-size:11px;color:#888;width:55px">Growth</span>
+        <div style="flex:1;height:12px;background:#f0f0f0;border-radius:6px;overflow:hidden">
+          <div style="width:${Math.min(spot.bloomRate,100)}%;height:100%;background:linear-gradient(90deg,#fdba74,${bColor});border-radius:6px"></div>
+        </div>
+        <span style="font-size:11px;width:30px;text-align:right">${spot.bloomRate}%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin:3px 0">
+        <span style="font-size:11px;color:#888;width:55px">Flowering</span>
+        <div style="flex:1;height:12px;background:#f0f0f0;border-radius:6px;overflow:hidden">
+          <div style="width:${Math.min(spot.fullRate,100)}%;height:100%;background:linear-gradient(90deg,#f9a8d4,${fColor});border-radius:6px"></div>
+        </div>
+        <span style="font-size:11px;width:30px;text-align:right">${spot.fullRate}%</span>
+      </div>
+    </div>
+    <b style="color:#be185d">${liveStatus}</b><br>
+    <span style="font-size:11px;color:#888">Bloom: ${fmtDate(spot.bloomForecast)} → Full: ${fmtDate(spot.fullBloomForecast)}</span><br>
+    <div style="margin-top:4px">
+      <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
+      &middot; <a href="https://japantravel.navitime.com/en/area/jp/spot/${spot.lat},${spot.lon}/" target="_blank" style="color:#0369a1;font-size:12px">Route (Navitime)</a>
+    </div>
+  </div>`;
 }
 
 function spotCardHtml(spot, extra) {
