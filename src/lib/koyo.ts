@@ -1,6 +1,7 @@
 import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
+import { romanizeName } from "./romaji.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ export interface KoyoSpot {
   code: string;
   name: string;
   nameReading: string;
+  nameRomaji: string;
   lat: number;
   lon: number;
   leafType: string;              // "1" = maple, etc.
@@ -188,6 +190,7 @@ export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
       code: s.code ?? "",
       name: s.name ?? "",
       nameReading: s.kana ?? "",
+      nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
       lat: s.lat ?? 0,
       lon: s.lon ?? 0,
       leafType: s.leaf_type === "1" ? "Maple (momiji)" : s.leaf_type === "2" ? "Ginkgo (ichou)" : "Mixed",

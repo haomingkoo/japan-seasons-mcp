@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
+import { romanizeName } from "./romaji.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ export interface SakuraSpot {
   code: string;           // spot code e.g. "13370031"
   name: string;           // Japanese name e.g. "靖国神社"
   nameReading: string;    // kana reading e.g. "やすくにじんじゃ"
+  nameRomaji: string;     // romanized e.g. "Yasukuni Jinja"
   lat: number;
   lon: number;
   prefecture: string;     // prefecture name
@@ -269,6 +271,7 @@ function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
       code: s.code ?? "",
       name: s.name ?? "",
       nameReading: s.kana ?? "",
+      nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
       lat: s.lat ?? 0,
       lon: s.lon ?? 0,
       prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? result?.area ?? "",
@@ -492,6 +495,7 @@ export function findBestRegions(
 export interface KawazuSpot {
   code: string;
   name: string;
+  nameRomaji: string;
   lat: number;
   lon: number;
   bloomForecast: string | null;
@@ -547,6 +551,7 @@ export async function getKawazuForecast(): Promise<KawazuResult> {
       return {
         code: s.code ?? "",
         name: s.name ?? "",
+        nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
         lat: s.lat ?? 0,
         lon: s.lon ?? 0,
         bloomForecast: s.bloom_forecast_datetime ?? null,
