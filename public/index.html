@@ -112,12 +112,12 @@
 
     /* ── Bloom filter pills ── */
     .filter-pill {
-      padding: 4px 10px; border: 1px solid var(--gray-200); border-radius: 20px;
-      background: white; cursor: pointer; font-size: 0.78rem; color: var(--gray-600);
-      white-space: nowrap; transition: all 0.15s;
+      flex: 1; padding: 5px 4px; border: 1px solid var(--gray-200); border-radius: 6px;
+      background: white; cursor: pointer; font-size: 0.75rem; color: var(--gray-600);
+      white-space: nowrap; transition: all 0.15s; text-align: center; font-weight: 500;
     }
     .filter-pill.active { background: var(--pink); color: white; border-color: var(--pink); }
-    .filter-pill:hover:not(.active) { border-color: var(--gray-400); }
+    .filter-pill:hover:not(.active) { background: var(--gray-50); border-color: var(--gray-400); }
 
     /* ── Footer link ── */
     .footer-link {
@@ -169,8 +169,7 @@
           oninput="filterSidebar(this.value)"
           style="width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
       </div>
-      <div id="bloom-filters" style="display:none;padding:6px 16px 8px;border-bottom:1px solid var(--gray-200);gap:6px;flex-wrap:wrap;align-items:center">
-        <span style="font-size:0.75rem;color:var(--gray-400);margin-right:2px">Filter:</span>
+      <div id="bloom-filters" style="display:none;padding:8px 12px;border-bottom:1px solid var(--gray-200);gap:4px;">
         <button class="filter-pill active" onclick="applyBloomFilter('all',this)">All</button>
         <button class="filter-pill" onclick="applyBloomFilter('peak',this)">🌺 Full Bloom</button>
         <button class="filter-pill" onclick="applyBloomFilter('blooming',this)">🌸 Blooming</button>
