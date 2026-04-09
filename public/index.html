@@ -146,11 +146,6 @@
       <button class="mode-btn fruit" id="btn-fruit" onclick="setMode('fruit')">Fruit Picking</button>
       <button class="mode-btn" id="btn-trip" onclick="setMode('trip')">Plan My Trip</button>
       <button class="mode-btn" onclick="findNearMe()" id="btn-nearme" title="Find sakura spots near your current location">Near Me</button>
-      <span style="color:var(--gray-200)">|</span>
-      <input type="date" class="date-input" id="date-start">
-      <span style="font-size:0.8rem;color:var(--gray-400)">to</span>
-      <input type="date" class="date-input" id="date-end">
-      <button class="find-btn" onclick="findBestDates()">Find</button>
     </div>
   </div>
 
@@ -938,21 +933,25 @@ function selectTripMonth(m, el) {
 }
 
 function loadTripPlanner() {
-  $('sidebar-header').innerHTML = '<h2>Plan My Trip</h2><p>Find nature experiences near your cities</p>';
+  $('sidebar-header').innerHTML = '<h2>Plan My Trip</h2><p>What to expect during your travel dates</p>';
   updateLegend('sakura');
-  tripMonth = new Date().getMonth() + 1;
 
-  const monthPills = MO.map((mo, i) => {
-    const mn = i + 1;
-    return `<button class="filter-pill trip-month-pill${mn === tripMonth ? ' active' : ''}" onclick="selectTripMonth(${mn},this)" style="flex:0 0 auto;padding:4px 8px">${mo}</button>`;
-  }).join('');
+  // Default dates: today + 7 days
+  const today = new Date();
+  const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
+  const fmt = d => d.toISOString().slice(0, 10);
 
   $('sidebar-content').innerHTML = `
     <div style="padding:16px 16px 12px">
+      <div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:5px">Travel dates</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <input type="date" id="trip-start" value="${fmt(today)}" style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
+        <span style="color:var(--gray-400);font-size:0.82rem">to</span>
+        <input type="date" id="trip-end" value="${fmt(nextWeek)}" style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
+      </div>
+      <div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:5px">Cities you're visiting <span style="color:var(--gray-400)">(optional)</span></div>
       <textarea id="trip-cities" rows="2" placeholder="e.g. Tokyo, Kyoto, Osaka"
         style="width:100%;padding:10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical"></textarea>
-      <div style="font-size:0.78rem;color:var(--gray-600);margin:10px 0 5px">When are you going?</div>
-      <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">${monthPills}</div>
       <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
         <label style="font-size:0.82rem;color:var(--gray-600);white-space:nowrap">Radius:</label>
         <select id="trip-radius" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem">
@@ -970,9 +969,18 @@ function loadTripPlanner() {
 }
 
 async function searchTrip() {
+  const startVal = $('trip-start')?.value;
+  const endVal = $('trip-end')?.value;
+  if (!startVal || !endVal) { alert('Pick travel dates'); return; }
+  const startDate = new Date(startVal), endDate = new Date(endVal);
+  if (isNaN(startDate) || isNaN(endDate)) { alert('Invalid dates'); return; }
+  // Use midpoint month for seasonal logic
+  const midMs = (startDate.getTime() + endDate.getTime()) / 2;
+  const m = new Date(midMs).getMonth() + 1;
+  tripMonth = m;
+
   const input = $('trip-cities').value;
   const radiusKm = parseInt($('trip-radius').value);
-  const m = tripMonth;
   const cities = input.split(/[,\n]+/).map(c => c.trim().toLowerCase()).filter(Boolean);
   if (!cities.length) { alert('Enter at least one city'); return; }
 
@@ -994,6 +1002,11 @@ async function searchTrip() {
     const isSakuraSeason = m >= 2 && m <= 5;
     const isKoyoSeason = m >= 9 && m <= 12;
     if (!allSpotsData && isSakuraSeason) allSpotsData = await api('/api/sakura/all-spots');
+    // Also fetch best-date sakura cities for this trip window
+    let bestCities = [];
+    if (isSakuraSeason && startVal && endVal) {
+      try { const bd = await api(`/api/sakura/best?start=${startVal}&end=${endVal}`); bestCities = bd.matches || []; } catch {}
+    }
     if (!farmDataCache) { try { farmDataCache = await api('/api/fruit/farms'); } catch {} }
 
     clearMarkers();
@@ -1110,7 +1123,17 @@ async function searchTrip() {
     // Sakura section
     if (isSakuraSeason) {
       html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots within ${radiusKm}km</div>`;
-      if (nearbySakura.length) {
+      if (bestCities.length && !resolved.length) {
+        // No cities specified — show best bloom cities for the date window
+        html += `<div style="padding:8px 16px;font-size:0.82rem;color:var(--gray-600);border-bottom:1px solid var(--gray-100)">Cities in bloom during your trip:</div>`;
+        bestCities.slice(0, 8).forEach(c => {
+          const st = statusText(c.status);
+          html += `<div class="spot-item" onclick="loadPrefSpots('${c.prefCode}','${c.prefName}')">
+            <h4>${c.cityName} <span style="font-weight:400;color:var(--gray-400)">${c.prefName}</span></h4>
+            <div class="sub"><span class="badge ${st.cls}">${st.text}</span> &nbsp; Full bloom: ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : '—'}</div>
+          </div>`;
+        });
+      } else if (nearbySakura.length) {
         nearbySakura.slice(0, 20).forEach(spot => {
           html += `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',${spot.bloomRate},${spot.fullRate},'${spot.status.replace(/'/g,"\\'")}')">
             <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
