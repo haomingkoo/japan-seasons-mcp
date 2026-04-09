@@ -14,6 +14,8 @@
 
 ---
 
+**Try it live:** [sakura.kooexperience.com](https://sakura.kooexperience.com) — interactive map with all 1,012 spots
+
 **The problem:** You ask ChatGPT, Gemini, or Claude *"When should I visit Kyoto for cherry blossoms?"* and get a generic answer based on training data. The actual bloom date shifts by weeks every year depending on temperature.
 
 **The fix:** This MCP server gives AI assistants access to **live forecast data** from the Japan Meteorological Corporation — the same source behind Japan's #1 cherry blossom app (SAKURA NAVI). Real dates. Real bloom percentages. Updated daily.
@@ -60,6 +62,8 @@ PORT=3000 npx japan-sakura-koyo-mcp --http
 ```
 
 Deploy to Railway, Fly.io, or Render — any MCP client connects with just a URL.
+
+Or use our hosted instance: `https://sakura.kooexperience.com/mcp`
 
 ## Tools
 
@@ -187,14 +191,29 @@ npm run start:http   # HTTP mode on port 3000
 - **[Japan Meteorological Corporation](https://n-kishou.com)** (日本気象株式会社) — Sakura & koyo forecasts, bloom rates, 1,700+ viewing spots
 - **[Japan Meteorological Agency](https://www.jma.go.jp)** (気象庁) — Weather forecasts via [tsukumijima API](https://weather.tsukumijima.net)
 
+## Web App
+
+Visit [sakura.kooexperience.com](https://sakura.kooexperience.com) for the interactive frontend:
+
+- **Interactive map** with all 1,012 sakura spots + marker clustering
+- **Lifecycle colors** — orange (bud) → pink (bloom) → green (ended)
+- **Plan My Trip** — type cities you're visiting, find nearby spots with distance
+- **Near Me** — uses your location to find spots within 30km
+- **Kawazu cherry ★ markers** on the map (early-bloom Jan-Feb variety)
+- **Fuzzy search** — find spots even with typos
+- **Romaji names** — all 1,700 spots romanized for international users
+- **Google Maps + Navitime** route links on every spot
+- **Weather forecast** card when viewing prefecture spots
+
 ## Contributing
 
 PRs welcome. Key areas:
 
-- **English spot names** — The 1,700 spot names are in Japanese. Translation mapping would help international users.
 - **Okinawa sakura** — Uses hikan-zakura (different species), currently not covered by the forecast API.
 - **More data sources** — Plum blossom (ume), wisteria (fuji), sunflower (himawari) seasons.
 - **Historical data** — JMA has bloom records back to 1953.
+- **Multi-select prefectures** — View spots across multiple regions at once.
+- **Nearby attractions** — Overlay famous landmarks near sakura spots.
 
 ## License
 
