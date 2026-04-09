@@ -205,10 +205,8 @@ function fmtDate(iso) {
   const d = new Date(iso);
   return `${d.getMonth()+1}/${d.getDate()}`;
 }
-// Prefix with ~ when rate < 100 to indicate it's still a forecast
-function fmtForecast(iso, rate) {
-  if (!iso) return '—';
-  return (rate >= 100 ? '' : '~') + fmtDate(iso);
+function daysSince(iso) {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 // Sanity-check sakura dates: bloom happens Jan–Jun or Oct–Dec at the latest (Hokkaido).
 // A date in Jul–Sep is always stale/bad API data.
@@ -231,7 +229,7 @@ function fmtDates(bloomForecast, bloomRate, fullBloomForecast, fullRate) {
 // fullRate stays at 100% forever after peak — use forecast date to detect "ended"
 function sakuraColor(bloomRate, fullRate, fullBloomForecast) {
   if (fullRate >= 100) {
-    const daysSinceFull = fullBloomForecast ? Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000) : 0;
+    const daysSinceFull = fullBloomForecast ? daysSince(fullBloomForecast) : 0;
     if (daysSinceFull > 10) return '#4ade80';  // green — ended, leaves out
     if (daysSinceFull > 6) return '#86efac';   // light green — petals falling
     return '#be185d';                           // deep pink — still at peak
@@ -248,7 +246,7 @@ function sakuraColor(bloomRate, fullRate, fullBloomForecast) {
 // Spot status text also needs the date check
 function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
   if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000);
+    const days = daysSince(fullBloomForecast);
     if (days > 10) return 'Ended — green leaves';
     if (days > 6) return 'Falling — petals scattering';
     if (days > 3) return 'Past peak — still some petals';
@@ -259,7 +257,7 @@ function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
 
 function sakuraRadius(bloomRate, fullRate, fullBloomForecast) {
   if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000);
+    const days = daysSince(fullBloomForecast);
     if (days > 6) return 5;  // ended — smaller
   }
   if (fullRate >= 90) return 9;
@@ -288,7 +286,7 @@ function floweringStage(fullRate) {
 // Show only the most relevant bar. Hide entirely once past peak (> 3 days after full bloom).
 function bloomBar(bloomRate, fullRate, fullBloomForecast) {
   if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.floor((Date.now() - new Date(fullBloomForecast).getTime()) / 86400000);
+    const days = daysSince(fullBloomForecast);
     if (days > 3) return ''; // past peak — no bar, status line says it all
   }
   if (fullRate > 0) {
@@ -344,10 +342,7 @@ const CITY_COORDS = {
 // ── Mode switching ──
 function setMode(m) {
   mode = m;
-  $('btn-sakura').classList.toggle('active', m === 'sakura');
-  $('btn-trip').classList.toggle('active', m === 'trip');
-  $('btn-koyo').classList.toggle('active', m === 'koyo');
-  $('btn-fruit').classList.toggle('active', m === 'fruit');
+  ['sakura','koyo','fruit','trip'].forEach(k => $(`btn-${k}`).classList.toggle('active', k === m));
   if (m === 'sakura') loadSakura();
   if (m === 'trip') loadTripPlanner();
   if (m === 'koyo') loadKoyo();
@@ -478,8 +473,8 @@ async function loadSakura() {
           <h4>${city.cityName} <span style="font-weight:400;color:var(--gray-400)">${city.prefName}</span></h4>
           <div class="sub">
             <span class="badge ${st.cls}">${st.text}</span>
-            &nbsp; Bloom: ${fmtDate(city.bloom.forecast)}${city.bloom.observation ? ' → '+fmtDate(city.bloom.observation) : ''}
-            &nbsp; Full: ${fmtDate(city.fullBloom.forecast)}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}
+            &nbsp; Bloom: ${sakuraDateOk(city.bloom.forecast) ? fmtDate(city.bloom.forecast) : '—'}${city.bloom.observation ? ' → '+fmtDate(city.bloom.observation) : ''}
+            &nbsp; Full: ${sakuraDateOk(city.fullBloom.forecast) ? fmtDate(city.fullBloom.forecast) : '—'}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}
           </div>
         </div>`;
       }
@@ -527,7 +522,7 @@ async function loadPrefSpots(prefCode, prefName) {
       const jma = data.jmaStation;
       html += `<div class="spot-item" style="background:var(--pink-light)">
         <h4>JMA Station: ${jma.name}</h4>
-        ${bloomBar(jma.bloomRate, jma.fullRate, jma.fullBloomForecast)}
+        ${bloomBar(jma.bloomRate, jma.fullRate, jma.fullForecast)}
       </div>`;
 
       // Load weather for this city
@@ -660,7 +655,7 @@ async function findBestDates() {
         <h4>${city.cityName} <span style="font-weight:400;color:var(--gray-400)">${city.prefName}</span></h4>
         <div class="sub">
           <span class="badge ${st.cls}">${st.text}</span>
-          &nbsp; Full bloom: ${fmtDate(city.fullBloom.forecast)}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}
+          &nbsp; Full bloom: ${sakuraDateOk(city.fullBloom.forecast) ? fmtDate(city.fullBloom.forecast) : '—'}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}
         </div>
       </div>`;
     }
@@ -1033,7 +1028,7 @@ async function loadAllSpotsOnMap() {
           const fr = m.options.fullRate || 0;
           const fbf = m.options.fullBloomForecast;
           if (fr >= 100 && fbf) {
-            const days = Math.floor((Date.now() - new Date(fbf).getTime()) / 86400000);
+            const days = daysSince(fbf);
             if (days > 6) { ended++; return; }
             if (days >= 0) { peak++; return; }
           }

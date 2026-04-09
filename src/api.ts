@@ -70,7 +70,7 @@ export async function handleApiRequest(
     // GET /api/sakura/all-spots — load all 1,012 spots across Japan
     if (pathname === "/api/sakura/all-spots") {
       const allSpots: any[] = [];
-      const prefCodes = Array.from({ length: 46 }, (_, i) => String(i + 1).padStart(2, "0"));
+      const prefCodes = Array.from({ length: 47 }, (_, i) => String(i + 1).padStart(2, "0"));
       const results = await Promise.allSettled(
         prefCodes.map(code => getSakuraSpots(code))
       );
