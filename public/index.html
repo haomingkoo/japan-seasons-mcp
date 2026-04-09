@@ -566,13 +566,14 @@ function renderFruitMonth(m) {
           className: '', iconSize: [24, 24], iconAnchor: [12, 12],
         })
       });
-      marker.bindPopup(`<div style="min-width:180px">
+      const srcLabel = farm.source === 'jalan' ? 'Jalan' : farm.url?.includes('navitime') ? 'Navitime' : null;
+      marker.bindPopup(`<div style="min-width:190px">
         <b>${farm.name}</b><br>
         <span style="font-size:11px;color:#666">${farm.address || ''}</span><br>
-        <span style="font-size:11px">${(farm.fruits||[]).join(', ')}</span><br>
-        <div style="margin-top:6px">
+        <span style="font-size:11px;color:#555">${(farm.fruits||[]).join(' · ')}</span>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
           <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
-          ${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">Details</a>` : ''}
+          ${farm.url && srcLabel ? `<a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">${srcLabel} →</a>` : ''}
         </div>
       </div>`);
       clusterGroup.addLayer(marker);
