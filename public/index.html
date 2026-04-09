@@ -132,8 +132,8 @@
     <h1>Japan Sakura & Koyo</h1>
     <div class="controls">
       <button class="mode-btn active" id="btn-sakura" onclick="setMode('sakura')">Cherry Blossom</button>
-      <button class="mode-btn" id="btn-trip" onclick="setMode('trip')">Plan My Trip</button>
       <button class="mode-btn koyo" id="btn-koyo" onclick="setMode('koyo')">Autumn Leaves</button>
+      <button class="mode-btn" id="btn-trip" onclick="setMode('trip')">Plan My Trip</button>
       <button class="mode-btn" onclick="findNearMe()" id="btn-nearme" title="Find sakura spots near your current location">Near Me</button>
       <span style="color:var(--gray-200)">|</span>
       <input type="date" class="date-input" id="date-start">
@@ -881,33 +881,37 @@ async function loadAllSpotsOnMap() {
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
-        const markers = cluster.getAllChildMarkers();
-        // Average bloom rate for cluster color
-        let totalBloom = 0, totalFull = 0;
-        markers.forEach(m => { totalBloom += m.options.bloomRate || 0; totalFull += m.options.fullRate || 0; });
-        const avgBloom = totalBloom / markers.length;
-        const avgFull = totalFull / markers.length;
-        // Check if cluster spots are past peak by looking at forecast dates
-        let endedCount = 0;
-        markers.forEach(m => {
-          if (m.options.fullBloomForecast && m.options.fullRate >= 100) {
-            const days = Math.floor((Date.now() - new Date(m.options.fullBloomForecast).getTime()) / 86400000);
-            if (days > 7) endedCount++;
+        const childMarkers = cluster.getAllChildMarkers();
+        // Count spots by actual status (using date-aware logic)
+        let ended = 0, peak = 0, blooming = 0, buds = 0, dormant = 0;
+        childMarkers.forEach(m => {
+          const br = m.options.bloomRate || 0;
+          const fr = m.options.fullRate || 0;
+          const fbf = m.options.fullBloomForecast;
+          if (fr >= 100 && fbf) {
+            const days = Math.floor((Date.now() - new Date(fbf).getTime()) / 86400000);
+            if (days > 6) { ended++; return; }
+            if (days >= 0) { peak++; return; }
           }
+          if (fr >= 40) { blooming++; return; }
+          if (fr > 0 || br >= 100) { blooming++; return; }
+          if (br > 0) { buds++; return; }
+          dormant++;
         });
-        const mostlyEnded = endedCount > markers.length * 0.6;
 
-        let color = '#d4d4d4';
-        if (mostlyEnded) color = '#4ade80';              // green — ended
-        else if (avgFull >= 90) color = '#be185d';       // deep pink — full bloom
-        else if (avgFull >= 40) color = '#ec4899';       // pink — blooming
-        else if (avgFull > 0) color = '#f9a8d4';         // light pink — starting
-        else if (avgBloom >= 85) color = '#f97316';      // orange — buds opening
-        else if (avgBloom >= 60) color = '#fb923c';      // light orange — swelling
-        else if (avgBloom > 0) color = '#fdba74';        // pale orange — bud
-        const size = Math.min(40 + markers.length * 0.5, 60);
+        // Color by majority status
+        const n = childMarkers.length;
+        let color, textColor;
+        if (ended > n * 0.5) { color = '#4ade80'; textColor = '#166534'; }        // green — mostly ended
+        else if (peak > n * 0.3) { color = '#be185d'; textColor = 'white'; }       // deep pink — peak
+        else if (blooming > n * 0.3) { color = '#ec4899'; textColor = 'white'; }   // pink — blooming
+        else if (buds > n * 0.3) { color = '#f97316'; textColor = 'white'; }       // orange — buds
+        else if (ended > 0 && blooming > 0) { color = '#f9a8d4'; textColor = '#333'; } // mixed
+        else { color = '#d4d4d4'; textColor = '#333'; }                             // dormant
+
+        const size = Math.min(38 + n * 0.4, 58);
         return L.divIcon({
-          html: `<div style="background:${color};color:${avgFull>40?'white':'#333'};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${markers.length}</div>`,
+          html: `<div style="background:${color};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '',
           iconSize: [size, size],
         });
