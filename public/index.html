@@ -929,24 +929,40 @@ function haversineKm(lat1,lon1,lat2,lon2) {
 }
 
 // ── Trip Planner ──
+let tripMonth = new Date().getMonth() + 1;
+
+function selectTripMonth(m, el) {
+  tripMonth = m;
+  document.querySelectorAll('.trip-month-pill').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
 function loadTripPlanner() {
-  $('sidebar-header').innerHTML = '<h2>Plan My Trip</h2><p>Enter the cities you\'re visiting</p>';
+  $('sidebar-header').innerHTML = '<h2>Plan My Trip</h2><p>Find nature experiences near your cities</p>';
   updateLegend('sakura');
+  tripMonth = new Date().getMonth() + 1;
+
+  const monthPills = MO.map((mo, i) => {
+    const mn = i + 1;
+    return `<button class="filter-pill trip-month-pill${mn === tripMonth ? ' active' : ''}" onclick="selectTripMonth(${mn},this)" style="flex:0 0 auto;padding:4px 8px">${mo}</button>`;
+  }).join('');
 
   $('sidebar-content').innerHTML = `
-    <div style="padding:16px">
-      <textarea id="trip-cities" rows="3" placeholder="Type cities, e.g.:\nTokyo, Kyoto, Osaka\nor: Hakone, Kamakura, Nikko"
+    <div style="padding:16px 16px 12px">
+      <textarea id="trip-cities" rows="2" placeholder="e.g. Tokyo, Kyoto, Osaka"
         style="width:100%;padding:10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <label style="font-size:0.82rem;color:var(--gray-600)">Radius:</label>
+      <div style="font-size:0.78rem;color:var(--gray-600);margin:10px 0 5px">When are you going?</div>
+      <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">${monthPills}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+        <label style="font-size:0.82rem;color:var(--gray-600);white-space:nowrap">Radius:</label>
         <select id="trip-radius" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem">
           <option value="15">15 km</option>
           <option value="30" selected>30 km</option>
           <option value="50">50 km</option>
         </select>
-        <button onclick="searchTrip()" style="flex:1;padding:8px;background:var(--pink);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500">Find sakura spots</button>
+        <button onclick="searchTrip()" style="flex:1;padding:8px;background:var(--pink);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500">Find experiences</button>
       </div>
-      <div style="margin-top:12px;font-size:0.78rem;color:var(--gray-400)">
+      <div style="margin-top:10px;font-size:0.75rem;color:var(--gray-400)">
         Known cities: ${Object.keys(TOURIST_CITIES).map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(', ')}
       </div>
     </div>
@@ -956,109 +972,181 @@ function loadTripPlanner() {
 async function searchTrip() {
   const input = $('trip-cities').value;
   const radiusKm = parseInt($('trip-radius').value);
+  const m = tripMonth;
   const cities = input.split(/[,\n]+/).map(c => c.trim().toLowerCase()).filter(Boolean);
-
   if (!cities.length) { alert('Enter at least one city'); return; }
 
-  // Resolve city coordinates
-  const resolved = [];
-  const unknown = [];
+  const resolved = [], unknown = [];
   for (const city of cities) {
     const coords = TOURIST_CITIES[city];
     if (coords) resolved.push({ name: city, lat: coords[0], lon: coords[1] });
     else unknown.push(city);
   }
-
-  if (resolved.length === 0) {
+  if (!resolved.length) {
     $('trip-results').innerHTML = `<div style="padding:16px;color:#dc2626">Could not find: ${unknown.join(', ')}. Try the city names listed above.</div>`;
     return;
   }
 
-  $('trip-results').innerHTML = '<div class="loading">Loading spots near your cities...</div>';
+  $('trip-results').innerHTML = '<div class="loading">Loading...</div>';
 
   try {
-    if (!allSpotsData) allSpotsData = await api('/api/sakura/all-spots');
+    // Load data sources
+    const isSakuraSeason = m >= 2 && m <= 5;
+    const isKoyoSeason = m >= 9 && m <= 12;
+    if (!allSpotsData && isSakuraSeason) allSpotsData = await api('/api/sakura/all-spots');
+    if (!farmDataCache) { try { farmDataCache = await api('/api/fruit/farms'); } catch {} }
 
     clearMarkers();
-    clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 35,
-      showCoverageOnHover: false,
-      iconCreateFunction: function(cluster) {
-        const n = cluster.getChildCount();
-        const size = Math.min(35 + n * 0.3, 55);
-        return L.divIcon({
-          html: `<div style="background:#ec4899;color:white;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
-          className: '', iconSize: [size, size],
-        });
-      }
-    });
-
-    // Find spots near any of the resolved cities
-    const nearbySpots = [];
-    for (const spot of allSpotsData.spots) {
-      if (!spot.lat || !spot.lon) continue;
-      for (const city of resolved) {
-        const dist = haversineKm(city.lat, city.lon, spot.lat, spot.lon);
-        if (dist <= radiusKm) {
-          nearbySpots.push({ ...spot, nearCity: city.name, distance: Math.round(dist) });
-          break;
-        }
-      }
-    }
-
-    // Add city markers (blue)
     const bounds = [];
+
+    // City pins
     for (const city of resolved) {
-      const m = L.marker([city.lat, city.lon], {
+      const pin = L.marker([city.lat, city.lon], {
         icon: L.divIcon({
           html: `<div style="background:#3b82f6;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">📍</div>`,
           className: '', iconSize: [28, 28], iconAnchor: [14, 14],
         })
       }).addTo(mapInstance);
-      m.bindPopup(`<b>${city.name.charAt(0).toUpperCase() + city.name.slice(1)}</b><br>Your destination`);
-      markers.push(m);
+      pin.bindPopup(`<b>${city.name.charAt(0).toUpperCase()+city.name.slice(1)}</b>`);
+      markers.push(pin);
       bounds.push([city.lat, city.lon]);
     }
 
-    // Add spot markers
-    for (const spot of nearbySpots) {
-      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-      const marker = L.circleMarker([spot.lat, spot.lon], {
-        radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
-        fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
+    function nearCity(lat, lon) {
+      for (const city of resolved) {
+        const d = haversineKm(city.lat, city.lon, lat, lon);
+        if (d <= radiusKm) return { city: city.name, dist: Math.round(d) };
+      }
+      return null;
+    }
+
+    // ── Sakura spots (Feb–May) ──
+    const nearbySakura = [];
+    if (isSakuraSeason && allSpotsData) {
+      for (const spot of allSpotsData.spots) {
+        if (!spot.lat || !spot.lon) continue;
+        const nc = nearCity(spot.lat, spot.lon);
+        if (nc) nearbySakura.push({ ...spot, ...nc });
+      }
+      nearbySakura.sort((a, b) => a.dist - b.dist);
+    }
+
+    // ── Fruit farms (in-season for selected month) ──
+    const nearbyFarms = [];
+    const farms = farmDataCache?.spots || [];
+    for (const farm of farms) {
+      if (!farm.lat || !farm.lon) continue;
+      const inSeason = farm.fruits?.some(fr => FRUITS.find(f => f.name === fr && f.months.includes(m)));
+      if (!inSeason) continue;
+      const nc = nearCity(farm.lat, farm.lon);
+      if (nc) nearbyFarms.push({ ...farm, ...nc });
+    }
+    nearbyFarms.sort((a, b) => a.dist - b.dist);
+
+    // Build cluster for sakura
+    if (nearbySakura.length) {
+      clusterGroup = L.markerClusterGroup({ maxClusterRadius: 35, showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+          const n = cluster.getChildCount();
+          const sz = Math.min(34 + n * 0.3, 52);
+          return L.divIcon({ html: `<div style="background:#ec4899;color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+        }
       });
-      marker.bindPopup(spotPopupHtml(spot));
-      clusterGroup.addLayer(marker);
-      bounds.push([spot.lat, spot.lon]);
+      for (const spot of nearbySakura) {
+        const mk = L.circleMarker([spot.lat, spot.lon], {
+          radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
+          fillColor: sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
+          color: 'white', weight: 1.5, fillOpacity: 0.9,
+        });
+        mk.bindPopup(spotPopupHtml(spot));
+        clusterGroup.addLayer(mk);
+        bounds.push([spot.lat, spot.lon]);
+      }
+      mapInstance.addLayer(clusterGroup);
     }
 
-    mapInstance.addLayer(clusterGroup);
-    if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
+    // Fruit markers (individual, no cluster to keep distinct from sakura)
+    for (const farm of nearbyFarms) {
+      const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
+      const srcLabel = farm.source === 'jalan' ? 'Jalan' : farm.url?.includes('navitime') ? 'Navitime' : null;
+      const mk = L.marker([farm.lat, farm.lon], {
+        icon: L.divIcon({
+          html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`,
+          className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+        })
+      });
+      mk.bindPopup(`<div style="min-width:180px"><b>${farm.name}</b><br>
+        <span style="font-size:11px;color:#666">${farm.address||''}</span><br>
+        <span style="font-size:11px">${(farm.fruits||[]).join(' · ')}</span>
+        <div style="margin-top:6px">
+          <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:#ec4899;font-size:12px">Google Maps</a>
+          ${farm.url && srcLabel ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">${srcLabel} →</a>` : ''}
+        </div></div>`);
+      mk.addTo(mapInstance);
+      markers.push(mk);
+      bounds.push([farm.lat, farm.lon]);
+    }
 
-    // Sidebar results
+    if (bounds.length > resolved.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
+
+    // ── Sidebar ──
+    const cityLabel = resolved.map(c => c.name.charAt(0).toUpperCase()+c.name.slice(1)).join(', ');
+    const inSeasonFruits = FRUITS.filter(f => f.months.includes(m));
     let html = '';
-    if (unknown.length) {
-      html += `<div style="padding:8px 16px;background:#fef3c7;font-size:0.82rem">Unknown cities: ${unknown.join(', ')}</div>`;
+    if (unknown.length) html += `<div style="padding:8px 16px;background:#fef3c7;font-size:0.82rem">Unknown cities: ${unknown.join(', ')}</div>`;
+
+    // Seasonal summary
+    const seasonItems = [];
+    if (isSakuraSeason) seasonItems.push(`🌸 Cherry blossom${m >= 3 && m <= 4 ? ' <b style="color:#be185d">(peak season!)</b>' : ''}`);
+    if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
+    if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ' <b style="color:#ea580c">(peak season!)</b>' : ''}`);
+    if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking farms');
+
+    html += `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem">
+      <b>${MO[m-1]} near ${cityLabel}:</b><br>
+      ${seasonItems.map(s => `<div style="margin-top:4px">${s}</div>`).join('')}
+    </div>`;
+
+    // Sakura section
+    if (isSakuraSeason) {
+      html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots within ${radiusKm}km</div>`;
+      if (nearbySakura.length) {
+        nearbySakura.slice(0, 20).forEach(spot => {
+          html += `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',${spot.bloomRate},${spot.fullRate},'${spot.status.replace(/'/g,"\\'")}')">
+            <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
+            ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
+            <div class="sub" style="margin-top:4px">${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)} &middot; ${fmtDates(spot.bloomForecast,spot.bloomRate,spot.fullBloomForecast,spot.fullRate)}</div>
+          </div>`;
+        });
+        if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbySakura.length - 20} more spots on map</div>`;
+      } else {
+        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No sakura spots within ${radiusKm}km. Try a larger radius.</div>`;
+      }
     }
-    html += `<div style="padding:12px 16px;background:var(--gray-50);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${nearbySpots.length} spots within ${radiusKm}km of ${resolved.map(c=>c.name.charAt(0).toUpperCase()+c.name.slice(1)).join(', ')}</div>`;
 
-    // Sort by distance
-    nearbySpots.sort((a, b) => a.distance - b.distance);
+    // Fruit section
+    if (inSeasonFruits.length) {
+      html += `<div style="padding:10px 16px;background:#f0fdf4;font-weight:600;font-size:0.85rem;color:#15803d;border-bottom:1px solid #bbf7d0;border-top:1px solid var(--gray-200)">🍎 Fruit Picking — ${nearbyFarms.length} farms within ${radiusKm}km</div>`;
+      if (nearbyFarms.length) {
+        nearbyFarms.slice(0, 15).forEach(farm => {
+          const srcLabel = farm.source === 'jalan' ? 'Jalan' : farm.url?.includes('navitime') ? 'Navitime' : null;
+          html += `<div class="spot-item" onclick="mapInstance.flyTo([${farm.lat},${farm.lon}],14)">
+            <h4>${farm.name}</h4>
+            <div class="sub">${farm.dist}km · ${(farm.fruits||[]).join(', ')}</div>
+            <div class="sub">${farm.address||''}${farm.url && srcLabel ? ` &middot; <a href="${farm.url}" target="_blank" onclick="event.stopPropagation()" style="color:#0369a1">${srcLabel} →</a>` : ''}</div>
+          </div>`;
+        });
+        if (nearbyFarms.length > 15) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbyFarms.length - 15} more farms on map</div>`;
+      } else {
+        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No fruit farms within ${radiusKm}km for ${MO[m-1]}. Try a larger radius.</div>`;
+      }
+    }
 
-    for (const spot of nearbySpots) {
-      html += `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',${spot.bloomRate},${spot.fullRate},'${spot.status.replace(/'/g,"\\'")}')">
-        <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
-        ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
-        <div class="sub" style="margin-top:4px">
-          ${spot.distance}km from ${spot.nearCity.charAt(0).toUpperCase()+spot.nearCity.slice(1)} &middot;
-          ${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}
-          &middot; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899">Maps &rarr;</a>
-        </div>
+    // Koyo note
+    if (isKoyoSeason) {
+      html += `<div style="margin:10px 16px;padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
+        🍂 Autumn leaves (koyo) peak Oct–Nov across Japan. Switch to the <b>Autumn Leaves</b> tab for forecast maps by region.
       </div>`;
-    }
-
-    if (nearbySpots.length === 0) {
-      html += '<div style="padding:20px;text-align:center;color:var(--gray-400)">No sakura spots found within the radius. Try increasing the distance.</div>';
     }
 
     $('trip-results').innerHTML = html;
