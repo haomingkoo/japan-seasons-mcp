@@ -4,11 +4,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import { createServer } from "http";
+import { gzipSync } from "zlib";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
-import { handleApiRequest } from "./api.js";
+import { handleApiRequest, warmSpotsCache } from "./api.js";
 import {
   getSakuraForecast,
   getSakuraSpots,
@@ -851,9 +852,21 @@ async function startHttpServer() {
       try {
         const __dirname = dirname(fileURLToPath(import.meta.url));
         const filePath = join(__dirname, "..", "public", staticEntry.file);
-        const content = readFileSync(filePath, "utf-8");
-        res.writeHead(200, { "Content-Type": staticEntry.mime, "Cache-Control": "public, max-age=300" });
-        res.end(content);
+        const content = readFileSync(filePath);
+        const acceptsGzip = (req.headers["accept-encoding"] as string || "").includes("gzip");
+        if (acceptsGzip) {
+          const compressed = gzipSync(content);
+          res.writeHead(200, {
+            "Content-Type": staticEntry.mime,
+            "Cache-Control": "public, max-age=300",
+            "Content-Encoding": "gzip",
+            "Vary": "Accept-Encoding",
+          });
+          res.end(compressed);
+        } else {
+          res.writeHead(200, { "Content-Type": staticEntry.mime, "Cache-Control": "public, max-age=300" });
+          res.end(content);
+        }
       } catch {
         if (url.pathname === "/") {
           res.writeHead(200, { "Content-Type": "text/html" });
@@ -879,13 +892,12 @@ async function startHttpServer() {
   // Runs immediately after listen() — completes well before any user arrives post-deploy.
   (async () => {
     try {
-      logger.info("Cache warm-up: fetching sakura + koyo + kawazu forecasts…");
-      await Promise.all([
-        getSakuraForecast(),
-        getKoyoForecast(),
-        getKawazuForecast(),
-      ]);
-      logger.info("Cache warm-up complete — all forecasts ready");
+      logger.info("Cache warm-up: forecasts + all-spots…");
+      // Forecasts first (fast — single API call each)
+      await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()]);
+      logger.info("Forecasts ready — warming all-spots (background)…");
+      // All-spots in background: 47 upstream requests each, takes ~30s on first deploy
+      warmSpotsCache().catch((e: any) => logger.warn(`all-spots warm-up error: ${e.message}`));
     } catch (e: any) {
       logger.warn(`Cache warm-up error (non-fatal): ${e.message}`);
     }

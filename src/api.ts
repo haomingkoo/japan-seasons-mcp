@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
+import { gzipSync } from "zlib";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 import {
@@ -32,23 +33,39 @@ const STATIC = {
 // ── Server-side caches — shared across users, 1-hour TTL ──
 // All-spots: 47 upstream requests → cache aggressively so only first user pays the cost.
 const ALL_SPOTS_CACHE_TTL = 3_600_000; // 1 hour
-const allSpotsCache = new Map<string, { data: unknown; ts: number }>();
+const allSpotsCache = new Map<string, { gzipped: Buffer; ts: number }>();
 
 const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
 
 // ── Response helpers ──
 function json(res: ServerResponse, data: unknown, status = 200, maxAge = 0, immutable = false) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const body = gzipSync(JSON.stringify(data));
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Content-Encoding": "gzip",
+    "Vary": "Accept-Encoding",
+  };
   if (maxAge > 0) {
     headers["Cache-Control"] = `public, max-age=${maxAge}, stale-while-revalidate=60${immutable ? ", immutable" : ""}`;
   }
   res.writeHead(status, headers);
-  res.end(JSON.stringify(data));
+  res.end(body);
 }
 
 function error(res: ServerResponse, msg: string, status = 400) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: msg }));
+}
+
+// Strip fields not needed for map rendering — reduces all-spots payload by ~30%
+function slimSakuraSpot(s: Record<string, unknown>) {
+  return {
+    lat: s.lat, lon: s.lon,
+    name: s.name, nameRomaji: s.nameRomaji,
+    code: s.code, // first 2 chars = pref code for JMA link
+    bloomRate: s.bloomRate, fullRate: s.fullRate,
+    bloomForecast: s.bloomForecast, fullBloomForecast: s.fullBloomForecast,
+  };
 }
 
 export async function handleApiRequest(
@@ -105,19 +122,33 @@ export async function handleApiRequest(
     if (pathname === "/api/sakura/all-spots") {
       const cached = allSpotsCache.get("sakura");
       if (cached && Date.now() - cached.ts < ALL_SPOTS_CACHE_TTL) {
-        json(res, cached.data, 200, 3600);
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+          "Vary": "Accept-Encoding",
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+        });
+        res.end(cached.gzipped);
         return true;
       }
       const allSpots: unknown[] = [];
       const prefCodes = Array.from({ length: 47 }, (_, i) => String(i + 1).padStart(2, "0"));
       const results = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
       for (const r of results) {
-        if (r.status === "fulfilled" && r.value.spots) allSpots.push(...r.value.spots);
-        else if (r.status === "rejected") logger.warn(`all-spots sakura: ${r.reason}`);
+        if (r.status === "fulfilled" && r.value.spots) {
+          allSpots.push(...(r.value.spots as unknown as Record<string, unknown>[]).map(slimSakuraSpot));
+        } else if (r.status === "rejected") logger.warn(`all-spots sakura: ${r.reason}`);
       }
       const data = { totalSpots: allSpots.length, spots: allSpots };
-      allSpotsCache.set("sakura", { data, ts: Date.now() });
-      json(res, data, 200, 3600);
+      const gzipped = gzipSync(JSON.stringify(data));
+      allSpotsCache.set("sakura", { gzipped, ts: Date.now() });
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Content-Encoding": "gzip",
+        "Vary": "Accept-Encoding",
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+      });
+      res.end(gzipped);
       return true;
     }
 
@@ -151,7 +182,13 @@ export async function handleApiRequest(
     if (pathname === "/api/koyo/all-spots") {
       const cached = allSpotsCache.get("koyo");
       if (cached && Date.now() - cached.ts < ALL_SPOTS_CACHE_TTL) {
-        json(res, cached.data, 200, 3600);
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+          "Vary": "Accept-Encoding",
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+        });
+        res.end(cached.gzipped);
         return true;
       }
       const allSpots: unknown[] = [];
@@ -162,8 +199,15 @@ export async function handleApiRequest(
         else if (r.status === "rejected") logger.warn(`all-spots koyo: ${r.reason}`);
       }
       const data = { totalSpots: allSpots.length, spots: allSpots };
-      allSpotsCache.set("koyo", { data, ts: Date.now() });
-      json(res, data, 200, 3600);
+      const gzipped = gzipSync(JSON.stringify(data));
+      allSpotsCache.set("koyo", { gzipped, ts: Date.now() });
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Content-Encoding": "gzip",
+        "Vary": "Accept-Encoding",
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+      });
+      res.end(gzipped);
       return true;
     }
 
@@ -231,4 +275,29 @@ export async function handleApiRequest(
     error(res, "An internal error occurred. Please try again.", 500);
     return true;
   }
+}
+
+// Called at server startup to pre-warm the all-spots cache before the first visitor arrives.
+export async function warmSpotsCache(): Promise<void> {
+  const prefCodes = Array.from({ length: 47 }, (_, i) => String(i + 1).padStart(2, "0"));
+
+  const sakuraResults = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
+  const sakuraSpots: unknown[] = [];
+  for (const r of sakuraResults) {
+    if (r.status === "fulfilled" && r.value.spots) {
+      sakuraSpots.push(...(r.value.spots as unknown as Record<string, unknown>[]).map(slimSakuraSpot));
+    }
+  }
+  const sakuraData = { totalSpots: sakuraSpots.length, spots: sakuraSpots };
+  allSpotsCache.set("sakura", { gzipped: gzipSync(JSON.stringify(sakuraData)), ts: Date.now() });
+  logger.info(`Cache warm: sakura all-spots ${sakuraSpots.length} spots`);
+
+  const koyoResults = await pMapSettled(prefCodes, (code) => getKoyoSpots(code), 5);
+  const koyoSpots: unknown[] = [];
+  for (const r of koyoResults) {
+    if (r.status === "fulfilled" && r.value.spots) koyoSpots.push(...r.value.spots);
+  }
+  const koyoData = { totalSpots: koyoSpots.length, spots: koyoSpots };
+  allSpotsCache.set("koyo", { gzipped: gzipSync(JSON.stringify(koyoData)), ts: Date.now() });
+  logger.info(`Cache warm: koyo all-spots ${koyoSpots.length} spots`);
 }

@@ -133,12 +133,10 @@ function initMap() {
         </div>`;
       }).join('');
 
-      const jmaUrl = `https://www.jma.go.jp/bosai/map.html#5/${lat.toFixed(2)}/${lon.toFixed(2)}/&contents=forecast&lang=en`;
       const html = `
         <div style="margin-top:6px;padding-top:5px;border-top:1px solid #f1f5f9">
           ${nowHtml}
           <div style="display:flex;gap:3px;margin-bottom:4px">${cols}</div>
-          <a href="${jmaUrl}" target="_blank" style="font-size:10px;color:#94a3b8">7-day JMA forecast →</a>
         </div>`;
 
       weatherCache.set(key, { html, ts: Date.now() });
@@ -684,11 +682,22 @@ function renderFruitMonth(m) {
 }
 
 // ── Days vs average helper ──
+// normalIso from the API is "M/D" (e.g. "3/24") — no year.
+// Parse it against the forecast year so the diff is correct.
 function avgDiffLabel(forecastIso, normalIso) {
   if (!forecastIso || !normalIso) return '';
-  if (!sakuraDateOk(forecastIso) || !sakuraDateOk(normalIso)) return '';
-  const diff = Math.round((new Date(forecastIso) - new Date(normalIso)) / 86400000);
-  if (diff === 0) return '';
+  if (!sakuraDateOk(forecastIso)) return '';
+  const forecastDate = new Date(forecastIso);
+  let normalDate;
+  if (/^\d{1,2}\/\d{1,2}$/.test(normalIso)) {
+    const [mo, day] = normalIso.split('/').map(Number);
+    normalDate = new Date(forecastDate.getFullYear(), mo - 1, day);
+  } else {
+    normalDate = new Date(normalIso);
+  }
+  if (isNaN(normalDate.getTime())) return '';
+  const diff = Math.round((forecastDate - normalDate) / 86400000);
+  if (Math.abs(diff) < 1) return '';
   const sign = diff < 0 ? '−' : '+';
   const col = diff < -3 ? C.peak : diff > 3 ? C.green : C.gray;
   return `<span style="font-size:0.7rem;color:${col};margin-left:4px">${sign}${Math.abs(diff)}d vs avg</span>`;
@@ -1752,6 +1761,14 @@ function spotPopupHtml(spot) {
     </div>`;
   }
 
+  // Link to JMA prefecture forecast text page (shows city-level table directly)
+  // Hokkaido (01) has multiple offices — default to Sapporo/Ishikari area
+  const prefCode = spot.code?.slice(0, 2);
+  const jmaOffice = prefCode === '01' ? '015010' : prefCode ? `${prefCode}0000` : null;
+  const jmaUrl = jmaOffice
+    ? `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${jmaOffice}`
+    : `https://www.jma.go.jp/bosai/map.html#5/${spot.lat?.toFixed(2)}/${spot.lon?.toFixed(2)}/&contents=forecast`;
+
   const statusColor = isEnded ? C.ended : C.peak;
   return `<div style="min-width:220px">
     <b>${displayName}</b>
@@ -1761,8 +1778,9 @@ function spotPopupHtml(spot) {
     <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:60px">
       <div style="color:#ccc;font-size:11px">Loading weather…</div>
     </div>
-    <div style="margin-top:4px">
+    <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
       <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
+      <a href="${jmaUrl}" target="_blank" style="font-size:10px;color:#94a3b8">JMA city forecast →</a>
     </div>
   </div>`;
 }
