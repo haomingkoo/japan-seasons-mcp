@@ -333,14 +333,14 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_flowers",
-    "Get curated seasonal flower spots in Japan — plum blossom (ume, Jan-Mar), wisteria (fuji, Apr-May), and hydrangea (ajisai, Jun-Jul). Each spot includes official website URL, peak dates, GPS coordinates, and notes. 40 hand-picked spots at Japan's most famous locations (Mito Kairakuen, Dazaifu Tenmangu, Ashikaga Flower Park, Kawachi Wisteria Garden, Meigetsu-in, Hasedera, Mimurotoji, etc.).",
+    "Get curated seasonal flower spots in Japan — 8 types covering Jan–Oct: plum (Jan-Mar), rapeseed/nanohana (Feb-Apr), wisteria (Apr-May), iris (May-Jun), hydrangea (Jun-Jul), lavender (Jun-Jul), sunflower (Jul-Aug), cosmos (Sep-Oct). 80 hand-picked spots with official URLs, GPS, peak dates, and notes.",
     {
-      type: z.enum(["all", "plum", "wisteria", "hydrangea"]).optional()
-        .describe("Filter by flower type. 'plum' = Jan-Mar season. 'wisteria' = Apr-May season. 'hydrangea' = Jun-Jul season. Omit for all."),
+      type: z.enum(["all", "plum", "nanohana", "wisteria", "iris", "hydrangea", "lavender", "sunflower", "cosmos"]).optional()
+        .describe("Filter by flower type. Omit for all types."),
       prefecture: z.string().optional()
-        .describe("Filter by prefecture, e.g. 'Kanagawa', 'Kyoto', 'Tokyo', 'Fukuoka'."),
+        .describe("Filter by prefecture, e.g. 'Kanagawa', 'Kyoto', 'Tokyo', 'Hokkaido'."),
       month: z.number().int().min(1).max(12).optional()
-        .describe("Filter to spots in season for this month (1-12). April/May for wisteria, June/July for hydrangea."),
+        .describe("Filter to spots in season for this month (1-12)."),
     },
     async ({ type, prefecture, month }) => {
       try {
@@ -352,7 +352,11 @@ Use the japan-seasons-mcp tools based on the travel month:
         const data = JSON.parse(raw);
         let spots: any[] = data.spots || [];
 
-        const SEASON_MONTHS: Record<string, number[]> = { plum: [1, 2, 3], wisteria: [4, 5], hydrangea: [6, 7] };
+        const SEASON_MONTHS: Record<string, number[]> = {
+          plum: [1,2,3], nanohana: [2,3,4], wisteria: [4,5],
+          iris: [5,6], hydrangea: [6,7], lavender: [6,7],
+          sunflower: [7,8], cosmos: [9,10],
+        };
 
         if (type && type !== "all") spots = spots.filter((s: any) => s.type === type);
         if (prefecture) spots = spots.filter((s: any) => s.prefecture?.toLowerCase().includes(prefecture.toLowerCase()));
@@ -364,17 +368,29 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
 
         if (spots.length === 0) {
-          return { content: [{ type: "text", text: `No flower spots found for the given filters. Wisteria is Apr-May; hydrangea is Jun-Jul.` }] };
+          return { content: [{ type: "text", text: `No flower spots found for the given filters.` }] };
         }
+
+        const FLOWER_META: Record<string, { emoji: string; season: string }> = {
+          plum:      { emoji: "🌸", season: "January–March" },
+          nanohana:  { emoji: "🌼", season: "February–April" },
+          wisteria:  { emoji: "💜", season: "April–May" },
+          iris:      { emoji: "🌺", season: "May–June" },
+          hydrangea: { emoji: "💙", season: "June–July" },
+          lavender:  { emoji: "🪻", season: "June–July (peak July, Hokkaido)" },
+          sunflower: { emoji: "🌻", season: "July–August" },
+          cosmos:    { emoji: "🌷", season: "September–October" },
+        };
 
         const typeLabel = type && type !== "all" ? type : "all types";
         let output = `# Japan Flower Spots — ${typeLabel}\n`;
         output += `Source: seasons.kooexperience.com | Updated: ${data.updated}\n`;
         output += `Total: ${spots.length} spots\n\n`;
-        output += `## Season Overview\n`;
-        output += `- 🌸 **Plum Blossom (梅)** — January–March. Japan's first spring bloom, 4–6 weeks before cherry blossom. Atami blooms in late January.\n`;
-        output += `- 💜 **Wisteria (藤)** — April–May. Famous for tunnel/dome structures, century-old vines.\n`;
-        output += `- 💙 **Hydrangea (紫陽花)** — June–July. Kamakura is the top destination with 10+ spots.\n\n`;
+        output += `## Season Overview (8 types, Jan–Oct)\n`;
+        for (const [t, m] of Object.entries(FLOWER_META)) {
+          output += `- ${m.emoji} **${t.charAt(0).toUpperCase() + t.slice(1)}** — ${m.season}\n`;
+        }
+        output += "\n";
 
         const byType: Record<string, any[]> = {};
         for (const s of spots) {
@@ -383,9 +399,8 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
 
         for (const [flowerType, flowerSpots] of Object.entries(byType)) {
-          const emoji = flowerType === "plum" ? "🌸" : flowerType === "wisteria" ? "💜" : "💙";
-          const season = flowerType === "plum" ? "January–March" : flowerType === "wisteria" ? "April–May" : "June–July";
-          output += `## ${emoji} ${flowerType.charAt(0).toUpperCase() + flowerType.slice(1)} — ${season}\n\n`;
+          const meta = FLOWER_META[flowerType] || { emoji: "🌸", season: "" };
+          output += `## ${meta.emoji} ${flowerType.charAt(0).toUpperCase() + flowerType.slice(1)} — ${meta.season}\n\n`;
           for (const s of flowerSpots) {
             output += `### ${s.name}${s.nameJa ? ` (${s.nameJa})` : ""}\n`;
             output += `- **Prefecture:** ${s.prefecture} (${s.region})\n`;

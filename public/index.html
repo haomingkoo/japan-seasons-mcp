@@ -230,48 +230,97 @@ function initMap() {
     if (code <= 86) return '🌨️';
     return '⛈️';
   }
+  function wmoDesc(code) {
+    if (code === 0) return 'Clear sky';
+    if (code <= 2) return 'Partly cloudy';
+    if (code <= 3) return 'Overcast';
+    if (code <= 48) return 'Foggy';
+    if (code <= 57) return 'Drizzle';
+    if (code <= 67) return 'Rainy';
+    if (code <= 77) return 'Snowy';
+    if (code <= 82) return 'Rain showers';
+    if (code <= 86) return 'Snow showers';
+    return 'Thunderstorm';
+  }
+
+  // Weather cache: avoid re-fetching on every popup open (1-hour TTL)
+  const weatherCache = new Map();
 
   mapInstance.on('popupopen', async (e) => {
     const el = e.popup.getElement()?.querySelector('.popup-weather');
     if (!el) return;
     const lat = parseFloat(el.dataset.lat);
     const lon = parseFloat(el.dataset.lon);
-    if (!lat || !lon) { el.textContent = ''; return; }
+    if (!lat || !lon) { el.innerHTML = ''; return; }
+
+    // Serve from cache instantly if fresh (< 1 hour)
+    const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+    const cached = weatherCache.get(key);
+    if (cached && Date.now() - cached.ts < 3_600_000) {
+      el.innerHTML = cached.html;
+      return;
+    }
+
+    el.innerHTML = '<div style="color:#ccc;font-size:11px;padding:4px 0">Loading weather…</div>';
 
     try {
-      // Open-Meteo: free, no API key, exact coords, uses JMA model for Japan
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&daily=weathercode,temperature_2m_max,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=3`;
+      // Route through our own server — caches responses for 1 hour, much faster on repeat
+      const url = `/api/weather?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('weather');
       const data = await res.json();
 
+      const cw    = data.current_weather || {};
       const daily = data.daily || {};
-      const dates = daily.time || [];
-      const codes = daily.weathercode || [];
+      const dates    = daily.time || [];
+      const codes    = daily.weathercode || [];
       const maxTemps = daily.temperature_2m_max || [];
+      const minTemps = daily.temperature_2m_min || [];
       const rainProb = daily.precipitation_probability_max || [];
 
-      if (!dates.length) { el.textContent = ''; return; }
+      if (!dates.length) { el.innerHTML = ''; return; }
 
+      // Current conditions row
+      const curIcon = wmoIcon(cw.weathercode ?? 0);
+      const curTemp = cw.temperature != null ? Math.round(cw.temperature) : null;
+      const curDesc = wmoDesc(cw.weathercode ?? 0);
+      const nowHtml = curTemp != null ? `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #f1f5f9">
+          <span style="font-size:22px;line-height:1">${curIcon}</span>
+          <div>
+            <span style="font-size:15px;font-weight:700;color:#1e293b">${curTemp}°C</span>
+            <span style="font-size:11px;color:#64748b;margin-left:4px">${curDesc}</span>
+          </div>
+        </div>` : '';
+
+      // 3-day forecast cards
+      const DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const cols = dates.slice(0, 3).map((date, i) => {
         const icon = wmoIcon(codes[i] ?? 0);
-        const maxC = maxTemps[i] != null ? Math.round(maxTemps[i]) : null;
-        const rain = rainProb[i] != null ? Math.round(rainProb[i]) : 0;
-        const mo = parseInt(date.slice(5, 7)), dy = parseInt(date.slice(8, 10));
-        return `<div style="text-align:center;flex:1">
-          <div style="font-size:15px">${icon}</div>
-          <div style="font-weight:600;font-size:12px">${maxC != null ? maxC+'°' : '—'}</div>
-          <div style="color:#999;font-size:10px">${mo}/${dy}</div>
-          ${rain > 10 ? `<div style="color:#60a5fa;font-size:10px">${rain}%</div>` : ''}
+        const hi   = maxTemps[i] != null ? Math.round(maxTemps[i]) : '—';
+        const lo   = minTemps[i] != null ? Math.round(minTemps[i]) : '—';
+        const rain = rainProb[i]  != null ? Math.round(rainProb[i]) : 0;
+        const label = i === 0 ? 'Today' : DAY[new Date(date + 'T12:00:00+09:00').getDay()];
+        return `<div style="text-align:center;flex:1;background:#f8fafc;border-radius:5px;padding:4px 2px">
+          <div style="font-size:10px;color:#64748b;font-weight:500;margin-bottom:1px">${label}</div>
+          <div style="font-size:18px;line-height:1.3">${icon}</div>
+          <div style="font-weight:700;font-size:12px;color:#1e293b">${hi}°</div>
+          <div style="font-size:10px;color:#94a3b8">${lo}°</div>
+          ${rain > 10 ? `<div style="font-size:9px;color:#60a5fa;font-weight:500">${rain}%</div>` : ''}
         </div>`;
       }).join('');
 
-      // Link to JMA forecast map centered on this spot
       const jmaUrl = `https://www.jma.go.jp/bosai/map.html#5/${lat.toFixed(2)}/${lon.toFixed(2)}/&contents=forecast&lang=en`;
-      el.innerHTML = `
-        <div style="display:flex;gap:2px;margin-bottom:4px">${cols}</div>
-        <a href="${jmaUrl}" target="_blank" style="font-size:10px;color:#94a3b8">At this spot · JMA forecast →</a>`;
-    } catch { el.textContent = ''; }
+      const html = `
+        <div style="margin-top:6px;padding-top:5px;border-top:1px solid #f1f5f9">
+          ${nowHtml}
+          <div style="display:flex;gap:3px;margin-bottom:4px">${cols}</div>
+          <a href="${jmaUrl}" target="_blank" style="font-size:10px;color:#94a3b8">7-day JMA forecast →</a>
+        </div>`;
+
+      weatherCache.set(key, { html, ts: Date.now() });
+      el.innerHTML = html;
+    } catch { el.innerHTML = ''; }
   });
 }
 
@@ -990,15 +1039,30 @@ function updateLegend(type) {
 
 // ── FLOWERS ──
 const FLOWER_TYPES = [
-  { type: 'plum', emoji: '🌸', name: 'Plum Blossom', ja: '梅', color: '#e11d48',
-    months: [1, 2, 3], peak: [2],
+  { type: 'plum',      emoji: '🌸', name: 'Plum Blossom', ja: '梅',        color: '#e11d48', sectionBg: '#fff1f2', peakLabel: 'Jan–Mar',
+    months: [1,2,3],   peak: [2],
     note: 'Peak: mid-January (Atami) to March. Japan\'s first spring bloom — 4–6 weeks before cherry blossom.' },
-  { type: 'wisteria', emoji: '💜', name: 'Wisteria', ja: '藤', color: '#7c3aed',
-    months: [4, 5], peak: [4, 5],
+  { type: 'nanohana',  emoji: '🌼', name: 'Rapeseed',     ja: '菜の花',    color: '#ca8a04', sectionBg: '#fefce8', peakLabel: 'Feb–Apr',
+    months: [2,3,4],   peak: [3],
+    note: 'Peak: February–April. Golden rapeseed carpets river banks and hillsides across Japan. Okinawa blooms earliest in January.' },
+  { type: 'wisteria',  emoji: '💜', name: 'Wisteria',     ja: '藤',        color: '#7c3aed', sectionBg: '#f5f3ff', peakLabel: 'late Apr–early May',
+    months: [4,5],     peak: [4,5],
     note: 'Peak: late April – early May. Famous spots often require timed entry tickets.' },
-  { type: 'hydrangea', emoji: '💙', name: 'Hydrangea', ja: '紫陽花', color: '#2563eb',
-    months: [6, 7], peak: [6],
-    note: 'Peak: June. Kamakura is the most famous destination with 10+ spots.' },
+  { type: 'iris',      emoji: '🌺', name: 'Iris',         ja: '菖蒲',      color: '#4f46e5', sectionBg: '#eef2ff', peakLabel: 'May–Jun',
+    months: [5,6],     peak: [6],
+    note: 'Peak: June (July in northern Tohoku). Traditional Japanese iris gardens are a quintessential early-summer experience.' },
+  { type: 'hydrangea', emoji: '💙', name: 'Hydrangea',    ja: '紫陽花',    color: '#2563eb', sectionBg: '#eff6ff', peakLabel: 'June',
+    months: [6,7],     peak: [6],
+    note: 'Peak: June. Kamakura is the most famous destination with 10+ spots — visit on weekdays to avoid crowds.' },
+  { type: 'lavender',  emoji: '🪻', name: 'Lavender',     ja: 'ラベンダー', color: '#9333ea', sectionBg: '#faf5ff', peakLabel: 'July',
+    months: [6,7],     peak: [7],
+    note: 'Peak: July in Hokkaido\'s Furano region — the most photogenic lavender fields in Asia. Farm Tomita is the iconic destination.' },
+  { type: 'sunflower', emoji: '🌻', name: 'Sunflower',    ja: 'ひまわり',  color: '#f59e0b', sectionBg: '#fffbeb', peakLabel: 'Jul–Aug',
+    months: [7,8],     peak: [7,8],
+    note: 'Peak: late July–August. Hokkaido\'s Hokuryu village has 2.3 million sunflowers; Yamanashi fields face Mt. Fuji.' },
+  { type: 'cosmos',    emoji: '🌷', name: 'Cosmos',       ja: 'コスモス',  color: '#db2777', sectionBg: '#fdf2f8', peakLabel: 'Sep–Oct',
+    months: [9,10],    peak: [10],
+    note: 'Peak: October. Japan\'s beloved autumn flower — Showa Kinen Park and Hitachi Seaside Park each host 4.5 million plants.' },
 ];
 
 let flowersCache = null;
@@ -1072,38 +1136,30 @@ function renderFlowers() {
   const isHydrangeaSeason = currentMonth >= 6 && currentMonth <= 7;
   const isFlowerSeason = isWisteriaSeason || isHydrangeaSeason;
 
-  // Season info banner
-  const isPlumSeason = currentMonth >= 1 && currentMonth <= 3;
+  // Season info banner — dynamic from FLOWER_TYPES
+  const inSeasonTypes = FLOWER_TYPES.filter(ft => ft.months.includes(currentMonth));
   let bannerHtml = '';
-  if (isPlumSeason) {
-    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;font-size:0.82rem;color:#9f1239">
-      🌸 <b>Plum blossom season!</b> ${currentMonth === 1 ? 'Atami blooms first (late Jan). Most spots peak in February.' : currentMonth === 2 ? 'Peak month — Mito, Kyoto, Tokyo and Osaka all in bloom.' : 'Late season — Kyoto spots (Kitano, Jonangu) still going.'}<br>
-      Japan's first spring bloom, arriving 4–6 weeks before cherry blossom.
-    </div>`;
-  } else if (isWisteriaSeason) {
-    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;font-size:0.82rem;color:#4c1d95">
-      💜 <b>Wisteria season is now!</b> Late April – early May is peak for most spots.<br>
-      Popular spots like Ashikaga and Kawachi often require advance tickets.
-    </div>`;
-  } else if (isHydrangeaSeason) {
-    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:0.82rem;color:#1e3a8a">
-      💙 <b>Hydrangea season is now!</b> June is peak for most spots.<br>
-      Kamakura gets very crowded — visit on weekdays or early morning.
+  if (inSeasonTypes.length > 0) {
+    const primary = inSeasonTypes[0];
+    const typeList = inSeasonTypes.map(ft => `${ft.emoji} <b>${ft.name}</b>`).join(' · ');
+    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:${primary.sectionBg};border:1px solid ${primary.color}44;border-radius:8px;font-size:0.82rem;color:${primary.color}">
+      <div style="font-weight:600;margin-bottom:4px">${typeList} — in season now</div>
+      ${inSeasonTypes.map(ft => `<div style="color:${ft.color};margin-top:2px;font-size:0.79rem">${ft.emoji} ${ft.note}</div>`).join('')}
     </div>`;
   } else {
-    const nextSeason = currentMonth >= 8 ? 'January (plum blossom)' : currentMonth < 4 ? 'April (wisteria)' : 'June (hydrangea)';
+    const nextFt = FLOWER_TYPES.find(ft => ft.months[0] > currentMonth) || FLOWER_TYPES[0];
     bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem;color:var(--gray-600)">
-      🌷 <b>Off-season.</b> Flower seasons: Plum Jan–Mar · Wisteria Apr–May · Hydrangea Jun–Jul.<br>
-      Next up: <b>${nextSeason}</b><br>
+      🌷 <b>Off-season.</b> Flower seasons run January–October across 8 types.<br>
+      Next up: <b>${nextFt.emoji} ${nextFt.name} (${nextFt.peakLabel})</b><br>
       <span style="color:var(--gray-400);font-size:0.77rem">Dates shown are typical averages — actual bloom shifts with weather each year. Check official sites before visiting.</span>
     </div>`;
   }
 
-  // Type filter tabs
+  // Type filter tabs — built from FLOWER_TYPES
   const typeTabHtml = `<div style="display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--gray-200);flex-wrap:wrap">
-    ${[['all','All','#555'],['plum','🌸 Plum','#e11d48'],['wisteria','💜 Wisteria','#7c3aed'],['hydrangea','💙 Hydrangea','#2563eb']].map(([t,label,col]) => {
-      const isActive = flowersTypeFilter === t;
-      return `<button onclick="flowersTypeFilter='${t}';renderFlowers()" style="padding:4px 12px;border-radius:20px;border:1px solid ${isActive ? col : 'var(--gray-200)'};background:${isActive ? col : 'white'};color:${isActive ? 'white' : 'var(--gray-600)'};font-size:0.78rem;cursor:pointer;font-weight:${isActive?'600':'400'}">${label}</button>`;
+    ${[{type:'all',label:'All',color:'#555'}, ...FLOWER_TYPES.map(ft=>({type:ft.type,label:`${ft.emoji} ${ft.name}`,color:ft.color}))].map(({type,label,color}) => {
+      const isActive = flowersTypeFilter === type;
+      return `<button onclick="flowersTypeFilter='${type}';renderFlowers()" style="padding:4px 12px;border-radius:20px;border:1px solid ${isActive ? color : 'var(--gray-200)'};background:${isActive ? color : 'white'};color:${isActive ? 'white' : 'var(--gray-600)'};font-size:0.78rem;cursor:pointer;font-weight:${isActive?'600':'400'}">${label}</button>`;
     }).join('')}
   </div>`;
 
@@ -1137,8 +1193,8 @@ function renderFlowers() {
     const inSeason = typeSpots.filter(s => ft.months.includes(currentMonth));
     const offSeason = typeSpots.filter(s => !ft.months.includes(currentMonth));
 
-    const sectionBg = ft.type === 'plum' ? '#fff1f2' : ft.type === 'wisteria' ? '#f5f3ff' : '#eff6ff';
-    const peakLabel = ft.type === 'plum' ? 'Jan–Mar' : ft.type === 'wisteria' ? 'late Apr–early May' : 'June';
+    const sectionBg = ft.sectionBg || '#f8fafc';
+    const peakLabel = ft.peakLabel || '';
     html += `<div style="padding:10px 16px;background:${sectionBg};font-weight:600;font-size:0.85rem;color:${ft.color};border-bottom:1px solid var(--gray-200)">
       ${ft.emoji} ${ft.name} (${ft.ja}) — ${typeSpots.length} spots &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#666">Peak: ${peakLabel}</span>
     </div>`;
@@ -1160,7 +1216,7 @@ function renderFlowers() {
       <h2 style="margin:0">Seasonal Flowers</h2>
       <span style="font-size:0.78rem;color:var(--gray-400)">${spots.length} curated spots</span>
     </div>
-    <p style="margin-top:2px">Plum · Wisteria · Hydrangea · Official links</p>`;
+    <p style="margin-top:2px">8 types · Jan–Oct · ${spots.length} spots · Official links</p>`;
   $('sidebar-content').innerHTML = html;
 }
 
@@ -1933,8 +1989,8 @@ function renderWhatsOn(m) {
 
   const festivals = (festivalsCache?.spots || []).filter(f => f.months?.includes(m));
   const flowers = (flowersCache?.spots || []).filter(s => {
-    const months = s.type === 'plum' ? [1,2,3] : s.type === 'wisteria' ? [4,5] : s.type === 'hydrangea' ? [6,7] : [];
-    return months.includes(m);
+    const ft = FLOWER_TYPES.find(f => f.type === s.type);
+    return ft ? ft.months.includes(m) : false;
   });
   const inSeasonFruits = FRUITS.filter(f => f.months.includes(m));
   const farms = (farmDataCache?.spots || []).filter(f =>
@@ -2011,7 +2067,7 @@ function renderWhatsOn(m) {
     const mn = i + 1;
     const hasFestival = (festivalsCache?.spots || []).some(f => f.months?.includes(mn));
     const hasFruit = FRUITS.some(f => f.months.includes(mn));
-    const hasFlower = mn >= 4 && mn <= 7;
+    const hasFlower = FLOWER_TYPES.some(ft => ft.months.includes(mn));
     const hasAnything = hasFestival || hasFruit || hasFlower;
     const isActive = mn === m;
     const isToday = mn === todayM;
@@ -2089,12 +2145,10 @@ function renderWhatsOn(m) {
 
   // Flowers section
   if (flowers.length) {
-    const isPlumMo = m >= 1 && m <= 3;
-    const isWisteriaMo = m >= 4 && m <= 5;
-    const headerColor = isPlumMo ? '#fff1f2' : isWisteriaMo ? '#f5f3ff' : '#eff6ff';
-    const headerText = isPlumMo ? '#9f1239' : isWisteriaMo ? '#6d28d9' : '#1e40af';
-    const flowerLabel = isPlumMo ? '🌸 Plum Blossom' : isWisteriaMo ? '💜 Wisteria' : '💙 Hydrangea';
-    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${headerColor};color:${headerText};border-top:1px solid var(--gray-200);border-bottom:1px solid var(--gray-200)">
+    const inSeasonFtypes = FLOWER_TYPES.filter(ft => ft.months.includes(m));
+    const primary = inSeasonFtypes[0] || { sectionBg: '#f5f3ff', color: '#7c3aed', emoji: '🌸', name: 'Flowers' };
+    const flowerLabel = inSeasonFtypes.map(ft => `${ft.emoji} ${ft.name}`).join(' · ');
+    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${primary.sectionBg};color:${primary.color};border-top:1px solid var(--gray-200);border-bottom:1px solid var(--gray-200)">
       ${flowerLabel} — ${flowers.length} spots in season</div>`;
     flowers.slice(0, 6).forEach(s => {
       const ft = FLOWER_TYPES.find(f => f.type === s.type);

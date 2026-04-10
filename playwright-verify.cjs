@@ -52,19 +52,25 @@ async function run() {
     if (spotCount > 10) pass('Sakura sidebar cities', `${spotCount} items`);
     else fail('Sakura sidebar cities', `Only ${spotCount} items`);
 
-    // ── 5. Flowers tab — all 3 types present ──
+    // ── 5. Flowers tab — all 8 types present ──
     await page.click('#btn-flowers');
     await page.waitForTimeout(3000);
     const flowersText = await page.$eval('#sidebar-content', el => el.textContent).catch(() => '');
     const hasPlum = flowersText.includes('Plum');
+    const hasNanohana = flowersText.includes('Rapeseed');
     const hasWisteria = flowersText.includes('Wisteria');
+    const hasIris = flowersText.includes('Iris');
     const hasHydrangea = flowersText.includes('Hydrangea');
-    if (hasPlum && hasWisteria && hasHydrangea) pass('Flowers: all 3 types', 'Plum + Wisteria + Hydrangea');
-    else fail('Flowers: all 3 types', `Plum:${hasPlum} Wisteria:${hasWisteria} Hydrangea:${hasHydrangea}`);
+    const hasLavender = flowersText.includes('Lavender');
+    const hasSunflower = flowersText.includes('Sunflower');
+    const hasCosmos = flowersText.includes('Cosmos');
+    const allTypes = hasPlum && hasNanohana && hasWisteria && hasIris && hasHydrangea && hasLavender && hasSunflower && hasCosmos;
+    if (allTypes) pass('Flowers: all 8 types', 'Plum+Rapeseed+Wisteria+Iris+Hydrangea+Lavender+Sunflower+Cosmos');
+    else fail('Flowers: all 8 types', `Plum:${hasPlum} Rape:${hasNanohana} Wist:${hasWisteria} Iris:${hasIris} Hydra:${hasHydrangea} Lav:${hasLavender} Sun:${hasSunflower} Cos:${hasCosmos}`);
 
-    // ── 6. Flowers tab has 40 spots ──
+    // ── 6. Flowers tab has 80 spots ──
     const flowerHeader = await page.$eval('#sidebar-header', el => el.textContent).catch(() => '');
-    if (flowerHeader.includes('40')) pass('Flowers: 40 spots', flowerHeader.slice(0, 80).trim());
+    if (flowerHeader.includes('80')) pass('Flowers: 80 spots', flowerHeader.slice(0, 80).trim());
     else fail('Flowers: spot count', `Header: ${flowerHeader.slice(0, 80).trim()}`);
 
     // ── 7. What's On tab loads ──

@@ -12,6 +12,9 @@ import {
 import { getKoyoForecast, getKoyoSpots } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 
+// Server-side weather cache keyed by "lat,lon" (1-hour TTL, shared across users)
+const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
+
 function json(res: ServerResponse, data: unknown, status = 200) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
@@ -149,10 +152,35 @@ export async function handleApiRequest(
       return true;
     }
 
-    // GET /api/weather?city=Tokyo
+    // GET /api/weather?lat=35.69&lon=139.69  (spot weather, Open-Meteo, server-side cached)
+    // GET /api/weather?city=Tokyo             (city weather, JMA)
     if (pathname === "/api/weather") {
+      const latStr = params.get("lat");
+      const lonStr = params.get("lon");
+      if (latStr && lonStr) {
+        const latF = parseFloat(latStr);
+        const lonF = parseFloat(lonStr);
+        if (isNaN(latF) || isNaN(lonF)) { error(res, "Invalid coordinates"); return true; }
+        const key = `${latF.toFixed(2)},${lonF.toFixed(2)}`;
+        const cached = spotWeatherCache.get(key);
+        if (cached && Date.now() - cached.ts < 3_600_000) {
+          json(res, cached.data);
+          return true;
+        }
+        try {
+          const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latF.toFixed(4)}&longitude=${lonF.toFixed(4)}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=3`;
+          const r = await fetch(omUrl);
+          if (!r.ok) throw new Error(`open-meteo ${r.status}`);
+          const data = await r.json();
+          spotWeatherCache.set(key, { data, ts: Date.now() });
+          json(res, data);
+        } catch {
+          json(res, { error: "Weather unavailable" });
+        }
+        return true;
+      }
       const city = params.get("city");
-      if (!city) { error(res, "Missing ?city= parameter"); return true; }
+      if (!city) { error(res, "Missing ?lat=&lon= or ?city= parameter"); return true; }
       const data = await getWeatherForecast(city);
       json(res, data);
       return true;
