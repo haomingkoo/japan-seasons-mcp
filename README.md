@@ -21,17 +21,17 @@
 
 ## Screenshots
 
-| Cherry blossom forecast | Spot detail & weather |
+| Cherry blossom map | Spot detail & weather |
 |---|---|
-| ![Sakura map](screenshots/01-sakura-map.png) | ![Sakura popup](screenshots/02-sakura-popup.png) |
+| ![Sakura map](screenshots/08-sakura-zoomed.png) | ![Sakura popup](screenshots/02-sakura-popup.png) |
 
 | Fruit picking | What's On in Japan |
 |---|---|
 | ![Fruit picking](screenshots/03-fruit-picking.png) | ![What's On](screenshots/05-whatson.png) |
 
-| Autumn leaves |
-|---|
-| ![Koyo map](screenshots/06-koyo-map.png) |
+| Flowers in season | Mobile |
+|---|---|
+| ![Flowers](screenshots/04-flowers.png) | ![Mobile](screenshots/07-mobile.png) |
 
 ---
 
