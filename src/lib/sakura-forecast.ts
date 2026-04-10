@@ -364,6 +364,9 @@ function computeBloomStatus(city: SakuraCity): string {
 }
 
 // ─── Weathermap.jp scraper (secondary source) ────────────────────────────────
+// NOTE: getSakuraForecastWeathermap returns a different schema (WeathermapEntry[]) from
+// getSakuraForecast (SakuraForecastResult), so it cannot be used as a transparent fallback.
+// Fallback removed — add monitoring alert if primary (n-kishou) fails.
 
 export interface WeathermapEntry {
   city: string;

@@ -23,6 +23,10 @@ import {
 import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
+import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
+
+// ─── Shared types ────────────────────────────────────────────────────────────
+type AnySpot = Record<string, unknown>;
 
 // ─── Shared tool & prompt registration ───────────────────────────────────────
 
@@ -350,19 +354,13 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
         const raw = readFileSync(flowersPath, "utf-8");
         const data = JSON.parse(raw);
-        let spots: any[] = data.spots || [];
+        let spots: AnySpot[] = data.spots || [];
 
-        const SEASON_MONTHS: Record<string, number[]> = {
-          plum: [1,2,3], nanohana: [2,3,4], wisteria: [4,5],
-          iris: [5,6], hydrangea: [6,7], lavender: [6,7],
-          sunflower: [7,8], cosmos: [9,10],
-        };
-
-        if (type && type !== "all") spots = spots.filter((s: any) => s.type === type);
-        if (prefecture) spots = spots.filter((s: any) => s.prefecture?.toLowerCase().includes(prefecture.toLowerCase()));
+        if (type && type !== "all") spots = spots.filter((s) => s["type"] === type);
+        if (prefecture) spots = spots.filter((s) => (s["prefecture"] as string | undefined)?.toLowerCase().includes(prefecture.toLowerCase()));
         if (month) {
-          spots = spots.filter((s: any) => {
-            const months = SEASON_MONTHS[s.type] || [];
+          spots = spots.filter((s) => {
+            const months = FLOWER_SEASON_MONTHS[s["type"] as string] || [];
             return months.includes(month);
           });
         }
@@ -370,17 +368,6 @@ Use the japan-seasons-mcp tools based on the travel month:
         if (spots.length === 0) {
           return { content: [{ type: "text", text: `No flower spots found for the given filters.` }] };
         }
-
-        const FLOWER_META: Record<string, { emoji: string; season: string }> = {
-          plum:      { emoji: "🌸", season: "January–March" },
-          nanohana:  { emoji: "🌼", season: "February–April" },
-          wisteria:  { emoji: "💜", season: "April–May" },
-          iris:      { emoji: "🌺", season: "May–June" },
-          hydrangea: { emoji: "💙", season: "June–July" },
-          lavender:  { emoji: "🪻", season: "June–July (peak July, Hokkaido)" },
-          sunflower: { emoji: "🌻", season: "July–August" },
-          cosmos:    { emoji: "🌷", season: "September–October" },
-        };
 
         const typeLabel = type && type !== "all" ? type : "all types";
         let output = `# Japan Flower Spots — ${typeLabel}\n`;
@@ -392,22 +379,23 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
         output += "\n";
 
-        const byType: Record<string, any[]> = {};
+        const byType: Record<string, AnySpot[]> = {};
         for (const s of spots) {
-          if (!byType[s.type]) byType[s.type] = [];
-          byType[s.type].push(s);
+          const t = s["type"] as string;
+          if (!byType[t]) byType[t] = [];
+          byType[t].push(s);
         }
 
         for (const [flowerType, flowerSpots] of Object.entries(byType)) {
           const meta = FLOWER_META[flowerType] || { emoji: "🌸", season: "" };
           output += `## ${meta.emoji} ${flowerType.charAt(0).toUpperCase() + flowerType.slice(1)} — ${meta.season}\n\n`;
           for (const s of flowerSpots) {
-            output += `### ${s.name}${s.nameJa ? ` (${s.nameJa})` : ""}\n`;
-            output += `- **Prefecture:** ${s.prefecture} (${s.region})\n`;
-            if (s.peakStart && s.peakEnd) output += `- **Peak:** ${s.peakStart} → ${s.peakEnd}\n`;
-            if (s.note) output += `- **Note:** ${s.note}\n`;
-            output += `- **Official site:** ${s.url}\n`;
-            output += `- **GPS:** ${s.lat}, ${s.lon}\n\n`;
+            output += `### ${s["name"]}${s["nameJa"] ? ` (${s["nameJa"]})` : ""}\n`;
+            output += `- **Prefecture:** ${s["prefecture"]} (${s["region"]})\n`;
+            if (s["peakStart"] && s["peakEnd"]) output += `- **Peak:** ${s["peakStart"]} → ${s["peakEnd"]}\n`;
+            if (s["note"]) output += `- **Note:** ${s["note"]}\n`;
+            output += `- **Official site:** ${s["url"]}\n`;
+            output += `- **GPS:** ${s["lat"]}, ${s["lon"]}\n\n`;
           }
         }
 
@@ -428,25 +416,6 @@ Use the japan-seasons-mcp tools based on the travel month:
         .describe("Month to check (1-12). Returns in-season and coming-soon fruits. Omit for full year calendar."),
     },
     async ({ month }) => {
-      const FRUITS = [
-        { name: "Strawberry", ja: "いちご", emoji: "🍓", months: [12,1,2,3,4,5], peak: [2,3,4], regions: ["Tochigi","Nagano","Chiba","Ibaraki","Hokkaido"], note: "Kyushu (Fukuoka) season ends ~April; May is Kanto & northern only" },
-        { name: "Melon", ja: "メロン", emoji: "🍈", months: [5,6,7,8], peak: [6,7], regions: ["Hokkaido (Yubari)","Ibaraki","Kumamoto"], note: "Yubari King is Japan's most prized melon" },
-        { name: "Cherry", ja: "さくらんぼ", emoji: "🍒", months: [6,7], peak: [6,7], regions: ["Yamagata","Hokkaido","Nagano","Aomori"], note: "Very short season — book farms early" },
-        { name: "Watermelon", ja: "すいか", emoji: "🍉", months: [6,7,8], peak: [7], regions: ["Kumamoto","Yamagata","Chiba"] },
-        { name: "Peach", ja: "もも", emoji: "🍑", months: [7,8,9], peak: [7,8], regions: ["Yamanashi","Fukushima","Nagano","Okayama"] },
-        { name: "Blueberry", ja: "ブルーベリー", emoji: "🫐", months: [7,8,9], peak: [7,8], regions: ["Nagano","Chiba","Tokyo (suburbs)","Hokkaido"] },
-        { name: "Grape", ja: "ぶどう", emoji: "🍇", months: [8,9,10,11], peak: [9,10], regions: ["Yamanashi","Nagano","Yamagata","Okayama"], note: "50+ varieties; shine muscat is very popular" },
-        { name: "Pear", ja: "なし", emoji: "🍐", months: [8,9,10], peak: [8,9], regions: ["Tottori","Chiba","Ibaraki","Nagano"], note: "Japanese pears are round and crisp" },
-        { name: "Fig", ja: "いちじく", emoji: "🍈", months: [8,9,10], peak: [9], regions: ["Aichi","Osaka","Hyogo"] },
-        { name: "Apple", ja: "りんご", emoji: "🍎", months: [9,10,11], peak: [10,11], regions: ["Aomori","Nagano","Iwate","Yamagata"], note: "Aomori produces ~60% of Japan's apples" },
-        { name: "Persimmon", ja: "柿", emoji: "🟠", months: [10,11,12], peak: [10,11], regions: ["Nara","Wakayama","Gifu","Fukuoka"] },
-        { name: "Kiwi", ja: "キウイ", emoji: "🥝", months: [10,11,12], peak: [11], regions: ["Ehime","Kanagawa","Fukuoka"] },
-        { name: "Chestnut", ja: "栗", emoji: "🌰", months: [9,10,11], peak: [9,10], regions: ["Ibaraki","Kumamoto","Ehime","Aichi"], note: "Japan's most prized variety is Tanba (Kyoto/Hyogo)" },
-        { name: "Mikan", ja: "みかん", emoji: "🍊", months: [11,12,1], peak: [11,12], regions: ["Wakayama","Ehime","Shizuoka","Nagasaki"], note: "Japan's most popular winter citrus" },
-      ];
-
-      const MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
       try {
         if (month) {
           const inSeason = FRUITS.filter(f => f.months.includes(month));
@@ -525,40 +494,38 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
         const raw = readFileSync(festivalsPath, "utf-8");
         const data = JSON.parse(raw);
-        let spots: any[] = data.spots || [];
+        let spots: AnySpot[] = data.spots || [];
 
-        if (type && type !== "all") spots = spots.filter((s: any) => s.type === type);
-        if (prefecture) spots = spots.filter((s: any) => s.prefecture?.toLowerCase().includes(prefecture.toLowerCase()));
-        if (month) spots = spots.filter((s: any) => s.months?.includes(month));
+        if (type && type !== "all") spots = spots.filter((s) => s["type"] === type);
+        if (prefecture) spots = spots.filter((s) => (s["prefecture"] as string | undefined)?.toLowerCase().includes(prefecture.toLowerCase()));
+        if (month) spots = spots.filter((s) => (s["months"] as number[] | undefined)?.includes(month));
 
         if (spots.length === 0) {
           return { content: [{ type: "text", text: `No festivals found for the given filters. Major seasons: fireworks Jul-Aug, autumn matsuri Sep-Nov, winter events Jan-Feb.` }] };
         }
-
-        const MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        const TYPE_EMOJI: Record<string, string> = { fireworks: "🎆", matsuri: "🏮", winter: "❄️" };
 
         let output = `# Japan Festivals${month ? ` — ${MO[month-1]}` : ""}${type && type !== "all" ? ` — ${type}` : ""}\n`;
         output += `Source: seasons.kooexperience.com | ${spots.length} events\n\n`;
         output += `## Tips\n- Book accommodation months ahead for major festivals (Gion Matsuri, Nebuta, Sumida Fireworks)\n`;
         output += `- Fireworks season peaks July–August; winter events peak January–February\n\n`;
 
-        const byType: Record<string, any[]> = {};
+        const byType: Record<string, AnySpot[]> = {};
         for (const s of spots) {
-          if (!byType[s.type]) byType[s.type] = [];
-          byType[s.type].push(s);
+          const t = s["type"] as string;
+          if (!byType[t]) byType[t] = [];
+          byType[t].push(s);
         }
 
         for (const [fType, fSpots] of Object.entries(byType)) {
-          output += `## ${TYPE_EMOJI[fType] || ""} ${fType.charAt(0).toUpperCase() + fType.slice(1)} (${fSpots.length})\n\n`;
+          output += `## ${FESTIVAL_TYPE_META[fType]?.emoji ?? ""} ${fType.charAt(0).toUpperCase() + fType.slice(1)} (${fSpots.length})\n\n`;
           for (const s of fSpots) {
-            output += `### ${s.name}${s.nameJa ? ` (${s.nameJa})` : ""}\n`;
-            output += `- **When:** ${s.months.map((m: number) => MO[m-1]).join(", ")} — ${s.typicalDate}\n`;
-            output += `- **Location:** ${s.prefecture} (${s.region})\n`;
-            if (s.attendance) output += `- **Attendance:** ~${s.attendance.toLocaleString()} visitors\n`;
-            if (s.note) output += `- **Note:** ${s.note}\n`;
-            output += `- **Official site:** ${s.url}\n`;
-            output += `- **GPS:** ${s.lat}, ${s.lon}\n\n`;
+            output += `### ${s["name"]}${s["nameJa"] ? ` (${s["nameJa"]})` : ""}\n`;
+            output += `- **When:** ${(s["months"] as number[]).map((m: number) => MO[m-1]).join(", ")} — ${s["typicalDate"]}\n`;
+            output += `- **Location:** ${s["prefecture"]} (${s["region"]})\n`;
+            if (s["attendance"]) output += `- **Attendance:** ~${(s["attendance"] as number).toLocaleString()} visitors\n`;
+            if (s["note"]) output += `- **Note:** ${s["note"]}\n`;
+            output += `- **Official site:** ${s["url"]}\n`;
+            output += `- **GPS:** ${s["lat"]}, ${s["lon"]}\n\n`;
           }
         }
 
@@ -590,18 +557,18 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
         const raw = readFileSync(farmsPath, "utf-8");
         const data = JSON.parse(raw);
-        let farms: any[] = data.spots || [];
+        let farms: AnySpot[] = data.spots || [];
 
-        if (fruit) farms = farms.filter((f: any) => f.fruits?.includes(fruit));
-        if (region) farms = farms.filter((f: any) =>
-          f.address?.toLowerCase().includes(region.toLowerCase()) ||
-          f.name?.toLowerCase().includes(region.toLowerCase())
+        if (fruit) farms = farms.filter((f) => (f["fruits"] as string[] | undefined)?.includes(fruit));
+        if (region) farms = farms.filter((f) =>
+          (f["address"] as string | undefined)?.toLowerCase().includes(region.toLowerCase()) ||
+          (f["name"] as string | undefined)?.toLowerCase().includes(region.toLowerCase())
         );
 
         // Prioritise farms with coordinates
-        farms.sort((a: any, b: any) => (b.lat ? 1 : 0) - (a.lat ? 1 : 0));
+        farms.sort((a, b) => (b["lat"] ? 1 : 0) - (a["lat"] ? 1 : 0));
 
-        const withCoords = farms.filter((f: any) => f.lat).length;
+        const withCoords = farms.filter((f) => f["lat"]).length;
         const shown = farms.slice(0, limit);
 
         let output = `# Japan Fruit Picking Farms\n`;
@@ -613,11 +580,12 @@ Use the japan-seasons-mcp tools based on the travel month:
         }
 
         for (const f of shown) {
-          output += `### ${f.name}\n`;
-          if (f.address) output += `- **Address:** ${f.address}\n`;
-          if (f.fruits?.length) output += `- **Fruits:** ${f.fruits.join(", ")}\n`;
-          if (f.lat && f.lon) output += `- **GPS:** ${f.lat}, ${f.lon}\n`;
-          if (f.url) output += `- **Link:** ${f.url}\n`;
+          output += `### ${f["name"]}\n`;
+          if (f["address"]) output += `- **Address:** ${f["address"]}\n`;
+          const fruits = f["fruits"] as string[] | undefined;
+          if (fruits?.length) output += `- **Fruits:** ${fruits.join(", ")}\n`;
+          if (f["lat"] && f["lon"]) output += `- **GPS:** ${f["lat"]}, ${f["lon"]}\n`;
+          if (f["url"]) output += `- **Link:** ${f["url"]}\n`;
           output += "\n";
         }
 
@@ -756,6 +724,11 @@ async function startHttpServer() {
     const url = new URL(req.url ?? "/", `http://localhost:${port}`);
     const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
       ?? req.socket.remoteAddress ?? "unknown";
+
+    // Security headers
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
     // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
