@@ -18,10 +18,12 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "japan",
     "japan-travel",
     "seasons",
     "seasonal",
+    "seasonal-activities",
     "sakura",
     "cherry-blossom",
     "koyo",
@@ -37,11 +39,14 @@
     "hydrangea",
     "fruit-picking",
     "flowers",
+    "festivals",
+    "fireworks",
+    "matsuri",
     "weather",
     "cherry-blossom-forecast",
     "autumn-leaves-forecast"
   ],
-  "author": "",
+  "author": "Haoming Koo",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
