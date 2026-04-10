@@ -1469,13 +1469,46 @@ async function searchTrip() {
       bounds.push([city.lat, city.lon]);
     }
 
-    // ── Sakura spots ──
+    // ── Sakura spots — predict state at trip dates, hide ended spots ──
+    // fullBloomForecast = date trees reach 100%. Petals fall ~14 days after.
+    // bloomForecast     = date trees start blooming (~10 days before full bloom).
+    // We color and filter based on predicted state at trip midpoint, NOT today.
+    function tripSakuraState(spot) {
+      const tripMid  = new Date((startDate.getTime() + endDate.getTime()) / 2);
+      const fullBloom = spot.fullBloomForecast && sakuraDateOk(spot.fullBloomForecast)
+        ? new Date(spot.fullBloomForecast) : null;
+      const bloomStart = spot.bloomForecast && sakuraDateOk(spot.bloomForecast)
+        ? new Date(spot.bloomForecast)
+        : fullBloom ? new Date(fullBloom.getTime() - 10 * 86400000) : null;
+      const petalEnd = fullBloom ? new Date(fullBloom.getTime() + 14 * 86400000) : null;
+
+      // No usable forecast → fall back to current live data
+      if (!fullBloom) {
+        const ended = spot.fullRate >= 100 && daysSince(spot.fullBloomForecast) > 10;
+        return { show: !ended, color: sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) };
+      }
+
+      // Trip is entirely after petals have fallen → hide
+      if (startDate > petalEnd) return { show: false };
+
+      // Trip is entirely before bloom starts → not yet open (bud)
+      if (endDate < bloomStart) return { show: true, color: '#fb923c' };
+
+      // Trip overlaps bloom window — color by how close to peak
+      const daysFromPeak = Math.floor((tripMid - fullBloom) / 86400000);
+      if (daysFromPeak >= -3 && daysFromPeak <= 7)  return { show: true, color: '#be185d' }; // at peak
+      if (daysFromPeak < -3)                         return { show: true, color: '#f472b6' }; // opening
+      return { show: true, color: '#86efac' };                                                // falling
+    }
+
     const nearbySakura = [];
     if (isSakuraSeason && allSpotsData) {
       for (const spot of allSpotsData.spots) {
         if (!spot.lat || !spot.lon) continue;
         const nc = nearCity(spot.lat, spot.lon);
-        if (nc) nearbySakura.push({ ...spot, ...nc });
+        if (!nc) continue;
+        const state = tripSakuraState(spot);
+        if (state.show) nearbySakura.push({ ...spot, ...nc, _tripColor: state.color });
       }
       nearbySakura.sort((a, b) => a.dist - b.dist);
     }
@@ -1502,19 +1535,21 @@ async function searchTrip() {
       nearbyKoyo.sort((a, b) => a.dist - b.dist);
     }
 
-    // Sakura cluster
+    // Sakura cluster — color reflects predicted state at trip dates
     if (nearbySakura.length) {
+      // Pick representative cluster color: peak pink if any at peak, else first spot's color
+      const clusterColor = nearbySakura.some(s => s._tripColor === '#be185d') ? '#ec4899' : (nearbySakura[0]?._tripColor || '#ec4899');
       clusterGroup = L.markerClusterGroup({ maxClusterRadius: 35, showCoverageOnHover: false,
         iconCreateFunction: cluster => {
           const n = cluster.getChildCount();
           const sz = Math.min(34 + n * 0.3, 52);
-          return L.divIcon({ html: `<div style="background:#ec4899;color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+          return L.divIcon({ html: `<div style="background:${clusterColor};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
         }
       });
       for (const spot of nearbySakura) {
         const mk = L.circleMarker([spot.lat, spot.lon], {
-          radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
-          fillColor: sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
+          radius: 7,
+          fillColor: spot._tripColor,
           color: 'white', weight: 1.5, fillOpacity: 0.9,
         });
         mk.bindPopup(spotPopupHtml(spot));
@@ -1552,7 +1587,12 @@ async function searchTrip() {
     // ── Sidebar (city-based) ──
     const cityLabel = resolved.map(c => c.name.charAt(0).toUpperCase()+c.name.slice(1)).join(', ');
     const seasonItems = [];
-    if (isSakuraSeason) seasonItems.push(`🌸 Cherry blossom${m >= 3 && m <= 4 ? ' <b style="color:#be185d">(peak season!)</b>' : ''}`);
+    if (isSakuraSeason) {
+      const sakuraNote = nearbySakura.length > 0
+        ? (m >= 3 && m <= 4 ? ' <b style="color:#be185d">(peak season!)</b>' : ` — ${nearbySakura.length} spots in bloom`)
+        : ' <span style="color:var(--gray-400)">(ended here — try Hokkaido for May bloom)</span>';
+      seasonItems.push(`🌸 Cherry blossom${sakuraNote}`);
+    }
     if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
     if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ' <b style="color:#ea580c">(peak season!)</b>' : ''}`);
     if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking farms');
@@ -1564,18 +1604,22 @@ async function searchTrip() {
 
     // Sakura section
     if (isSakuraSeason) {
-      html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots within ${radiusKm}km</div>`;
       if (nearbySakura.length) {
+        // Describe the predicted state for these dates
+        const atPeak = nearbySakura.filter(s => s._tripColor === '#be185d').length;
+        const opening = nearbySakura.filter(s => s._tripColor === '#f472b6').length;
+        const stateNote = atPeak > 0 ? `${atPeak} at peak` : opening > 0 ? `${opening} opening` : 'in bloom';
+        html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots in bloom (${stateNote})</div>`;
         nearbySakura.slice(0, 20).forEach(spot => {
           html += `<div class="spot-item" onclick="flyToSpot(${spot.lat},${spot.lon},'${spot.name.replace(/'/g,"\\'")}',${spot.bloomRate},${spot.fullRate},'${spot.status.replace(/'/g,"\\'")}')">
             <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
-            ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
             <div class="sub" style="margin-top:4px">${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)} &middot; ${fmtDates(spot.bloomForecast,spot.bloomRate,spot.fullBloomForecast,spot.fullRate)}</div>
           </div>`;
         });
         if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbySakura.length - 20} more spots on map</div>`;
       } else {
-        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No sakura spots within ${radiusKm}km. Try a larger radius.</div>`;
+        html += `<div style="padding:10px 16px;background:#f8fafc;font-weight:600;font-size:0.85rem;color:var(--gray-500);border-bottom:1px solid var(--gray-200)">🌿 Cherry Blossom — ended for ${cityLabel} in ${MO[m-1]}</div>`;
+        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">Cherry blossoms have finished by ${MO[m-1]} in this area — trees are green. Try Hokkaido for late-season bloom (peak early May).</div>`;
       }
     }
 
