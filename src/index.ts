@@ -891,6 +891,22 @@ async function startHttpServer() {
     logger.info(`MCP endpoint: http://localhost:${port}/mcp`);
     logger.info(`Rate limit: ${RATE_LIMIT_MAX} req/min per IP, max ${MAX_SESSIONS} sessions`);
   });
+
+  // Pre-warm forecast caches in the background so the first visitor never waits.
+  // Runs immediately after listen() — completes well before any user arrives post-deploy.
+  (async () => {
+    try {
+      logger.info("Cache warm-up: fetching sakura + koyo + kawazu forecasts…");
+      await Promise.all([
+        getSakuraForecast(),
+        getKoyoForecast(),
+        getKawazuForecast(),
+      ]);
+      logger.info("Cache warm-up complete — all forecasts ready");
+    } catch (e: any) {
+      logger.warn(`Cache warm-up error (non-fatal): ${e.message}`);
+    }
+  })();
 }
 
 main().catch((e) => {
