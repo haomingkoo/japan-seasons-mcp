@@ -1,28 +1,36 @@
 // ── Colour palette — single source of truth ──
 // All map dots, legend swatches, badges, and inline styles read from here.
 // Mirror any change here in app.css :root variables (--pink, --orange, etc.)
+// Mirror changes to app.css :root variables (--pink, --orange, --green).
 const C = {
-  // Sakura lifecycle (light → dark = early → peak; green = ended)
-  dormant:    '#d4d4d4',
-  bud:        '#fdba74',
-  budSwell:   '#fb923c',
-  budOpen:    '#f97316',
-  starting:   '#f9a8d4',
-  blooming:   '#f472b6',
-  bloom:      '#ec4899',
-  peak:       '#be185d',
-  falling:    '#86efac',
-  ended:      '#4ade80',
+  // Sakura lifecycle: orange (bud) → pink (bloom) → green (ended)
+  dormant:     '#d4d4d4',
+  bud:         '#fdba74',
+  budSwell:    '#fb923c',
+  budOpen:     '#f97316',
+  starting:    '#f9a8d4',
+  blooming:    '#f472b6',
+  bloom:       '#ec4899',  // = CSS --pink
+  peak:        '#be185d',  // = CSS --pink-dark
+  falling:     '#86efac',
+  ended:       '#4ade80',
   // Koyo (autumn leaves)
-  koyoPeak:   '#ea580c',
-  koyoTurn:   '#f97316',
-  koyoEarly:  '#fdba74',
-  // UI links & accents (match --pink / --orange CSS vars)
-  link:       '#ec4899',
-  koyoLink:   '#ea580c',
-  pinkLight:  '#fdf2f8',
-  pinkDark:   '#be185d',
-  orangeLink: '#ea580c',
+  koyoPeak:    '#ea580c',  // = CSS --orange
+  koyoTurn:    '#f97316',
+  koyoEarly:   '#fdba74',
+  // Kawazu cherry (early-blooming variant — distinct magenta)
+  kawazu:      '#db2777',
+  // Fruit picking / nature greens — = CSS --green
+  green:       '#16a34a',
+  greenDark:   '#166534',
+  greenMid:    '#15803d',
+  greenLight:  '#f0fdf4',
+  greenSoft:   '#dcfce7',
+  greenBorder: '#bbf7d0',
+  // Generic semantic
+  gray:        '#a3a3a3',
+  error:       '#dc2626',
+  pinkLight:   '#fdf2f8',
 };
 
 // ── State ──
@@ -401,7 +409,11 @@ function setMode(m) {
   pushUrlState({ mode: m });
 }
 
-// ── FRUIT PICKING ──
+// ── Static config tables ──
+// These are the UI-side data tables (colors, months, notes for rendering).
+// src/lib/constants.ts has the MCP-server-side versions (no colors, more regional detail).
+// Keep months in sync between both files when updating seasons.
+
 const FRUITS = [
   { name:'Strawberry', ja:'いちご', emoji:'🍓', months:[12,1,2,3,4,5], peak:[2,3,4], color:'#ef4444',
     regions:['Tochigi','Nagano','Chiba','Ibaraki','Hokkaido'], note:'Kyushu (Fukuoka) season ends ~April; May is Kanto & northern only' },
@@ -532,7 +544,7 @@ function renderFruitMonth(m) {
         const n = cluster.getChildCount();
         const size = Math.min(36 + n * 0.5, 54);
         return L.divIcon({
-          html: `<div style="background:#16a34a;color:white;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
+          html: `<div style="background:${C.green};color:white;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '', iconSize: [size, size],
         });
       }
@@ -544,7 +556,7 @@ function renderFruitMonth(m) {
       if (fruitFilter && !farm.fruits?.includes(fruitFilter)) continue;
       const marker = L.marker([farm.lat, farm.lon], {
         icon: L.divIcon({
-          html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${seasonFruit.emoji}</div>`,
+          html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${seasonFruit.emoji}</div>`,
           className: '', iconSize: [24, 24], iconAnchor: [12, 12],
         })
       });
@@ -573,10 +585,10 @@ function renderFruitMonth(m) {
     const isActive = mn === m;
     const isToday = mn === todayM;
     return `<button onclick="renderFruitMonth(${mn})" style="
-      padding:4px 2px; border-radius:6px; border:1px solid ${isActive ? '#16a34a' : 'var(--gray-200)'};
-      background:${isActive ? '#16a34a' : 'white'}; color:${isActive ? 'white' : hasInSeason ? 'var(--gray-800)' : 'var(--gray-400)'};
+      padding:4px 2px; border-radius:6px; border:1px solid ${isActive ? C.green : 'var(--gray-200)'};
+      background:${isActive ? C.green : 'white'}; color:${isActive ? 'white' : hasInSeason ? 'var(--gray-800)' : 'var(--gray-400)'};
       font-size:0.72rem; font-weight:${isActive || isToday ? '600' : '400'}; cursor:pointer; text-align:center;
-      ${isToday && !isActive ? 'border-color:#16a34a;color:#16a34a;' : ''}
+      ${isToday && !isActive ? `border-color:${C.green};color:${C.green};` : ''}
     ">${mo}</button>`;
   }).join('');
 
@@ -600,30 +612,30 @@ function renderFruitMonth(m) {
     const isPeak = f.peak.includes(m);
     const farmCount = farms.filter(fm => fm.fruits?.includes(f.name)).length;
     const isActive = fruitFilter === f.name;
-    return `<div class="spot-item" onclick="setFruitFilter('${f.name}')" style="cursor:pointer;${isActive ? 'background:#f0fdf4;border-left:3px solid #16a34a;padding-left:13px;' : ''}">
+    return `<div class="spot-item" onclick="setFruitFilter('${f.name}')" style="cursor:pointer;${isActive ? `background:${C.greenLight};border-left:3px solid ${C.green};padding-left:13px;` : ''}">
       <h4>${f.emoji} ${f.name} <span style="font-weight:400;color:var(--gray-400)">${f.ja}</span>
-        ${isPeak ? '<span style="background:#dcfce7;color:#16a34a;font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Peak</span>' : ''}
-        ${isActive ? '<span style="background:#16a34a;color:white;font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Filtered ✕</span>' : ''}
+        ${isPeak ? `<span style="background:${C.greenSoft};color:${C.green};font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Peak</span>` : ''}
+        ${isActive ? `<span style="background:${C.green};color:white;font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Filtered ✕</span>` : ''}
       </h4>
       <div class="sub">Season: ${season} · Peak: ${peak}</div>
       <div class="sub" style="margin-top:2px">Best regions: ${f.regions.join(', ')}</div>
-      ${farmCount ? `<div class="sub" style="margin-top:2px;color:#16a34a">${farmCount} farms in database${isActive ? ` — showing on map` : ' — click to filter'}</div>` : ''}
+      ${farmCount ? `<div class="sub" style="margin-top:2px;color:${C.green}">${farmCount} farms in database${isActive ? ` — showing on map` : ' — click to filter'}</div>` : ''}
       ${f.note ? `<div class="sub" style="margin-top:2px;color:var(--gray-400);font-style:italic">${f.note}</div>` : ''}
     </div>`;
   }
 
   const isCurrentMonth = m === todayM;
-  let html = `<div style="margin:10px 16px;padding:10px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:0.8rem;color:#166534">
+  let html = `<div style="margin:10px 16px;padding:10px 12px;background:${C.greenLight};border:1px solid ${C.greenBorder};border-radius:8px;font-size:0.8rem;color:${C.greenDark}">
     🌱 Season windows are typical regional averages — confirm with farms before visiting.
     ${scrapedAt ? `<br>Farm database: <b>${farmDataCache.total} spots</b> cached on ${scrapedAt}` : ''}
   </div>`;
 
   if (inSeason.length) {
-    html += `<div style="padding:10px 16px;background:#dcfce7;font-weight:600;font-size:0.85rem;color:#15803d;border-bottom:1px solid #bbf7d0">In Season — ${MO[m-1]}${isCurrentMonth ? ' (now)' : ''}</div>`;
+    html += `<div style="padding:10px 16px;background:${C.greenSoft};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-bottom:1px solid ${C.greenBorder}">In Season — ${MO[m-1]}${isCurrentMonth ? ' (now)' : ''}</div>`;
     inSeason.forEach(f => html += fruitCard(f));
   }
   if (comingSoon.length) {
-    html += `<div style="padding:10px 16px;background:#f0fdf4;font-weight:600;font-size:0.85rem;color:#166534;border-bottom:1px solid var(--gray-200)">Coming Up — ${MO[nextM-1]}/${MO[nextM2-1]}</div>`;
+    html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenDark};border-bottom:1px solid var(--gray-200)">Coming Up — ${MO[nextM-1]}/${MO[nextM2-1]}</div>`;
     comingSoon.forEach(f => html += fruitCard(f));
   }
   if (other.length) {
@@ -641,7 +653,7 @@ function avgDiffLabel(forecastIso, normalIso) {
   const diff = Math.round((new Date(forecastIso) - new Date(normalIso)) / 86400000);
   if (diff === 0) return '';
   const sign = diff < 0 ? '−' : '+';
-  const col = diff < -3 ? C.peak : diff > 3 ? '#059669' : '#a3a3a3';
+  const col = diff < -3 ? C.peak : diff > 3 ? C.green : C.gray;
   return `<span style="font-size:0.7rem;color:${col};margin-left:4px">${sign}${Math.abs(diff)}d vs avg</span>`;
 }
 
@@ -681,7 +693,7 @@ async function loadSakura() {
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -742,7 +754,7 @@ async function loadPrefSpots(prefCode, prefName) {
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -752,7 +764,7 @@ function flyToSpot(lat, lon, name, bloomRate, fullRate, status) {
   const statusColor = isEnded ? C.ended : C.peak;
   const rate = fullRate > 0 ? fullRate : bloomRate;
   const label = fullRate > 0 ? 'Flowering' : 'Growth';
-  const grad = fullRate > 0 ? 'linear-gradient(90deg,${C.starting},${C.peak})' : 'linear-gradient(90deg,${C.bud},${C.budOpen})';
+  const grad = fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
   const barHtml = !isEnded && rate > 0 ? `<div style="margin:8px 0">
     <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px"><span>${label}</span><span>${rate}%</span></div>
     <div style="height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden">
@@ -806,7 +818,7 @@ async function loadKoyo() {
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -823,7 +835,7 @@ async function loadKoyoSpots(prefCode, name) {
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius: 7, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
       }).addTo(mapInstance);
-      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoLink}">Open in Google Maps &rarr;</a>`);
+      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoPeak}">Open in Google Maps &rarr;</a>`);
       markers.push(marker);
       bounds.push([spot.lat, spot.lon]);
     }
@@ -839,15 +851,15 @@ async function loadKoyoSpots(prefCode, name) {
     for (const spot of data.spots) {
       const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
       html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:0,fullRate:0,status:spot.status})})">
-        <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''} ${stars ? '<span style="color:${C.koyoLink}">'+stars+'</span>' : ''}</h4>
+        <h4>${spot.name} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${spot.nameRomaji}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
         <div class="sub">${spot.leafType} &middot; Peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})
-          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.koyoLink}">Google Maps &rarr;</a>
+          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.koyoPeak}">Google Maps &rarr;</a>
         </div>
       </div>`;
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -882,7 +894,7 @@ async function findBestDates() {
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -932,7 +944,7 @@ function updateLegend(type) {
       <div class="legend-row"><span style="font-size:14px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
       <div class="legend-row"><span style="font-size:14px">💜</span> Wisteria</div>
       <div class="legend-row"><span style="font-size:14px">💙</span> Hydrangea</div>
-      <div class="legend-row"><div class="legend-dot" style="background:#16a34a"></div> Fruit farm</div>`;
+      <div class="legend-row"><div class="legend-dot" style="background:${C.green}"></div> Fruit farm</div>`;
   } else {
     el.style.display = 'none';
   }
@@ -949,7 +961,7 @@ async function loadFlowers() {
 
   if (!flowersCache) {
     try { flowersCache = await api('/api/flowers'); } catch (e) {
-      $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">Could not load flowers data</div>`;
+      $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">Could not load flowers data</div>`;
       return;
     }
   }
@@ -1047,7 +1059,7 @@ function renderFlowers() {
     return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToFarm',lat:spot.lat,lon:spot.lon})})" style="cursor:pointer">
       <h4>${ft?.emoji || ''} ${spot.name}
         <span style="font-weight:400;color:var(--gray-400);font-size:0.82rem">${spot.nameJa || ''}</span>
-        ${isInSeason ? '<span style="background:#f0fdf4;color:#16a34a;font-size:0.7rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">In season</span>' : ''}
+        ${isInSeason ? `<span style="background:${C.greenLight};color:${C.green};font-size:0.7rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">In season</span>` : ''}
       </h4>
       <div class="sub">${spot.prefecture} · ${spot.region}</div>
       ${peakLabel ? `<div class="sub">Peak: <b>${peakLabel}</b></div>` : ''}
@@ -1075,7 +1087,7 @@ function renderFlowers() {
     html += `<div style="padding:8px 16px 0;font-size:0.79rem;color:var(--gray-600);font-style:italic">${ft.note}</div>`;
 
     if (inSeason.length) {
-      html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:#16a34a">In season now (${inSeason.length})</div>`;
+      html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:${C.green}">In season now (${inSeason.length})</div>`;
       inSeason.forEach(s => html += flowerCard(s));
     }
     if (offSeason.length) {
@@ -1230,7 +1242,7 @@ function loadTripPlanner() {
         <button onclick="addTypedCities()" style="padding:6px 10px;background:var(--gray-800);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Add</button>
       </div>
       <div id="city-freetext-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px"></div>
-      <div id="city-freetext-err" style="font-size:0.75rem;color:#dc2626;min-height:16px;margin-bottom:4px"></div>
+      <div id="city-freetext-err" style="font-size:0.75rem;color:${C.error};min-height:16px;margin-bottom:4px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
         <label style="font-size:0.82rem;color:var(--gray-600);white-space:nowrap">Radius:</label>
         <select id="trip-radius" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem">
@@ -1330,7 +1342,7 @@ async function searchTrip() {
         for (const c of bestCities.slice(0, 20)) {
           const coords = TOURIST_CITIES[c.cityName?.toLowerCase()] || TOURIST_CITIES[c.prefName?.toLowerCase()];
           if (!coords) continue;
-          const col = c.status?.includes('Full Bloom') ? C.bloom : c.status?.includes('Blooming') ? C.blooming : '#e9d5ff';
+          const col = c.status?.includes('Full Bloom') ? C.bloom : c.status?.includes('Blooming') ? C.blooming : C.starting;
           const mk = L.circleMarker(coords, { radius: 10, fillColor: col, color: 'white', weight: 2, fillOpacity: 0.9 });
           mk.bindPopup(`<b>${c.cityName}</b><br>${c.prefName}<br><span style="color:${C.peak}">${c.status||''}</span><br>Full bloom: ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : '—'}`);
           mk.addTo(mapInstance);
@@ -1349,14 +1361,14 @@ async function searchTrip() {
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
             const sz = Math.min(32 + n * 0.2, 48);
-            return L.divIcon({ html: `<div style="background:#16a34a;color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+            return L.divIcon({ html: `<div style="background:${C.green};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
         for (const farm of seasonFarms) {
           const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
           const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
           const mk = L.marker([farm.lat, farm.lon], {
-            icon: L.divIcon({ html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] })
+            icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] })
           });
           mk.bindPopup(`<div style="min-width:170px"><b>${farm.name}</b><br><span style="font-size:11px;color:#666">${farm.address||''}</span><br><span style="font-size:11px">${(farm.fruits||[]).join(' · ')}</span><div style="margin-top:6px"><a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">${srcLabel} →</a>` : ''}</div></div>`);
           clusterGroup.addLayer(mk);
@@ -1366,9 +1378,9 @@ async function searchTrip() {
 
       // ── Sidebar (no-city) ──
       const seasonItems = [];
-      if (isSakuraSeason) seasonItems.push(`🌸 Cherry blossom${m >= 3 && m <= 4 ? ' <b style="color:${C.peak}">(peak season!)</b>' : ''}`);
+      if (isSakuraSeason) seasonItems.push(`🌸 Cherry blossom${m >= 3 && m <= 4 ? ` <b style="color:${C.peak}">(peak season!)</b>` : ''}`);
       if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
-      if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ' <b style="color:${C.koyoLink}">(peak season!)</b>' : ''}`);
+      if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ` <b style="color:${C.koyoPeak}">(peak season!)</b>` : ''}`);
       if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking');
 
       const spotCount = allSpotsData?.spots?.length || 0;
@@ -1388,7 +1400,7 @@ async function searchTrip() {
         });
       }
       if (inSeasonFruits.length) {
-        html += `<div style="padding:10px 16px;background:#f0fdf4;font-weight:600;font-size:0.85rem;color:#15803d;border-top:1px solid var(--gray-200);border-bottom:1px solid #bbf7d0">🍎 Fruit Picking — ${seasonFarms.length} farms across Japan</div>`;
+        html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-top:1px solid var(--gray-200);border-bottom:1px solid ${C.greenBorder}">🍎 Fruit Picking — ${seasonFarms.length} farms across Japan</div>`;
         html += `<div style="padding:8px 16px;font-size:0.82rem;color:var(--gray-600)">Pick cities above to see nearby farms, or explore the map.</div>`;
       }
       if (isKoyoSeason) {
@@ -1508,7 +1520,7 @@ async function searchTrip() {
       const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
       const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
+        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
       });
       mk.bindPopup(`<div style="min-width:180px"><b>${farm.name}</b><br><span style="font-size:11px;color:#666">${farm.address||''}</span><br><span style="font-size:11px">${(farm.fruits||[]).join(' · ')}</span><div style="margin-top:6px"><a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">${srcLabel} →</a>` : ''}</div></div>`);
       mk.addTo(mapInstance);
@@ -1520,7 +1532,7 @@ async function searchTrip() {
     for (const spot of nearbyKoyo) {
       const col = spot.status?.includes('Peak') ? C.koyoPeak : spot.status?.includes('Turning') ? C.koyoTurn : C.koyoEarly;
       const mk = L.circleMarker([spot.lat, spot.lon], { radius: 7, fillColor: col, color: 'white', weight: 1.5, fillOpacity: 0.9 });
-      mk.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoLink};font-size:12px">Google Maps →</a>`);
+      mk.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoPeak};font-size:12px">Google Maps →</a>`);
       mk.addTo(mapInstance);
       markers.push(mk);
       bounds.push([spot.lat, spot.lon]);
@@ -1533,12 +1545,12 @@ async function searchTrip() {
     const seasonItems = [];
     if (isSakuraSeason) {
       const sakuraNote = nearbySakura.length > 0
-        ? (m >= 3 && m <= 4 ? ' <b style="color:${C.peak}">(peak season!)</b>' : ` — ${nearbySakura.length} spots in bloom`)
+        ? (m >= 3 && m <= 4 ? ` <b style="color:${C.peak}">(peak season!)</b>` : ` — ${nearbySakura.length} spots in bloom`)
         : ' <span style="color:var(--gray-400)">(ended here — try Hokkaido for May bloom)</span>';
       seasonItems.push(`🌸 Cherry blossom${sakuraNote}`);
     }
     if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
-    if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ' <b style="color:${C.koyoLink}">(peak season!)</b>' : ''}`);
+    if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ` <b style="color:${C.koyoPeak}">(peak season!)</b>` : ''}`);
     if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking farms');
 
     let html = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem">
@@ -1569,7 +1581,7 @@ async function searchTrip() {
 
     // Fruit section
     if (inSeasonFruits.length) {
-      html += `<div style="padding:10px 16px;background:#f0fdf4;font-weight:600;font-size:0.85rem;color:#15803d;border-bottom:1px solid #bbf7d0;border-top:1px solid var(--gray-200)">🍎 Fruit Picking — ${nearbyFarms.length} farms within ${radiusKm}km</div>`;
+      html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-bottom:1px solid ${C.greenBorder};border-top:1px solid var(--gray-200)">🍎 Fruit Picking — ${nearbyFarms.length} farms within ${radiusKm}km</div>`;
       if (nearbyFarms.length) {
         nearbyFarms.slice(0, 15).forEach(farm => {
           const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
@@ -1592,7 +1604,7 @@ async function searchTrip() {
         nearbyKoyo.slice(0, 12).forEach(spot => {
           const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
           html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon})})">
-            <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''} ${stars ? '<span style="color:${C.koyoLink};font-size:11px">'+stars+'</span>' : ''}</h4>
+            <h4>${spot.name} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${spot.nameRomaji}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak};font-size:11px">${stars}</span>` : ''}</h4>
             <div class="sub">${spot.dist}km · Peak: <strong>${fmtDate(spot.bestPeak)}</strong> &middot; ${spot.status}</div>
           </div>`;
         });
@@ -1604,7 +1616,7 @@ async function searchTrip() {
 
     $('trip-results').innerHTML = html;
   } catch (e) {
-    $('trip-results').innerHTML = `<div style="padding:16px;color:#dc2626">${e.message}</div>`;
+    $('trip-results').innerHTML = `<div style="padding:16px;color:${C.error}">${e.message}</div>`;
   }
 }
 
@@ -1674,7 +1686,7 @@ async function findNearMe() {
       }
       $('sidebar-content').innerHTML = html;
     } catch (e) {
-      $('sidebar-content').innerHTML = `<div class="loading" style="color:#dc2626">${e.message}</div>`;
+      $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
     }
   }, (err) => {
     $('btn-nearme').textContent = 'Near Me';
@@ -1694,7 +1706,7 @@ function spotPopupHtml(spot) {
   if (!isEnded) {
     const rate = spot.fullRate > 0 ? spot.fullRate : spot.bloomRate;
     const label = spot.fullRate > 0 ? 'Flowering' : 'Growth';
-    const grad = spot.fullRate > 0 ? 'linear-gradient(90deg,${C.starting},${C.peak})' : 'linear-gradient(90deg,${C.bud},${C.budOpen})';
+    const grad = spot.fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
     barsHtml = `<div style="margin:8px 0">
       <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px"><span>${label}</span><span>${rate}%</span></div>
       <div style="height:16px;background:#f0f0f0;border-radius:8px;overflow:hidden">
@@ -1796,7 +1808,7 @@ async function loadAllSpotsOnMap() {
         // Color by majority status
         const n = childMarkers.length;
         let color, textColor;
-        if (ended > n * 0.5) { color = C.ended; textColor = '#166534'; }        // green — mostly ended
+        if (ended > n * 0.5) { color = C.ended; textColor = C.greenDark; }      // green — mostly ended
         else if (peak > n * 0.3) { color = C.peak; textColor = 'white'; }       // deep pink — peak
         else if (blooming > n * 0.3) { color = C.bloom; textColor = 'white'; }   // pink — blooming
         else if (buds > n * 0.3) { color = C.budOpen; textColor = 'white'; }       // orange — buds
@@ -1832,7 +1844,7 @@ async function loadAllSpotsOnMap() {
       for (const spot of kawazu.spots || []) {
         if (!spot.lat || !spot.lon) continue;
         const kEnded = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)?.includes('Ended');
-        const kawazuColor = kEnded ? C.ended : '#db2777';
+        const kawazuColor = kEnded ? C.ended : C.kawazu;
         const m = L.marker([spot.lat, spot.lon], {
           icon: L.divIcon({
             html: `<div style="background:${kawazuColor};color:white;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)" title="Kawazu Cherry">★</div>`,
@@ -1842,7 +1854,7 @@ async function loadAllSpotsOnMap() {
         const kStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || 'Kawazu Cherry';
         m.bindPopup(
           `<div style="min-width:200px"><b>${spot.name}</b> ${spot.nameRomaji || ''}<br>` +
-          `<em style="color:#db2777">Kawazu Cherry (河津桜)</em><br>` +
+          `<em style="color:${C.kawazu}">Kawazu Cherry (河津桜)</em><br>` +
           `<b>${kStatus}</b><br>` +
           `<span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>` +
           `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a></div>`
@@ -2037,13 +2049,13 @@ function renderWhatsOn(m) {
       iconCreateFunction: cluster => {
         const n = cluster.getChildCount();
         const sz = Math.min(30 + n * 0.3, 46);
-        return L.divIcon({ html: `<div style="background:#16a34a;color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+        return L.divIcon({ html: `<div style="background:${C.green};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
       }
     });
     for (const farm of farms) {
       const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid #16a34a;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">${emoji}</div>`, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
+        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">${emoji}</div>`, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
       });
       mk.bindPopup(`<b>${farm.name}</b><br><span style="font-size:11px;color:#666">${farm.address||''}</span><br><span style="font-size:11px">${(farm.fruits||[]).join(' · ')}</span><div style="margin-top:6px"><a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a></div>`);
       clusterGroup.addLayer(mk);
@@ -2158,19 +2170,19 @@ function renderWhatsOn(m) {
 
   // Fruit section
   if (inSeasonFruits.length) {
-    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:#f0fdf4;color:#15803d;border-top:1px solid var(--gray-200);border-bottom:1px solid #bbf7d0">
+    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${C.greenLight};color:${C.greenMid};border-top:1px solid var(--gray-200);border-bottom:1px solid ${C.greenBorder}">
       🍎 Fruit Picking — ${farms.length} farms on map</div>`;
     inSeasonFruits.slice(0, 5).forEach(f => {
       const isPeak = f.peak.includes(m);
       html += `<div class="spot-item" onclick="setMode('fruit');" style="cursor:pointer">
         <h4>${f.emoji} ${f.name} <span style="font-weight:400;color:var(--gray-400)">${f.ja}</span>
-          ${isPeak ? '<span style="background:#dcfce7;color:#16a34a;font-size:0.7rem;padding:1px 5px;border-radius:8px;margin-left:4px">Peak</span>' : ''}
+          ${isPeak ? `<span style="background:${C.greenSoft};color:${C.green};font-size:0.7rem;padding:1px 5px;border-radius:8px;margin-left:4px">Peak</span>` : ''}
         </h4>
         <div class="sub">Best regions: ${f.regions.slice(0,3).join(', ')}</div>
-        <div class="sub" style="margin-top:1px;color:#16a34a;font-size:0.77rem">Click to explore ${farms.filter(fm => fm.fruits?.includes(f.name)).length} farms →</div>
+        <div class="sub" style="margin-top:1px;color:${C.green};font-size:0.77rem">Click to explore ${farms.filter(fm => fm.fruits?.includes(f.name)).length} farms →</div>
       </div>`;
     });
-    if (inSeasonFruits.length > 5) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${inSeasonFruits.length - 5} more fruits — <button onclick="setMode('fruit')" style="background:none;border:none;color:#16a34a;cursor:pointer;font-size:0.78rem;padding:0">See all in Fruit tab</button></div>`;
+    if (inSeasonFruits.length > 5) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${inSeasonFruits.length - 5} more fruits — <button onclick="setMode('fruit')" style="background:none;border:none;color:${C.green};cursor:pointer;font-size:0.78rem;padding:0">See all in Fruit tab</button></div>`;
   }
 
   // Sakura/koyo cross-links
