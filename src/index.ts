@@ -29,6 +29,17 @@ import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } fro
 // ─── Shared types ────────────────────────────────────────────────────────────
 type AnySpot = Record<string, unknown>;
 
+// ─── Static JSON: load once at startup, reused across all MCP tool calls ─────
+function loadStaticJSON(filename: string) {
+  const p = resolve(process.cwd(), "public", filename);
+  try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; }
+}
+const STATIC_MCP = {
+  flowers:   loadStaticJSON("flowers.json"),
+  festivals: loadStaticJSON("festivals.json"),
+  farms:     loadStaticJSON("fruit-farms.json"),
+};
+
 // ─── Shared tool & prompt registration ───────────────────────────────────────
 
 function registerAllTools(server: McpServer) {
@@ -77,10 +88,11 @@ Use the japan-seasons-mcp tools based on the travel month:
 
 **Year-round** — Fruit picking:
 - get_fruit_seasons → which fruits are in season for the travel month
-- get_fruit_farms → 350+ farms with GPS, filterable by fruit type and region
+- get_fruit_farms → 350+ farms with GPS; pass month= to auto-filter by in-season fruits
 
 **Oct-Dec** — Autumn leaves (koyo):
 - get_koyo_forecast → maple & ginkgo timing, 50+ cities
+- get_koyo_best_dates → match travel dates to colour cities (same as get_sakura_best_dates but for koyo)
 - get_koyo_spots → 687 viewing spots with peak windows
 
 ## Bloom scale (sakura, official JMA)
@@ -306,6 +318,59 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
+  // ── Tool: get_koyo_best_dates ──
+
+  server.tool(
+    "get_koyo_best_dates",
+    "Find the best cities for autumn leaves (koyo) given your travel dates. Matches your dates against maple and ginkgo peak dates across 50+ cities. Follow up with get_koyo_spots for specific parks and temples.",
+    {
+      start_date: z.string().describe("Travel start date (YYYY-MM-DD)"),
+      end_date: z.string().describe("Travel end date (YYYY-MM-DD)"),
+    },
+    async ({ start_date, end_date }) => {
+      try {
+        const startDate = new Date(start_date);
+        const endDate = new Date(end_date);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return { content: [{ type: "text", text: "Invalid date format. Use YYYY-MM-DD." }], isError: true };
+        }
+        const forecast = await getKoyoForecast();
+
+        const matches: { name: string; pref: string; mapleDate: string | null; ginkgoDate: string | null }[] = [];
+        for (const region of forecast.regions) {
+          for (const city of region.cities) {
+            const peakDates = [city.maple?.forecast, city.ginkgo?.forecast].filter(Boolean) as string[];
+            if (!peakDates.length) continue;
+            // Viewing window: 3 days before earliest peak → 10 days after latest peak
+            const timestamps = peakDates.map(d => new Date(d).getTime());
+            const windowStart = new Date(Math.min(...timestamps));
+            windowStart.setDate(windowStart.getDate() - 3);
+            const windowEnd = new Date(Math.max(...timestamps));
+            windowEnd.setDate(windowEnd.getDate() + 10);
+            if (startDate <= windowEnd && endDate >= windowStart) {
+              matches.push({ name: city.name, pref: city.prefName, mapleDate: city.maple?.forecast ?? null, ginkgoDate: city.ginkgo?.forecast ?? null });
+            }
+          }
+        }
+
+        if (!matches.length) {
+          return { content: [{ type: "text", text: `No koyo cities in colour during ${start_date} to ${end_date}.\n\nTypical season: Hokkaido/mountains Sep–Oct, Tohoku/Nikko Oct, Kanto/Kyoto mid-Oct to Nov, Kyushu Nov–early Dec.` }] };
+        }
+
+        let output = `# Best cities for koyo: ${start_date} to ${end_date}\n\n${matches.length} cities with autumn colour in your window.\nUse get_koyo_spots to find specific parks and temples.\n\n`;
+        for (const m of matches) {
+          output += `### ${m.name} (${m.pref})\n`;
+          if (m.mapleDate) output += `- 🍁 Maple peak: ${formatKoyoDate(m.mapleDate)}\n`;
+          if (m.ginkgoDate) output += `- 🟡 Ginkgo peak: ${formatKoyoDate(m.ginkgoDate)}\n`;
+          output += "\n";
+        }
+        return { content: [{ type: "text", text: output }] };
+      } catch (e: any) {
+        return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
+      }
+    }
+  );
+
   // ── Tool: get_weather_forecast ──
 
   server.tool(
@@ -349,12 +414,10 @@ Use the japan-seasons-mcp tools based on the travel month:
     },
     async ({ type, prefecture, month }) => {
       try {
-        const flowersPath = resolve(process.cwd(), "public/flowers.json");
-        if (!existsSync(flowersPath)) {
+        const data = STATIC_MCP.flowers;
+        if (!data) {
           return { content: [{ type: "text", text: "Flowers data not available on this instance." }], isError: true };
         }
-        const raw = readFileSync(flowersPath, "utf-8");
-        const data = JSON.parse(raw);
         let spots: AnySpot[] = data.spots || [];
 
         if (type && type !== "all") spots = spots.filter((s) => s["type"] === type);
@@ -489,12 +552,10 @@ Use the japan-seasons-mcp tools based on the travel month:
     },
     async ({ month, type, prefecture }) => {
       try {
-        const festivalsPath = resolve(process.cwd(), "public/festivals.json");
-        if (!existsSync(festivalsPath)) {
+        const data = STATIC_MCP.festivals;
+        if (!data) {
           return { content: [{ type: "text", text: "Festivals data not available on this instance." }], isError: true };
         }
-        const raw = readFileSync(festivalsPath, "utf-8");
-        const data = JSON.parse(raw);
         let spots: AnySpot[] = data.spots || [];
 
         if (type && type !== "all") spots = spots.filter((s) => s["type"] === type);
@@ -541,25 +602,29 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_fruit_farms",
-    "Get fruit picking farms in Japan with GPS coordinates and booking links. 350+ farms scraped from Jalan and Navitime. Filter by fruit type or region. Use get_fruit_seasons first to find what's in season for your travel month.",
+    "Get fruit picking farms in Japan with GPS coordinates and booking links. 350+ farms scraped from Jalan and Navitime. Filter by month (auto-detects in-season fruits), fruit type, or region.",
     {
+      month: z.number().int().min(1).max(12).optional()
+        .describe("Travel month (1-12). Filters to farms with at least one fruit in season that month — e.g. 5 (May) returns strawberry, melon farms."),
       fruit: z.string().optional()
-        .describe("Fruit to filter by, e.g. 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', 'Mikan'. Case-sensitive."),
+        .describe("Fruit to filter by, e.g. 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', 'Mikan'. Case-sensitive. Use with or instead of month."),
       region: z.string().optional()
         .describe("Prefecture or city to filter by (partial match), e.g. 'Yamanashi', 'Nagano', 'Aomori'."),
       limit: z.number().int().min(1).max(100).optional()
-        .describe("Max number of farms to return (default 30, max 100). Use with fruit/region filters for best results."),
+        .describe("Max number of farms to return (default 30, max 100)."),
     },
-    async ({ fruit, region, limit = 30 }) => {
+    async ({ month, fruit, region, limit = 30 }) => {
       try {
-        const farmsPath = resolve(process.cwd(), "public/fruit-farms.json");
-        if (!existsSync(farmsPath)) {
+        const data = STATIC_MCP.farms;
+        if (!data) {
           return { content: [{ type: "text", text: "Farm data not available on this instance. The hosted version at seasons.kooexperience.com has 350+ farms." }], isError: true };
         }
-        const raw = readFileSync(farmsPath, "utf-8");
-        const data = JSON.parse(raw);
         let farms: AnySpot[] = data.spots || [];
 
+        if (month) {
+          const inSeason = new Set(FRUITS.filter(f => f.months.includes(month)).map(f => f.name));
+          farms = farms.filter(f => (f["fruits"] as string[] | undefined)?.some(fr => inSeason.has(fr)));
+        }
         if (fruit) farms = farms.filter((f) => (f["fruits"] as string[] | undefined)?.includes(fruit));
         if (region) farms = farms.filter((f) =>
           (f["address"] as string | undefined)?.toLowerCase().includes(region.toLowerCase()) ||
@@ -574,7 +639,8 @@ Use the japan-seasons-mcp tools based on the travel month:
 
         let output = `# Japan Fruit Picking Farms\n`;
         output += `Database: ${data.total} total farms | Updated: ${data.scraped_at ? new Date(data.scraped_at).toDateString() : "unknown"}\n`;
-        output += `Filters: fruit=${fruit || "any"}, region=${region || "any"} → ${farms.length} matches (${withCoords} with GPS)\n\n`;
+        const monthLabel = month ? `month=${MO[month-1]}, ` : "";
+        output += `Filters: ${monthLabel}fruit=${fruit || "any"}, region=${region || "any"} → ${farms.length} matches (${withCoords} with GPS)\n\n`;
 
         if (shown.length === 0) {
           return { content: [{ type: "text", text: `No farms found. Try get_fruit_seasons to see what's in season, then filter by a specific fruit.` }] };
