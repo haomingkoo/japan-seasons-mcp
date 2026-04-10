@@ -1,6 +1,6 @@
 {
   "name": "japan-seasons-mcp",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Year-round Japan seasonal travel — cherry blossom, autumn leaves, fruit picking, flowers & more. 1,700+ spots with live data. MCP server powered by Japan Meteorological Corporation.",
   "type": "module",
   "main": "dist/index.js",

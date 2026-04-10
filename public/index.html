@@ -188,11 +188,11 @@
         <div class="loading">Loading forecast data...</div>
       </div>
       <div class="footer-link">
-        Data: <a href="https://n-kishou.com">Japan Meteorological Corp</a> &middot;
-        Forecasts update Thursdays &middot; Bloom meters update daily 9AM JST<br>
+        <b>Live data:</b> <a href="https://n-kishou.com">Japan Met Corp</a> — sakura &amp; koyo bloom % updated daily 9AM JST · weather hourly<br>
+        <b>Curated:</b> flowers &amp; festivals show typical annual dates — actual bloom varies by weather · always check official sites<br>
         MCP: <code>seasons.kooexperience.com/mcp</code> &middot;
-        <a href="https://github.com/haomingkoo/japan-sakura-koyo-mcp">GitHub</a> &middot;
-        <a href="https://www.npmjs.com/package/japan-sakura-koyo-mcp">npm</a>
+        <a href="https://github.com/haomingkoo/japan-seasons-mcp">GitHub</a> &middot;
+        <a href="https://www.npmjs.com/package/japan-seasons-mcp">npm</a>
       </div>
     </div>
   </div>
@@ -951,6 +951,7 @@ function updateLegend(type) {
     el.style.display = '';
     el.innerHTML = `
       <div style="font-weight:600;margin-bottom:4px">Seasonal Flowers</div>
+      <div class="legend-row"><span style="font-size:16px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
       <div class="legend-row"><span style="font-size:16px">💜</span> Wisteria (Apr–May)</div>
       <div class="legend-row"><span style="font-size:16px">💙</span> Hydrangea (Jun–Jul)</div>`;
   } else if (type === 'whatson') {
@@ -960,6 +961,7 @@ function updateLegend(type) {
       <div class="legend-row"><span style="font-size:14px">🎆</span> Fireworks</div>
       <div class="legend-row"><span style="font-size:14px">🏮</span> Matsuri</div>
       <div class="legend-row"><span style="font-size:14px">❄️</span> Winter event</div>
+      <div class="legend-row"><span style="font-size:14px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
       <div class="legend-row"><span style="font-size:14px">💜</span> Wisteria</div>
       <div class="legend-row"><span style="font-size:14px">💙</span> Hydrangea</div>
       <div class="legend-row"><div class="legend-dot" style="background:#16a34a"></div> Fruit farm</div>`;
@@ -970,6 +972,9 @@ function updateLegend(type) {
 
 // ── FLOWERS ──
 const FLOWER_TYPES = [
+  { type: 'plum', emoji: '🌸', name: 'Plum Blossom', ja: '梅', color: '#e11d48',
+    months: [1, 2, 3], peak: [2],
+    note: 'Peak: mid-January (Atami) to March. Japan\'s first spring bloom — 4–6 weeks before cherry blossom.' },
   { type: 'wisteria', emoji: '💜', name: 'Wisteria', ja: '藤', color: '#7c3aed',
     months: [4, 5], peak: [4, 5],
     note: 'Peak: late April – early May. Famous spots often require timed entry tickets.' },
@@ -1050,8 +1055,14 @@ function renderFlowers() {
   const isFlowerSeason = isWisteriaSeason || isHydrangeaSeason;
 
   // Season info banner
+  const isPlumSeason = currentMonth >= 1 && currentMonth <= 3;
   let bannerHtml = '';
-  if (isWisteriaSeason) {
+  if (isPlumSeason) {
+    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;font-size:0.82rem;color:#9f1239">
+      🌸 <b>Plum blossom season!</b> ${currentMonth === 1 ? 'Atami blooms first (late Jan). Most spots peak in February.' : currentMonth === 2 ? 'Peak month — Mito, Kyoto, Tokyo and Osaka all in bloom.' : 'Late season — Kyoto spots (Kitano, Jonangu) still going.'}<br>
+      Japan's first spring bloom, arriving 4–6 weeks before cherry blossom.
+    </div>`;
+  } else if (isWisteriaSeason) {
     bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;font-size:0.82rem;color:#4c1d95">
       💜 <b>Wisteria season is now!</b> Late April – early May is peak for most spots.<br>
       Popular spots like Ashikaga and Kawachi often require advance tickets.
@@ -1062,16 +1073,17 @@ function renderFlowers() {
       Kamakura gets very crowded — visit on weekdays or early morning.
     </div>`;
   } else {
-    const nextSeason = currentMonth < 4 || currentMonth > 7 ? 'April (wisteria)' : 'June (hydrangea)';
+    const nextSeason = currentMonth >= 8 ? 'January (plum blossom)' : currentMonth < 4 ? 'April (wisteria)' : 'June (hydrangea)';
     bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem;color:var(--gray-600)">
-      🌷 <b>Off-season.</b> Flower seasons: Wisteria Apr–May · Hydrangea Jun–Jul.<br>
-      Next up: <b>${nextSeason}</b>
+      🌷 <b>Off-season.</b> Flower seasons: Plum Jan–Mar · Wisteria Apr–May · Hydrangea Jun–Jul.<br>
+      Next up: <b>${nextSeason}</b><br>
+      <span style="color:var(--gray-400);font-size:0.77rem">Dates shown are typical averages — actual bloom shifts with weather each year. Check official sites before visiting.</span>
     </div>`;
   }
 
   // Type filter tabs
-  const typeTabHtml = `<div style="display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--gray-200)">
-    ${[['all','All Flowers','#555'],['wisteria','💜 Wisteria','#7c3aed'],['hydrangea','💙 Hydrangea','#2563eb']].map(([t,label,col]) => {
+  const typeTabHtml = `<div style="display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--gray-200);flex-wrap:wrap">
+    ${[['all','All','#555'],['plum','🌸 Plum','#e11d48'],['wisteria','💜 Wisteria','#7c3aed'],['hydrangea','💙 Hydrangea','#2563eb']].map(([t,label,col]) => {
       const isActive = flowersTypeFilter === t;
       return `<button onclick="flowersTypeFilter='${t}';renderFlowers()" style="padding:4px 12px;border-radius:20px;border:1px solid ${isActive ? col : 'var(--gray-200)'};background:${isActive ? col : 'white'};color:${isActive ? 'white' : 'var(--gray-600)'};font-size:0.78rem;cursor:pointer;font-weight:${isActive?'600':'400'}">${label}</button>`;
     }).join('')}
@@ -1128,7 +1140,7 @@ function renderFlowers() {
       <h2 style="margin:0">Seasonal Flowers</h2>
       <span style="font-size:0.78rem;color:var(--gray-400)">${spots.length} curated spots</span>
     </div>
-    <p style="margin-top:2px">Wisteria · Hydrangea · Official links included</p>`;
+    <p style="margin-top:2px">Plum · Wisteria · Hydrangea · Official links</p>`;
   $('sidebar-content').innerHTML = html;
 }
 
@@ -1901,7 +1913,7 @@ function renderWhatsOn(m) {
 
   const festivals = (festivalsCache?.spots || []).filter(f => f.months?.includes(m));
   const flowers = (flowersCache?.spots || []).filter(s => {
-    const months = s.type === 'wisteria' ? [4,5] : s.type === 'hydrangea' ? [6,7] : [];
+    const months = s.type === 'plum' ? [1,2,3] : s.type === 'wisteria' ? [4,5] : s.type === 'hydrangea' ? [6,7] : [];
     return months.includes(m);
   });
   const inSeasonFruits = FRUITS.filter(f => f.months.includes(m));
@@ -1994,12 +2006,14 @@ function renderWhatsOn(m) {
   // ── Season context banner ──
   const isSakuraSeason = m >= 3 && m <= 5;
   const isKoyoSeason = m >= 10 && m <= 11;
+  const isPlum = m >= 1 && m <= 3;
   const isWisteria = m >= 4 && m <= 5;
   const isHydrangea = m >= 6 && m <= 7;
   const isFireworksSeason = m === 7 || m === 8;
   const isWinterEvent = m === 1 || m === 2;
 
   let seasonCues = [];
+  if (isPlum) seasonCues.push('🌸 Plum blossom' + (m === 2 ? ' — peak!' : ''));
   if (isSakuraSeason) seasonCues.push('🌸 Cherry blossom' + (m === 4 ? ' — peak nationwide!' : ''));
   if (isWisteria) seasonCues.push('💜 Wisteria');
   if (isHydrangea) seasonCues.push('💙 Hydrangea');
@@ -2055,11 +2069,13 @@ function renderWhatsOn(m) {
 
   // Flowers section
   if (flowers.length) {
+    const isPlumMo = m >= 1 && m <= 3;
     const isWisteriaMo = m >= 4 && m <= 5;
-    const headerColor = isWisteriaMo ? '#f5f3ff' : '#eff6ff';
-    const headerText = isWisteriaMo ? '#6d28d9' : '#1e40af';
+    const headerColor = isPlumMo ? '#fff1f2' : isWisteriaMo ? '#f5f3ff' : '#eff6ff';
+    const headerText = isPlumMo ? '#9f1239' : isWisteriaMo ? '#6d28d9' : '#1e40af';
+    const flowerLabel = isPlumMo ? '🌸 Plum Blossom' : isWisteriaMo ? '💜 Wisteria' : '💙 Hydrangea';
     html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${headerColor};color:${headerText};border-top:1px solid var(--gray-200);border-bottom:1px solid var(--gray-200)">
-      ${isWisteriaMo ? '💜 Wisteria' : '💙 Hydrangea'} — ${flowers.length} spots in season</div>`;
+      ${flowerLabel} — ${flowers.length} spots in season</div>`;
     flowers.slice(0, 6).forEach(s => {
       const ft = FLOWER_TYPES.find(f => f.type === s.type);
       html += `<div class="spot-item" onclick="mapInstance.flyTo([${s.lat},${s.lon}],13)" style="cursor:pointer">

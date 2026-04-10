@@ -6,3 +6,18 @@ Dockerfile
 railway.json
 tsconfig.json
 *.test.ts
+
+# Frontend app (not needed in the npm package)
+public/
+
+# Scraper scripts
+scrape-*.py
+scrape-*.js
+
+# Test and verification scripts
+playwright-verify.*
+test-*.py
+test-*.js
+
+# GitHub Actions
+.github/
