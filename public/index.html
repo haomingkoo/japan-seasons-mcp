@@ -1137,8 +1137,10 @@ function renderFlowers() {
     const inSeason = typeSpots.filter(s => ft.months.includes(currentMonth));
     const offSeason = typeSpots.filter(s => !ft.months.includes(currentMonth));
 
-    html += `<div style="padding:10px 16px;background:${ft.type === 'wisteria' ? '#f5f3ff' : '#eff6ff'};font-weight:600;font-size:0.85rem;color:${ft.color};border-bottom:1px solid var(--gray-200)">
-      ${ft.emoji} ${ft.name} (${ft.ja}) — ${typeSpots.length} spots &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#666">Peak: ${ft.type === 'wisteria' ? 'late Apr–early May' : 'June'}</span>
+    const sectionBg = ft.type === 'plum' ? '#fff1f2' : ft.type === 'wisteria' ? '#f5f3ff' : '#eff6ff';
+    const peakLabel = ft.type === 'plum' ? 'Jan–Mar' : ft.type === 'wisteria' ? 'late Apr–early May' : 'June';
+    html += `<div style="padding:10px 16px;background:${sectionBg};font-weight:600;font-size:0.85rem;color:${ft.color};border-bottom:1px solid var(--gray-200)">
+      ${ft.emoji} ${ft.name} (${ft.ja}) — ${typeSpots.length} spots &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#666">Peak: ${peakLabel}</span>
     </div>`;
     html += `<div style="padding:8px 16px 0;font-size:0.79rem;color:var(--gray-600);font-style:italic">${ft.note}</div>`;
 
