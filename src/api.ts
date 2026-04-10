@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 import {
   getSakuraForecast,
@@ -12,16 +12,33 @@ import {
 import { getKoyoForecast, getKoyoSpots } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 
-// Server-side weather cache keyed by "lat,lon" (1-hour TTL, shared across users)
+// ── Static JSON: read once at startup, served from memory on every request ──
+// These files change only when you deploy new data — no need to re-read from disk.
+function loadStatic(filename: string): unknown {
+  const p = resolve(process.cwd(), "public", filename);
+  try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; }
+}
+const STATIC = {
+  flowers:   loadStatic("flowers.json"),
+  festivals: loadStatic("festivals.json"),
+  farms:     loadStatic("fruit-farms.json"),
+};
+
+// ── Server-side weather cache: keyed by "lat,lon", 1-hour TTL ──
+// Shared across users — second person to open the same spot gets instant response.
 const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
 
-function json(res: ServerResponse, data: unknown, status = 200) {
-  res.writeHead(status, { "Content-Type": "application/json" });
+// ── Response helpers ──
+function json(res: ServerResponse, data: unknown, status = 200, maxAge = 0) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (maxAge > 0) headers["Cache-Control"] = `public, max-age=${maxAge}, stale-while-revalidate=60`;
+  res.writeHead(status, headers);
   res.end(JSON.stringify(data));
 }
 
 function error(res: ServerResponse, msg: string, status = 400) {
-  json(res, { error: msg }, status);
+  res.writeHead(status, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: msg }));
 }
 
 export async function handleApiRequest(
@@ -37,9 +54,9 @@ export async function handleApiRequest(
       const city = params.get("city");
       if (city) {
         const cities = findCities(forecast, city);
-        json(res, { cities });
+        json(res, { cities }, 200, 3600);
       } else {
-        json(res, forecast);
+        json(res, forecast, 200, 3600);
       }
       return true;
     }
@@ -51,7 +68,7 @@ export async function handleApiRequest(
       const prefCode = findPrefCode(pref);
       if (!prefCode) { error(res, `Prefecture "${pref}" not found`); return true; }
       const spots = await getSakuraSpots(prefCode);
-      json(res, spots);
+      json(res, spots, 200, 10800); // 3 hours
       return true;
     }
 
@@ -91,14 +108,14 @@ export async function handleApiRequest(
     // GET /api/kawazu
     if (pathname === "/api/kawazu") {
       const data = await getKawazuForecast();
-      json(res, data);
+      json(res, data, 200, 3600);
       return true;
     }
 
     // GET /api/koyo/forecast
     if (pathname === "/api/koyo/forecast") {
       const data = await getKoyoForecast();
-      json(res, data);
+      json(res, data, 200, 3600);
       return true;
     }
 
@@ -109,46 +126,28 @@ export async function handleApiRequest(
       const prefCode = findPrefCode(pref);
       if (!prefCode) { error(res, `Prefecture "${pref}" not found`); return true; }
       const spots = await getKoyoSpots(prefCode);
-      json(res, spots);
+      json(res, spots, 200, 10800); // 3 hours
       return true;
     }
 
-    // GET /api/fruit/farms — serve cached Navitime farm data
+    // GET /api/fruit/farms — in-memory static data
     if (pathname === "/api/fruit/farms") {
-      try {
-        const farmsPath = resolve(process.cwd(), "public/fruit-farms.json");
-        const raw = readFileSync(farmsPath, "utf-8");
-        const data = JSON.parse(raw);
-        json(res, data);
-      } catch {
-        json(res, { spots: [], scraped_at: null, total: 0, error: "Farm data not yet available. Run scrape-fruit-farms.py to populate." });
-      }
+      if (STATIC.farms) json(res, STATIC.farms, 200, 86400); // 24 hours
+      else json(res, { spots: [], scraped_at: null, total: 0, error: "Farm data not yet available." }, 200);
       return true;
     }
 
-    // GET /api/flowers — serve curated seasonal flower spots (wisteria, hydrangea, etc.)
+    // GET /api/flowers — in-memory static data, 24-hour CDN cache
     if (pathname === "/api/flowers") {
-      try {
-        const flowersPath = resolve(process.cwd(), "public/flowers.json");
-        const raw = readFileSync(flowersPath, "utf-8");
-        const data = JSON.parse(raw);
-        json(res, data);
-      } catch {
-        json(res, { spots: [], total: 0, error: "Flowers data not available." });
-      }
+      if (STATIC.flowers) json(res, STATIC.flowers, 200, 86400);
+      else json(res, { spots: [], total: 0, error: "Flowers data not available." }, 200);
       return true;
     }
 
-    // GET /api/festivals — serve curated recurring Japanese festivals
+    // GET /api/festivals — in-memory static data, 24-hour CDN cache
     if (pathname === "/api/festivals") {
-      try {
-        const festivalsPath = resolve(process.cwd(), "public/festivals.json");
-        const raw = readFileSync(festivalsPath, "utf-8");
-        const data = JSON.parse(raw);
-        json(res, data);
-      } catch {
-        json(res, { spots: [], total: 0, error: "Festivals data not available." });
-      }
+      if (STATIC.festivals) json(res, STATIC.festivals, 200, 86400);
+      else json(res, { spots: [], total: 0, error: "Festivals data not available." }, 200);
       return true;
     }
 
@@ -164,7 +163,7 @@ export async function handleApiRequest(
         const key = `${latF.toFixed(2)},${lonF.toFixed(2)}`;
         const cached = spotWeatherCache.get(key);
         if (cached && Date.now() - cached.ts < 3_600_000) {
-          json(res, cached.data);
+          json(res, cached.data, 200, 1800); // 30-min CDN cache on top of server cache
           return true;
         }
         try {
@@ -173,7 +172,7 @@ export async function handleApiRequest(
           if (!r.ok) throw new Error(`open-meteo ${r.status}`);
           const data = await r.json();
           spotWeatherCache.set(key, { data, ts: Date.now() });
-          json(res, data);
+          json(res, data, 200, 1800);
         } catch {
           json(res, { error: "Weather unavailable" });
         }
