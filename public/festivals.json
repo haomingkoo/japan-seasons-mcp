@@ -11,7 +11,9 @@
       "lon": 139.8047,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "Last Saturday of July",
       "url": "https://www.sumidagawa-hanabi.com/",
       "note": "Tokyo's most iconic fireworks — ~20,000 shells over the Sumida River. One of Japan's oldest hanabi events. Book riverside restaurants months ahead.",
@@ -26,7 +28,9 @@
       "lon": 138.8514,
       "prefecture": "Niigata",
       "region": "Chubu",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 2–3",
       "url": "https://nagaokamatsuri.com/",
       "note": "One of Japan's top 3 fireworks festivals — famous for the Phoenix (鳳凰) spread 2km wide. A memorial for WWII victims. Tickets sell out within minutes.",
@@ -37,11 +41,13 @@
       "type": "fireworks",
       "name": "Omagari All-Japan Fireworks",
       "nameJa": "全国花火競技大会",
-      "lat": 39.4700,
-      "lon": 140.4800,
+      "lat": 39.47,
+      "lon": 140.48,
       "prefecture": "Akita",
       "region": "Tohoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "Last Saturday of August",
       "url": "https://www.oomagari-hanabi.com/",
       "note": "Japan's most prestigious fireworks competition. Pyrotechnists from across Japan compete. Considered the pinnacle of Japanese hanabi artistry.",
@@ -56,7 +62,9 @@
       "lon": 140.2036,
       "prefecture": "Ibaraki",
       "region": "Kanto",
-      "months": [10],
+      "months": [
+        10
+      ],
       "typicalDate": "First Saturday of October",
       "url": "https://www.tsuchiura-hanabi.jp/",
       "note": "Autumn fireworks competition — one of Japan's three major competitions alongside Nagaoka and Omagari. Held over Lake Kasumigaura.",
@@ -71,7 +79,9 @@
       "lon": 135.6528,
       "prefecture": "Osaka",
       "region": "Kansai",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 1",
       "url": "https://www.tondabayashi-kankou.jp/",
       "note": "100,000 fireworks in a single night — one of Japan's largest displays. Visible from 10km away. Organized by Perfect Liberty Kyodan.",
@@ -86,7 +96,9 @@
       "lon": 132.3195,
       "prefecture": "Hiroshima",
       "region": "Chugoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "Mid-August",
       "url": "https://www.visit-miyajima-japan.com/",
       "note": "Fireworks launched from the sea in front of Itsukushima Shrine's floating torii gate. One of Japan's most photogenic hanabi backdrops.",
@@ -101,7 +113,9 @@
       "lon": 138.1167,
       "prefecture": "Nagano",
       "region": "Chubu",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 15",
       "url": "https://www.suwako-hanabi.com/",
       "note": "40,000 fireworks reflected over Lake Suwa on the night of Obon. One of the largest fireworks shows in the Chubu region.",
@@ -116,7 +130,9 @@
       "lon": 139.7169,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "Mid-August",
       "url": "https://www.jinguhanabi.com/",
       "note": "Inner-city Tokyo fireworks near Meiji Jingu — no river needed. Features J-pop performances. Very popular with younger crowds.",
@@ -131,7 +147,9 @@
       "lon": 135.4942,
       "prefecture": "Osaka",
       "region": "Kansai",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "First Saturday of August",
       "url": "https://yodogawa-hanabi.com/",
       "note": "Osaka's premier summer fireworks over the Yodo River. Famous for the 'Niagara' waterfall fireworks effect.",
@@ -142,11 +160,18 @@
       "type": "fireworks",
       "name": "Atami Sea Fireworks",
       "nameJa": "熱海海上花火大会",
-      "lat": 35.0950,
+      "lat": 35.095,
       "lon": 139.0733,
       "prefecture": "Shizuoka",
       "region": "Kanto",
-      "months": [1,2,4,7,8,10,12],
+      "months": [
+        2,
+        4,
+        7,
+        8,
+        10,
+        12
+      ],
       "typicalDate": "Multiple times per year (Feb, Apr, Jul, Aug, Oct, Dec)",
       "url": "https://www.ataminews.gr.jp/",
       "note": "Unique: held year-round in Atami Bay. The bowl-shaped bay amplifies sound and creates a spectacular visual. Close to Tokyo — easy day trip.",
@@ -158,10 +183,18 @@
       "name": "Lake Toya Long-Run Fireworks",
       "nameJa": "洞爺湖ロングラン花火大会",
       "lat": 42.5833,
-      "lon": 140.8000,
+      "lon": 140.8,
       "prefecture": "Hokkaido",
       "region": "Hokkaido",
-      "months": [4,5,6,7,8,9,10],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
       "typicalDate": "Every night Apr 28 – Oct 31 at 8:45PM",
       "url": "https://toyako.biz/",
       "note": "Japan's most unique fireworks — launched over Lake Toya every single night for 6 months. Small but intimate; can be seen from lakeside ryokan.",
@@ -172,11 +205,13 @@
       "type": "fireworks",
       "name": "Edogawa Fireworks",
       "nameJa": "江戸川区花火大会",
-      "lat": 35.7000,
+      "lat": 35.7,
       "lon": 139.8833,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "Last Saturday of July",
       "url": "https://www.city.edogawa.tokyo.jp/",
       "note": "Held the same night as Sumida River Fireworks — a great alternative with fewer crowds. 14,000 fireworks along the Edogawa river.",
@@ -191,7 +226,9 @@
       "lon": 135.7556,
       "prefecture": "Kyoto",
       "region": "Kansai",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "July 1–31 (Yamaboko Junko procession: Jul 17 & 24)",
       "url": "https://www.gion-matsuri.or.jp/en/",
       "note": "One of Japan's three greatest festivals. Giant decorated floats (yamaboko) parade through Kyoto. The evening Yoiyama stalls are equally unmissable.",
@@ -202,11 +239,13 @@
       "type": "matsuri",
       "name": "Tenjin Matsuri",
       "nameJa": "天神祭",
-      "lat": 34.6940,
+      "lat": 34.694,
       "lon": 135.5082,
       "prefecture": "Osaka",
       "region": "Kansai",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "July 24–25",
       "url": "https://www.tenjinsan.com/",
       "note": "One of Japan's three great festivals. A river procession of 100+ boats, torchlight, and fireworks on the Okawa River. Starts at Osaka Tenmangu Shrine.",
@@ -221,7 +260,9 @@
       "lon": 140.7406,
       "prefecture": "Aomori",
       "region": "Tohoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 2–7",
       "url": "https://www.nebuta.jp/en/",
       "note": "Towering illuminated floats depicting warriors and mythological figures parade through Aomori city at night. One of Tohoku's most spectacular summer festivals.",
@@ -236,7 +277,9 @@
       "lon": 140.1023,
       "prefecture": "Akita",
       "region": "Tohoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 3–6",
       "url": "https://www.kantou.gr.jp/english/",
       "note": "Performers balance 12-meter bamboo poles holding 46 lanterns (50kg total!) on their foreheads, shoulders, and hips. Incredible display of skill.",
@@ -248,10 +291,12 @@
       "name": "Awa Odori",
       "nameJa": "阿波おどり",
       "lat": 34.0654,
-      "lon": 134.5590,
+      "lon": 134.559,
       "prefecture": "Tokushima",
       "region": "Shikoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 12–15",
       "url": "https://www.awacity.or.jp/kanko/awa_odori/english/",
       "note": "Japan's largest dance festival — 100,000 dancers and 1.3M spectators. The famous chant: 'Dancing fools and watching fools — both are fools, so why not dance!'",
@@ -263,10 +308,12 @@
       "name": "Sendai Tanabata Festival",
       "nameJa": "仙台七夕まつり",
       "lat": 38.2604,
-      "lon": 140.8820,
+      "lon": 140.882,
       "prefecture": "Miyagi",
       "region": "Tohoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 6–8",
       "url": "https://www.sendaitanabata.com/en",
       "note": "Japan's largest Tanabata — thousands of elaborate bamboo streamers (kazari) hang over Sendai's shopping arcades. A month after the traditional Jul 7 date.",
@@ -277,11 +324,13 @@
       "type": "matsuri",
       "name": "Hakata Gion Yamakasa",
       "nameJa": "博多祇園山笠",
-      "lat": 33.5900,
+      "lat": 33.59,
       "lon": 130.3986,
       "prefecture": "Fukuoka",
       "region": "Kyushu",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "July 1–15 (Oiyama race: July 15 at 4:59AM)",
       "url": "https://www.hakatayamakasa.com/",
       "note": "Teams race giant decorated floats (kazariyama) through Fukuoka's streets in the pre-dawn Oiyama race. Over 770 years of history.",
@@ -296,7 +345,9 @@
       "lon": 139.7967,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [5],
+      "months": [
+        5
+      ],
       "typicalDate": "Third full weekend of May",
       "url": "https://www.asakusajinja.jp/sanjamatsuri/",
       "note": "Tokyo's wildest festival — 100 mikoshi (portable shrines) carried through Asakusa by 2 million spectators. The energy is electric.",
@@ -311,11 +362,14 @@
       "lon": 139.7711,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [5],
+      "months": [
+        5
+      ],
       "typicalDate": "Weekend nearest May 15 (odd-numbered years only)",
       "url": "https://www.kandamyoujin.or.jp/kandasai/",
-      "note": "One of Tokyo's three great festivals (held in odd years). Elaborate mikoshi procession through Akihabara and Nihonbashi. Dates back to 1600s.",
-      "attendance": 300000
+      "note": "One of Tokyo's three great festivals — held in odd-numbered years only (next: 2027). Elaborate mikoshi procession through Akihabara and Nihonbashi. Dates back to 1600s.",
+      "attendance": 300000,
+      "years": "odd"
     },
     {
       "id": "mat_aoi",
@@ -326,7 +380,9 @@
       "lon": 135.7522,
       "prefecture": "Kyoto",
       "region": "Kansai",
-      "months": [5],
+      "months": [
+        5
+      ],
       "typicalDate": "May 15",
       "url": "https://www.kyoto-np.co.jp/od/aoimatsuri/",
       "note": "One of Kyoto's three great festivals. A slow procession of 500 Heian-era costumed participants from Kyoto Imperial Palace to Kamigamo Shrine.",
@@ -341,7 +397,9 @@
       "lon": 130.4017,
       "prefecture": "Fukuoka",
       "region": "Kyushu",
-      "months": [5],
+      "months": [
+        5
+      ],
       "typicalDate": "May 3–4",
       "url": "https://www.dontaku.fukunet.or.jp/",
       "note": "Japan's largest attendance festival. Citizens in costume parade through Fukuoka on everyday objects — spatulas, bamboo branches, flower carts. Very joyful.",
@@ -356,7 +414,9 @@
       "lon": 137.2517,
       "prefecture": "Gifu",
       "region": "Chubu",
-      "months": [4],
+      "months": [
+        4
+      ],
       "typicalDate": "April 14–15",
       "url": "https://www.hidahachimangu.jp/",
       "note": "Elaborate floats with mechanical puppets (karakuri) parade through Takayama's historic old town. One of Japan's most beautiful festival settings.",
@@ -367,11 +427,13 @@
       "type": "matsuri",
       "name": "Takayama Autumn Festival",
       "nameJa": "高山祭（秋）",
-      "lat": 36.1450,
+      "lat": 36.145,
       "lon": 137.2521,
       "prefecture": "Gifu",
       "region": "Chubu",
-      "months": [10],
+      "months": [
+        10
+      ],
       "typicalDate": "October 9–10",
       "url": "https://www.hidahachimangu.jp/",
       "note": "Autumn version of the Takayama festival — same spectacular floats but set against autumn foliage. Often considered the more beautiful of the two.",
@@ -386,7 +448,9 @@
       "lon": 135.7822,
       "prefecture": "Kyoto",
       "region": "Kansai",
-      "months": [10],
+      "months": [
+        10
+      ],
       "typicalDate": "October 22",
       "url": "https://jidaimatsuri.jp/",
       "note": "One of Kyoto's three great festivals. 2,000 participants in historical costumes spanning 1,200 years of history march from Kyoto Imperial Palace to Heian Shrine.",
@@ -401,7 +465,9 @@
       "lon": 135.7698,
       "prefecture": "Kyoto",
       "region": "Kansai",
-      "months": [10],
+      "months": [
+        10
+      ],
       "typicalDate": "October 22",
       "url": "https://www.kuramakibune.jp/",
       "note": "One of Kyoto's most dramatic festivals. Villagers carry torches through the mountain village of Kurama at night. Same date as Jidai Matsuri — do both.",
@@ -416,7 +482,9 @@
       "lon": 129.8779,
       "prefecture": "Nagasaki",
       "region": "Kyushu",
-      "months": [10],
+      "months": [
+        10
+      ],
       "typicalDate": "October 7–9",
       "url": "https://www.nagasaki-kunchi.com/",
       "note": "Unique festival showing Nagasaki's Chinese and Dutch heritage — dragon dances, Dutch ship floats, and exotic performances at Suwa Shrine.",
@@ -431,7 +499,9 @@
       "lon": 135.3722,
       "prefecture": "Osaka",
       "region": "Kansai",
-      "months": [9],
+      "months": [
+        9
+      ],
       "typicalDate": "September 14–15",
       "url": "https://www.city.kishiwada.osaka.jp/",
       "note": "Wild and thrilling — teams pull heavy wooden floats (danjiri) at full speed through narrow streets. People ride on top performing acrobatics. Extremely intense.",
@@ -443,10 +513,12 @@
       "name": "Chichibu Night Festival",
       "nameJa": "秩父夜祭",
       "lat": 35.9939,
-      "lon": 139.0830,
+      "lon": 139.083,
       "prefecture": "Saitama",
       "region": "Kanto",
-      "months": [12],
+      "months": [
+        12
+      ],
       "typicalDate": "December 2–3",
       "url": "https://www.chichibu-jinja.or.jp/",
       "note": "Japan's most spectacular winter festival — elaborate floats parade through snowy Chichibu at night with fireworks overhead. Named a UNESCO intangible heritage.",
@@ -458,10 +530,12 @@
       "name": "Omizutori (Shunie)",
       "nameJa": "お水取り（修二会）",
       "lat": 34.6851,
-      "lon": 135.8440,
+      "lon": 135.844,
       "prefecture": "Nara",
       "region": "Kansai",
-      "months": [3],
+      "months": [
+        3
+      ],
       "typicalDate": "March 1–14 (torch ceremony: Mar 12–14)",
       "url": "https://www.todaiji.or.jp/",
       "note": "1,260-year-old Buddhist rite at Todai-ji's Nigatsu-do. Monks wave giant blazing torches from the veranda — sparks are said to ward off evil. Free to view.",
@@ -476,11 +550,12 @@
       "lon": 139.6503,
       "prefecture": "Nationwide",
       "region": "All Japan",
-      "months": [7],
+      "months": [
+        7
+      ],
       "typicalDate": "July 7 (traditional); Sendai celebrates Aug 6-8",
       "url": "https://www.jnto.go.jp/",
-      "note": "Nationwide festival celebrating two stars (Vega & Altair) meeting once a year. People write wishes on paper strips (tanzaku) and hang on bamboo. Celebrated everywhere.",
-      "attendance": 0
+      "note": "Nationwide festival celebrating two stars (Vega & Altair) meeting once a year. People write wishes on paper strips (tanzaku) and hang on bamboo. Celebrated everywhere."
     },
     {
       "id": "mat_obon",
@@ -491,11 +566,12 @@
       "lon": 139.6503,
       "prefecture": "Nationwide",
       "region": "All Japan",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 13–16",
       "url": "https://www.jnto.go.jp/",
-      "note": "National holiday when ancestors' spirits return. Local bon odori dances, lantern floating (toro nagashi) on rivers/lakes, and family gatherings across Japan.",
-      "attendance": 0
+      "note": "National holiday when ancestors' spirits return. Local bon odori dances, lantern floating (toro nagashi) on rivers/lakes, and family gatherings across Japan."
     },
     {
       "id": "mat_sanno",
@@ -506,11 +582,14 @@
       "lon": 139.7451,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [6],
+      "months": [
+        6
+      ],
       "typicalDate": "Mid-June (even-numbered years only)",
       "url": "https://www.hiejinja.net/",
-      "note": "One of Tokyo's three great festivals (held in even years). The grand procession passes through central Tokyo including Akasaka and the Imperial Palace area.",
-      "attendance": 300000
+      "note": "One of Tokyo's three great festivals — held in even-numbered years only (next: 2026). The grand procession passes through Akasaka and the Imperial Palace area.",
+      "attendance": 300000,
+      "years": "even"
     },
     {
       "id": "mat_hanagasa",
@@ -521,7 +600,9 @@
       "lon": 140.3634,
       "prefecture": "Yamagata",
       "region": "Tohoku",
-      "months": [8],
+      "months": [
+        8
+      ],
       "typicalDate": "August 5–7",
       "url": "https://www.hanagasa.jp/",
       "note": "10,000 dancers parade through Yamagata waving flower-decorated straw hats (hanagasa) to the rhythmic Yamagata Hanagasa song. One of Tohoku's five major festivals.",
@@ -536,7 +617,9 @@
       "lon": 141.3464,
       "prefecture": "Hokkaido",
       "region": "Hokkaido",
-      "months": [2],
+      "months": [
+        2
+      ],
       "typicalDate": "First week of February (7 days)",
       "url": "https://www.snowfes.com/en/",
       "note": "Japan's most famous winter event — over 200 massive snow and ice sculptures in Odori Park, including replicas of world landmarks. 2+ million visitors.",
@@ -551,7 +634,9 @@
       "lon": 140.5667,
       "prefecture": "Akita",
       "region": "Tohoku",
-      "months": [2],
+      "months": [
+        2
+      ],
       "typicalDate": "February 15–16",
       "url": "https://www.yokotekamakura.com/",
       "note": "Children build igloo-like kamakura snow houses and invite passersby in for sweet sake and rice cakes. Magical winter scene of 100+ glowing kamakura at night.",
@@ -566,7 +651,9 @@
       "lon": 142.3649,
       "prefecture": "Hokkaido",
       "region": "Hokkaido",
-      "months": [2],
+      "months": [
+        2
+      ],
       "typicalDate": "Second week of February",
       "url": "https://asahikawa-winterfes.jp/",
       "note": "Hokkaido's second-largest winter festival with giant snow sculptures, ice slides, and the world's largest snow sculpture competition.",
@@ -578,10 +665,13 @@
       "name": "Shirakawa-go Winter Illuminations",
       "nameJa": "白川郷ライトアップ",
       "lat": 36.2573,
-      "lon": 136.9060,
+      "lon": 136.906,
       "prefecture": "Gifu",
       "region": "Chubu",
-      "months": [1,2],
+      "months": [
+        1,
+        2
+      ],
       "typicalDate": "Selected Saturdays Jan–Feb",
       "url": "https://shirakawa-go.gr.jp/",
       "note": "UNESCO World Heritage village lit up in winter. Snow-covered thatched-roof (gassho-zukuri) farmhouses glow against the night sky. Shuttle bus required — reserve well ahead.",
@@ -596,7 +686,9 @@
       "lon": 138.4447,
       "prefecture": "Nagano",
       "region": "Chubu",
-      "months": [1],
+      "months": [
+        1
+      ],
       "typicalDate": "January 15",
       "url": "https://nozawakanko.jp/",
       "note": "One of Japan's three great fire festivals. A dramatic battle between young men defending a sacred shrine made of wood and torchbearers trying to set it alight.",
@@ -611,7 +703,9 @@
       "lon": 140.9947,
       "prefecture": "Hokkaido",
       "region": "Hokkaido",
-      "months": [2],
+      "months": [
+        2
+      ],
       "typicalDate": "Mid-February (10 days)",
       "url": "https://www.yukiakari.org/english/",
       "note": "Thousands of snow lanterns and floating candles line the Otaru Canal and historic streets. More intimate than Sapporo — a romantic winter escape.",
@@ -626,7 +720,9 @@
       "lon": 139.7833,
       "prefecture": "Akita",
       "region": "Tohoku",
-      "months": [2],
+      "months": [
+        2
+      ],
       "typicalDate": "Second weekend of February",
       "url": "https://www.namahage.co.jp/namahagesedo/english/",
       "note": "Demonic Namahage figures (men in straw costumes and ogre masks) descend from the mountains at Shinzan Shrine by torchlight. An ancient purification tradition of Oga Peninsula.",
@@ -641,7 +737,13 @@
       "lon": 141.3544,
       "prefecture": "Hokkaido",
       "region": "Hokkaido",
-      "months": [11,12,1,2,3],
+      "months": [
+        11,
+        12,
+        1,
+        2,
+        3
+      ],
       "typicalDate": "Late November – March",
       "url": "https://white-illumination.jp/",
       "note": "One of Japan's oldest winter illuminations — Odori Park and Ekimae-dori transformed with hundreds of thousands of lights. Free to enjoy.",
@@ -656,7 +758,10 @@
       "lon": 139.7734,
       "prefecture": "Tokyo",
       "region": "Kanto",
-      "months": [3,4],
+      "months": [
+        3,
+        4
+      ],
       "typicalDate": "Late March – Early April (peak bloom dependent)",
       "url": "https://www.kensetsu.metro.tokyo.lg.jp/jimusho/toubuk/ueno/",
       "note": "Japan's most famous hanami spot — 1,000+ cherry trees line the paths. Blue tarp picnic parties fill every inch of space. The quintessential Tokyo sakura experience.",
@@ -671,7 +776,10 @@
       "lon": 140.4636,
       "prefecture": "Aomori",
       "region": "Tohoku",
-      "months": [4,5],
+      "months": [
+        4,
+        5
+      ],
       "typicalDate": "Late April – Early May",
       "url": "https://www.hirosakipark.jp/",
       "note": "Japan's most beautiful sakura festival — 2,600 trees in Hirosaki Castle park. The 'petal snowstorm' (hanabuki) moment when petals fill the moat is world-famous.",
@@ -686,11 +794,12 @@
       "lon": 139.6503,
       "prefecture": "Nationwide",
       "region": "All Japan",
-      "months": [11],
+      "months": [
+        11
+      ],
       "typicalDate": "November 15 (celebrated throughout Nov)",
       "url": "https://www.jnto.go.jp/",
-      "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children.",
-      "attendance": 0
+      "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children."
     },
     {
       "id": "win_nozawa_fire",
@@ -701,11 +810,14 @@
       "lon": 138.4447,
       "prefecture": "Nagano",
       "region": "Chubu",
-      "months": [1,2],
-      "typicalDate": "Year-round at the outdoor onsen (dosojin fire in Jan)",
+      "months": [
+        1
+      ],
+      "typicalDate": "January 15 (Dosojin fire festival)",
       "url": "https://nozawakanko.jp/",
-      "note": "Famous ski resort with free communal outdoor hot springs (sotoyu) and the dramatic January fire festival. Great winter skiing + onsen combination.",
+      "note": "The Nozawa Dosojin Fire Festival on January 15 is one of Japan's three great fire festivals — a dramatic ritual where villagers battle with torches. Nozawa Onsen is also a top ski resort all winter.",
       "attendance": 100000
     }
-  ]
+  ],
+  "verified": "2026-04-10"
 }

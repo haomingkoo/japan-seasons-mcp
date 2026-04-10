@@ -1,0 +1,36 @@
+name: Verify Festival Data
+
+on:
+  schedule:
+    # First Monday of every month at 3am JST (Sunday 18:00 UTC)
+    - cron: '0 18 1-7 * 0'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run festival verification
+        run: node verify-festivals.mjs
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Festival data issues found — ${new Date().toISOString().slice(0,10)}`;
+            const body = `The monthly festival verification found problems.\n\nRun \`node verify-festivals.mjs\` locally to see the full report, or check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).\n\nCommon issues:\n- A URL returned 404 (festival website moved)\n- A biennial event year is wrong\n- Missing required fields\n\nFix in \`public/festivals.json\` and update the \`verified\` date.`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['data-quality'],
+            });

@@ -1986,8 +1986,15 @@ async function loadWhatsOn() {
 function renderWhatsOn(m) {
   whatsOnMonth = m;
   const todayM = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
 
-  const festivals = (festivalsCache?.spots || []).filter(f => f.months?.includes(m));
+  // Filter festivals: must be in month AND pass biennial year check
+  const festivals = (festivalsCache?.spots || []).filter(f => {
+    if (!f.months?.includes(m)) return false;
+    if (f.years === 'odd'  && currentYear % 2 === 0) return false; // odd-year event, even year
+    if (f.years === 'even' && currentYear % 2 !== 0) return false; // even-year event, odd year
+    return true;
+  });
   const flowers = (flowersCache?.spots || []).filter(s => {
     const ft = FLOWER_TYPES.find(f => f.type === s.type);
     return ft ? ft.months.includes(m) : false;
@@ -2125,9 +2132,11 @@ function renderWhatsOn(m) {
       html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:${ft.color};background:white;border-bottom:1px solid var(--gray-100)">${ft.emoji} ${ft.name} (${group.length})</div>`;
       for (const f of group) {
         const bigEvent = f.attendance >= 500000;
+        const biennialBadge = f.years ? `<span style="background:#fefce8;color:#854d0e;font-size:0.68rem;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:500">${f.years === 'odd' ? 'Odd years' : 'Even years'}</span>` : '';
         html += `<div class="spot-item" onclick="mapInstance.flyTo([${f.lat},${f.lon}],12)" style="cursor:pointer">
           <h4>${f.name}
             ${bigEvent ? '<span style="background:#fef2f2;color:#991b1b;font-size:0.68rem;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:500">Major</span>' : ''}
+            ${biennialBadge}
           </h4>
           <div class="sub">${f.prefecture} · ${f.typicalDate}</div>
           ${f.attendance ? `<div class="sub">Attendance: ~${f.attendance.toLocaleString()}</div>` : ''}
