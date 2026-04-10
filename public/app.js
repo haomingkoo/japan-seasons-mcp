@@ -612,27 +612,62 @@ function renderFruitMonth(m) {
         });
       }
     });
+
+    // Group farms by location (4dp ≈ 11m) so overlapping markers become one
+    const byLocation = new Map();
     for (const farm of farms) {
       if (!farm.lat || !farm.lon) continue;
-      const seasonFruit = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m));
-      if (!seasonFruit) continue;
-      if (fruitFilter && !farm.fruits?.includes(fruitFilter)) continue;
-      const marker = L.marker([farm.lat, farm.lon], {
+      const key = `${farm.lat.toFixed(4)},${farm.lon.toFixed(4)}`;
+      if (!byLocation.has(key)) byLocation.set(key, []);
+      byLocation.get(key).push(farm);
+    }
+
+    for (const [locKey, locFarms] of byLocation) {
+      // Only farms that have an in-season fruit this month and pass the fruit filter
+      const activeFarms = locFarms.filter(farm => {
+        const inSeason = FRUITS.some(f => farm.fruits?.includes(f.name) && f.months.includes(m));
+        if (!inSeason) return false;
+        if (fruitFilter && !farm.fruits?.includes(fruitFilter)) return false;
+        return true;
+      });
+      if (!activeFarms.length) continue;
+
+      const [lat, lon] = locKey.split(',').map(Number);
+
+      // Collect unique in-season fruits across all farms at this location
+      const seen = new Set();
+      const inSeasonFruits = [];
+      for (const farm of activeFarms) {
+        for (const fruitName of (farm.fruits || [])) {
+          const f = FRUITS.find(fr => fr.name === fruitName && fr.months.includes(m));
+          if (f && !seen.has(fruitName)) { seen.add(fruitName); inSeasonFruits.push(f); }
+        }
+      }
+
+      // Icon: up to 2 emojis; slightly larger dot when multiple fruits
+      const emojis = inSeasonFruits.slice(0, 2).map(f => f.emoji).join('');
+      const sz = inSeasonFruits.length > 1 ? 30 : 24;
+      const fs = inSeasonFruits.length > 1 ? 11 : 13;
+      const marker = L.marker([lat, lon], {
         icon: L.divIcon({
-          html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${seasonFruit.emoji}</div>`,
-          className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+          html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emojis}</div>`,
+          className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2],
         })
       });
-      const srcLabel = farm.source === 'jalan' ? 'Jalan' : farm.url?.includes('navitime') ? 'Navitime' : null;
-      marker.bindPopup(`<div style="min-width:190px">
-        <b>${farm.name}</b><br>
-        <span style="font-size:11px;color:#666">${farm.address || ''}</span><br>
-        <span style="font-size:11px;color:#555">${(farm.fruits||[]).join(' · ')}</span>
-        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-          <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
-          ${farm.url && srcLabel ? `<a href="${farm.url}" target="_blank" style="color:#0369a1;font-size:12px">${srcLabel} →</a>` : ''}
-        </div>
-      </div>`);
+
+      // Popup: list every farm at this location, separated by a divider
+      const popupRows = activeFarms.map((farm, i) => {
+        const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
+        return `${i > 0 ? `<div style="border-top:1px solid #eee;margin:8px 0"></div>` : ''}
+          <b>${esc(farm.name)}</b><br>
+          <span style="font-size:11px;color:#666">${esc(farm.address||'')}</span><br>
+          <span style="font-size:11px">${(farm.fruits||[]).map(esc).join(' · ')}</span>
+          <div style="margin-top:4px">
+            <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
+            ${farm.url ? ` · <a href="${esc(farm.url)}" target="_blank" style="color:#0369a1;font-size:12px">${esc(srcLabel)} →</a>` : ''}
+          </div>`;
+      }).join('');
+      marker.bindPopup(`<div style="min-width:190px">${popupRows}</div>`);
       clusterGroup.addLayer(marker);
       markers.push(marker);
       markersAdded++;
