@@ -740,7 +740,7 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.4" }, {
+const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.5" }, {
     instructions: "Japan in Seasons MCP server. Provides live cherry blossom (sakura) and autumn leaves (koyo) forecasts from Japan Meteorological Corporation, plus curated data for flowers, festivals, and fruit picking farms. Use get_sakura_best_dates or get_koyo_best_dates first to match travel dates to bloom cities, then get_sakura_spots or get_koyo_spots to find specific viewing locations. All tools are read-only and require no authentication.",
   });
 registerAllTools(server);
@@ -836,7 +836,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.3.4",
+        version: "0.3.5",
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -905,7 +905,7 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.4" }, {
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.5" }, {
     instructions: "Japan in Seasons MCP server. Provides live cherry blossom (sakura) and autumn leaves (koyo) forecasts from Japan Meteorological Corporation, plus curated data for flowers, festivals, and fruit picking farms. Use get_sakura_best_dates or get_koyo_best_dates first to match travel dates to bloom cities, then get_sakura_spots or get_koyo_spots to find specific viewing locations. All tools are read-only and require no authentication.",
   });
       registerAllTools(sessionServer);
