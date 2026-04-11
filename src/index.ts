@@ -44,6 +44,26 @@ const STATIC_MCP = {
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 const READONLY: ToolAnnotations = { readOnlyHint: true, idempotentHint: true };
 
+const SERVER_INSTRUCTIONS = `You are connected to Japan in Seasons, a read-only MCP server for live Japan seasonal travel data.
+
+Use this server when the user needs current timing or locations for cherry blossom, autumn leaves, flowers, festivals, fruit picking, or short-range weather in Japan. Do not use it for generic travel planning, hotels, flights, trains, visas, or restaurant recommendations.
+
+Tool routing:
+- Use get_sakura_forecast for big-picture sakura timing, bloom progress, and city comparisons.
+- Use get_sakura_best_dates when the user gives travel dates and wants the best sakura cities in that window, then use get_sakura_spots for exact parks and temples.
+- Use get_kawazu_cherry for January-February cherry blossom requests or when the user mentions Kawazu-zakura, early blossoms, or Izu.
+- Use get_koyo_forecast for autumn leaves timing by city, and get_koyo_best_dates when travel dates are provided. Follow with get_koyo_spots for exact viewing locations.
+- Use get_flowers for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
+- Use get_festivals for recurring fireworks, matsuri, and winter events with official links.
+- Use get_fruit_seasons to answer which fruits are in season, and get_fruit_farms only when the user needs actual farms, GPS coordinates, or booking links.
+- Use get_weather_forecast after bloom tools when rain or temperature could change the recommendation, especially because rain can shorten sakura viewing.
+
+Important rules:
+- Sakura and koyo timing changes every year; prefer these tools over generic knowledge.
+- Sakura spot percentages use the official JMC bloom and full-bloom scales. A 90-100% full bloom rate means mankai.
+- Best sakura viewing is usually around full bloom. Best koyo viewing is usually around each spot's peak window.
+- All tools are read-only and require no authentication.`;
+
 // ─── Shared tool & prompt registration ───────────────────────────────────────
 
 function registerAllTools(server: McpServer) {
@@ -134,10 +154,10 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_sakura_forecast",
-    "Get cherry blossom (sakura) bloom forecast for 48 major Japanese cities. Returns forecast dates, actual observation dates, historical averages, and current bloom status. Start here for the big picture, then use get_sakura_spots to drill into specific viewing spots. Data from Japan Meteorological Corporation, updated daily.",
+    "Use this when the user asks about cherry blossom timing, peak bloom, whether sakura has started, or how cities compare across Japan. Returns Japan Meteorological Corporation forecast bloom dates, full-bloom dates, observed dates when available, historical averages, and status for 48 observation cities. Do not use this for specific parks or temples; call get_sakura_spots next for prefecture-level viewing spots.",
     {
       city: z.string().optional().describe(
-        "City or region to search (e.g. 'Tokyo', 'Kyoto', 'Hokkaido', 'Tohoku'). Omit to get all cities."
+        "Optional city, prefecture, or region filter such as 'Tokyo', 'Kyoto', 'Hokkaido', or 'Tohoku'. Partial case-insensitive matches are supported across city, prefecture, and region names. Omit to return all observation cities."
       ),
     },
     READONLY,
@@ -168,9 +188,9 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_sakura_spots",
-    "Get detailed cherry blossom info for individual viewing spots in a Japanese prefecture. Returns 1000+ spots across Japan with bloom percentage (0-100%), full bloom percentage, GPS coordinates, and forecast dates. Data from Japan Meteorological Corporation, updated daily at 9 AM JST.",
+    "Use this when the user already knows the prefecture and needs exact cherry blossom viewing spots, bloom percentages, or GPS coordinates. Returns all Japan Meteorological Corporation sakura spots for one prefecture, plus the prefecture's reference JMA station summary when available. Do not use this for nationwide timing comparisons or date matching; use get_sakura_forecast or get_sakura_best_dates first.",
     {
-      prefecture: z.string().describe("Prefecture name or code (e.g. 'Tokyo', 'Kyoto', '13')."),
+      prefecture: z.string().describe("Required prefecture filter. Accepts English prefecture name or numeric prefecture code such as 'Tokyo', 'Kyoto', 'Hokkaido', or '13'. This tool returns one prefecture at a time."),
     },
     READONLY,
     async ({ prefecture }) => {
@@ -207,10 +227,10 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_sakura_best_dates",
-    "Find the best cities to visit for cherry blossoms given your travel dates. Matches your dates against full bloom dates across 48 major cities. Best viewing is typically full bloom ± 3 days. Follow up with get_sakura_spots.",
+    "Use this when the user provides travel dates and wants to know where sakura is likely to be best during that trip. Returns cities whose viewing window overlaps the requested date range, based on observed or forecast full-bloom dates. Do not use this for January-February early-bloom Kawazu requests; use get_kawazu_cherry for those.",
     {
-      start_date: z.string().describe("Travel start date (YYYY-MM-DD)"),
-      end_date: z.string().describe("Travel end date (YYYY-MM-DD)"),
+      start_date: z.string().describe("Trip start date in YYYY-MM-DD format, for example '2026-04-08'. The tool compares this against each city's sakura viewing window."),
+      end_date: z.string().describe("Trip end date in YYYY-MM-DD format, for example '2026-04-14'. Must be on or after start_date."),
     },
     READONLY,
     async ({ start_date, end_date }) => {
@@ -238,7 +258,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_kawazu_cherry",
-    "Get Kawazu cherry blossom (河津桜) forecast — the early-blooming deep pink variety in Izu Peninsula, Shizuoka. Blooms January-February, months before standard Somei-Yoshino. 9 spots with bloom percentages. Data from Japan Meteorological Corporation.",
+    "Use this for January-February cherry blossom requests or when the user specifically asks about Kawazu-zakura, early blossoms, or the Izu Peninsula. Returns the Japan Meteorological Corporation forecast comment, forecast map links, and 9 Kawazu cherry spots with bloom percentages, full-bloom percentages, forecast dates, and coordinates. Do not use this for standard Somei-Yoshino sakura elsewhere in Japan.",
     {},
     READONLY,
     async () => {
@@ -264,7 +284,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_koyo_forecast",
-    "Get autumn leaves (koyo/紅葉) forecast for Japan. Per-city maple and ginkgo dates, forecast maps, and regional commentary. 50+ observation cities. For Oct-Dec trips. Follow up with get_koyo_spots for specific viewing spots. Data from Japan Meteorological Corporation.",
+    "Use this when the user asks when autumn leaves peak, whether one city colors earlier than another, or wants a national overview for October-December. Returns city-level maple and ginkgo forecast dates, forecast maps, and regional commentary from Japan Meteorological Corporation. Do not use this for specific temples, gardens, or GPS-tagged locations; call get_koyo_spots next for those.",
     {},
     READONLY,
     async () => {
@@ -301,9 +321,9 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_koyo_spots",
-    "Get autumn leaves viewing spots in a Japanese prefecture. 687 spots across Japan with best viewing window (start/peak/end dates), leaf type, popularity rating, and GPS. Famous spots like Arashiyama, Eikando, Tofukuji. Data from Japan Meteorological Corporation.",
+    "Use this when the user already knows the prefecture and needs exact autumn leaves viewing spots. Returns Japan Meteorological Corporation koyo spots for one prefecture with best start, peak, and end dates, leaf type, popularity rating, and GPS coordinates. Do not use this for cross-city date matching; use get_koyo_forecast or get_koyo_best_dates first.",
     {
-      prefecture: z.string().describe("Prefecture name or code (e.g. 'Kyoto', 'Tokyo', '26')."),
+      prefecture: z.string().describe("Required prefecture filter. Accepts English prefecture name or numeric prefecture code such as 'Kyoto', 'Tokyo', 'Hokkaido', or '26'. This tool returns one prefecture at a time."),
     },
     READONLY,
     async ({ prefecture }) => {
@@ -332,10 +352,10 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_koyo_best_dates",
-    "Find the best cities for autumn leaves (koyo) given your travel dates. Matches your dates against maple and ginkgo peak dates across 50+ cities. Follow up with get_koyo_spots for specific parks and temples.",
+    "Use this when the user gives autumn travel dates and wants the best cities during that window. Returns cities whose maple or ginkgo viewing windows overlap the trip, based on forecast peak dates. Do not use this for general climate questions or for exact park recommendations without dates; use get_koyo_spots when the prefecture is already known.",
     {
-      start_date: z.string().describe("Travel start date (YYYY-MM-DD)"),
-      end_date: z.string().describe("Travel end date (YYYY-MM-DD)"),
+      start_date: z.string().describe("Trip start date in YYYY-MM-DD format, for example '2026-11-20'. The tool checks whether each city's koyo window overlaps this date."),
+      end_date: z.string().describe("Trip end date in YYYY-MM-DD format, for example '2026-11-27'. Must be on or after start_date."),
     },
     READONLY,
     async ({ start_date, end_date }) => {
@@ -386,9 +406,9 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_weather_forecast",
-    "Get 3-day weather forecast for a Japanese city. Temperature, rain probability, wind. Rain during bloom = faster petal fall. Data from Japan Meteorological Agency.",
+    "Use this when short-range weather could change the recommendation, especially for sakura petal fall, rain risk, or packing advice. Returns the next 3 days of Japan Meteorological Agency forecast text, temperatures, and 6-hour rain probabilities for one supported city. Do not use this for seasonal bloom timing months in advance; use the sakura or koyo forecast tools for that.",
     {
-      city: z.string().describe(`City name. Available: ${Object.keys(WEATHER_CITY_IDS).join(", ")}`),
+      city: z.string().describe(`Supported city name such as 'Tokyo', 'Kyoto', 'Osaka', or 'Sapporo'. Partial case-insensitive matching is accepted. Full supported list: ${Object.keys(WEATHER_CITY_IDS).join(", ")}`),
     },
     READONLY,
     async ({ city }) => {
@@ -415,14 +435,14 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_flowers",
-    "Get curated seasonal flower spots in Japan — 8 types covering Jan–Oct: plum (Jan-Mar), rapeseed/nanohana (Feb-Apr), wisteria (Apr-May), iris (May-Jun), hydrangea (Jun-Jul), lavender (Jun-Jul), sunflower (Jul-Aug), cosmos (Sep-Oct). 80 hand-picked spots with official URLs, GPS, peak dates, and notes.",
+    "Use this for non-sakura flower trips such as plum, wisteria, hydrangea, lavender, sunflower, or cosmos. Returns curated flower spots with peak windows, official URLs, notes, and GPS coordinates. Do not use this for cherry blossom or autumn leaves timing; use the sakura or koyo tools for those live forecasts.",
     {
       type: z.enum(["all", "plum", "nanohana", "wisteria", "iris", "hydrangea", "lavender", "sunflower", "cosmos"]).optional()
-        .describe("Filter by flower type. Omit for all types."),
+        .describe("Optional flower type filter. Allowed values: 'all', 'plum', 'nanohana', 'wisteria', 'iris', 'hydrangea', 'lavender', 'sunflower', or 'cosmos'. Omit or use 'all' to return every flower type."),
       prefecture: z.string().optional()
-        .describe("Filter by prefecture, e.g. 'Kanagawa', 'Kyoto', 'Tokyo', 'Hokkaido'."),
+        .describe("Optional prefecture filter such as 'Kanagawa', 'Kyoto', 'Tokyo', or 'Hokkaido'. Partial case-insensitive matches are supported."),
       month: z.number().int().min(1).max(12).optional()
-        .describe("Filter to spots in season for this month (1-12)."),
+        .describe("Optional month number from 1 to 12. Returns only flower types whose curated season includes that month, for example 4 for wisteria or 6 for hydrangea."),
     },
     READONLY,
     async ({ type, prefecture, month }) => {
@@ -487,10 +507,10 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_fruit_seasons",
-    "Get the Japan fruit picking season calendar — which fruits are available when, peak months, best regions, and farm count. Use this to plan fruit picking experiences by travel month. Covers 14 fruits year-round: strawberry, cherry, peach, grape, apple, mikan, and more.",
+    "Use this when the user asks what fruit is in season in a given month or which month is best for strawberries, grapes, peaches, apples, and similar picking trips. Returns the fruit season calendar, peak months, best regions, and notes for 14 fruits. Call get_fruit_farms next if the user needs actual farm listings, map coordinates, or booking links.",
     {
       month: z.number().int().min(1).max(12).optional()
-        .describe("Month to check (1-12). Returns in-season and coming-soon fruits. Omit for full year calendar."),
+        .describe("Optional month number from 1 to 12. Returns fruits in season during that month plus fruits starting the following month. Omit to return the full year calendar."),
     },
     READONLY,
     async ({ month }) => {
@@ -555,14 +575,14 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_festivals",
-    "Get major recurring Japanese festivals and events by month. Covers 52 curated events: fireworks (hanabi), matsuri (traditional festivals), and winter events. Each entry includes official URL, GPS coordinates, typical dates, and attendance figures. Great for planning around major events and booking accommodation early.",
+    "Use this when the user wants recurring Japan events to plan around, such as fireworks, matsuri, or winter festivals. Returns curated events with typical dates, attendance, official URLs, notes, and GPS coordinates. Do not use this for bloom timing, one-off concerts, or weather forecasts.",
     {
       month: z.number().int().min(1).max(12).optional()
-        .describe("Filter to festivals occurring in this month (1-12). July/August = fireworks season; October/November = autumn matsuri; January/February = winter events."),
+        .describe("Optional month number from 1 to 12. Useful examples: 7 or 8 for fireworks season, 10 or 11 for autumn matsuri, and 1 or 2 for winter events."),
       type: z.enum(["all", "fireworks", "matsuri", "winter"]).optional()
-        .describe("Filter by event type: 'fireworks' (hanabi), 'matsuri' (traditional festivals), 'winter' (snow/illumination events). Omit for all types."),
+        .describe("Optional event type filter. Allowed values: 'all', 'fireworks', 'matsuri', or 'winter'. Omit or use 'all' to return every event type."),
       prefecture: z.string().optional()
-        .describe("Filter by prefecture, e.g. 'Tokyo', 'Kyoto', 'Osaka', 'Hokkaido'."),
+        .describe("Optional prefecture filter such as 'Tokyo', 'Kyoto', 'Osaka', or 'Hokkaido'. Partial case-insensitive matches are supported."),
     },
     READONLY,
     async ({ month, type, prefecture }) => {
@@ -617,16 +637,16 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_fruit_farms",
-    "Get fruit picking farms in Japan with GPS coordinates and booking links. 350+ farms scraped from Jalan and Navitime. Filter by month (auto-detects in-season fruits), fruit type, or region.",
+    "Use this when the user needs actual fruit-picking farms, booking links, and map coordinates. Returns farms from the local dataset, and month filtering automatically narrows results to fruits that are in season. If the user only asks which fruit is in season, call get_fruit_seasons first.",
     {
       month: z.number().int().min(1).max(12).optional()
-        .describe("Travel month (1-12). Filters to farms with at least one fruit in season that month — e.g. 5 (May) returns strawberry, melon farms."),
+        .describe("Optional travel month from 1 to 12. Filters to farms with at least one fruit in season during that month, for example 5 for May strawberry farms."),
       fruit: z.string().optional()
-        .describe("Fruit to filter by, e.g. 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', 'Mikan'. Case-sensitive. Use with or instead of month."),
+        .describe("Optional fruit name such as 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', or 'Mikan'. Matching is case-insensitive. Use with or instead of month."),
       region: z.string().optional()
-        .describe("Prefecture or city to filter by (partial match), e.g. 'Yamanashi', 'Nagano', 'Aomori'."),
+        .describe("Optional prefecture, city, or region substring such as 'Yamanashi', 'Nagano', 'Aomori', or 'Tokyo'. Partial case-insensitive matching is supported against farm names and addresses."),
       limit: z.number().int().min(1).max(100).optional()
-        .describe("Max number of farms to return (default 30, max 100)."),
+        .describe("Optional maximum number of farms to return. Default is 30 and the hard maximum is 100."),
     },
     READONLY,
     async ({ month, fruit, region, limit = 30 }) => {
@@ -641,7 +661,12 @@ Use the japan-seasons-mcp tools based on the travel month:
           const inSeason = new Set(FRUITS.filter(f => f.months.includes(month)).map(f => f.name));
           farms = farms.filter(f => (f["fruits"] as string[] | undefined)?.some(fr => inSeason.has(fr)));
         }
-        if (fruit) farms = farms.filter((f) => (f["fruits"] as string[] | undefined)?.includes(fruit));
+        if (fruit) {
+          const wantedFruit = fruit.toLowerCase();
+          farms = farms.filter((f) =>
+            (f["fruits"] as string[] | undefined)?.some((farmFruit) => farmFruit.toLowerCase() === wantedFruit)
+          );
+        }
         if (region) farms = farms.filter((f) =>
           (f["address"] as string | undefined)?.toLowerCase().includes(region.toLowerCase()) ||
           (f["name"] as string | undefined)?.toLowerCase().includes(region.toLowerCase())
@@ -740,9 +765,9 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.5" }, {
-    instructions: "Japan in Seasons MCP server. Provides live cherry blossom (sakura) and autumn leaves (koyo) forecasts from Japan Meteorological Corporation, plus curated data for flowers, festivals, and fruit picking farms. Use get_sakura_best_dates or get_koyo_best_dates first to match travel dates to bloom cities, then get_sakura_spots or get_koyo_spots to find specific viewing locations. All tools are read-only and require no authentication.",
-  });
+const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.6" }, {
+  instructions: SERVER_INSTRUCTIONS,
+});
 registerAllTools(server);
 
 async function main() {
@@ -836,7 +861,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.3.5",
+        version: "0.3.6",
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -905,9 +930,9 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.5" }, {
-    instructions: "Japan in Seasons MCP server. Provides live cherry blossom (sakura) and autumn leaves (koyo) forecasts from Japan Meteorological Corporation, plus curated data for flowers, festivals, and fruit picking farms. Use get_sakura_best_dates or get_koyo_best_dates first to match travel dates to bloom cities, then get_sakura_spots or get_koyo_spots to find specific viewing locations. All tools are read-only and require no authentication.",
-  });
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.6" }, {
+        instructions: SERVER_INSTRUCTIONS,
+      });
       registerAllTools(sessionServer);
       await sessionServer.connect(transport);
 

@@ -1,19 +1,41 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.haomingkoo/japan-seasons",
-  "description": "Live Japan travel data: sakura, koyo, fruit picking, flowers & festivals. 1,700+ spots from JMC.",
+  "description": "Live Japan seasonal travel MCP: sakura, koyo, flowers, festivals, fruit farms, and weather.",
   "repository": {
     "url": "https://github.com/haomingkoo/japan-seasons-mcp",
     "source": "github"
   },
-  "version": "0.3.5",
+  "version": "0.3.6",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "japan-seasons-mcp",
-      "version": "0.3.5",
+      "version": "0.3.6",
       "transport": {
         "type": "stdio"
+      }
+    },
+    {
+      "registryType": "npm",
+      "identifier": "japan-seasons-mcp",
+      "version": "0.3.6",
+      "environmentVariables": [
+        {
+          "name": "PORT",
+          "description": "Local port used when starting the package in HTTP MCP mode.",
+          "value": "3000"
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "--http"
+        }
+      ],
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://127.0.0.1:{PORT}/mcp"
       }
     }
   ]

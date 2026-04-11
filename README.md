@@ -68,7 +68,7 @@ Real bloom percentages. Real park names. Real weather.
 
 ---
 
-## Install
+## Installation
 
 **Claude Desktop / Claude Code / any stdio MCP client**
 
@@ -77,7 +77,7 @@ Real bloom percentages. Real park names. Real weather.
   "mcpServers": {
     "japan-seasons": {
       "command": "npx",
-      "args": ["japan-seasons-mcp"]
+      "args": ["-y", "japan-seasons-mcp"]
     }
   }
 }
@@ -94,7 +94,7 @@ https://seasons.kooexperience.com/mcp
 **Self-host**
 
 ```bash
-PORT=3000 npx japan-seasons-mcp --http
+PORT=3000 npx -y japan-seasons-mcp --http
 # MCP endpoint: http://localhost:3000/mcp
 ```
 
@@ -122,7 +122,7 @@ PORT=3000 npx japan-seasons-mcp --http
 
 ---
 
-## 12 tools
+## Tools
 
 ### Cherry blossom
 
@@ -265,6 +265,27 @@ Temperature, rain probability by 6-hour window, and conditions. Worth checking b
 
 ---
 
+## Usage
+
+Ask your MCP client for a goal, not a tool name. A few good examples:
+
+```text
+"I'm in Japan April 8-14. Where should I go for cherry blossoms?"
+"Top autumn leaves spots in Kyoto in late November"
+"What flowers are in season in Japan in June?"
+"Best fireworks festivals in Japan in August"
+"Fruit picking near Tokyo in May"
+"Will rain in Osaka this weekend make sakura worse?"
+```
+
+Typical workflow:
+
+1. Ask for timing first with `get_sakura_best_dates`, `get_koyo_best_dates`, `get_sakura_forecast`, or `get_koyo_forecast`.
+2. Drill into exact parks, temples, farms, or events with `get_sakura_spots`, `get_koyo_spots`, `get_fruit_farms`, `get_flowers`, or `get_festivals`.
+3. Check `get_weather_forecast` if rain or temperature could change the recommendation.
+
+---
+
 ## How it works
 
 ```mermaid
@@ -365,7 +386,7 @@ PRs welcome, especially for flower spots, festival entries, and farm corrections
 Previously published as `japan-sakura-koyo-mcp` (deprecated). Use this package instead:
 
 ```bash
-npx japan-seasons-mcp
+npx -y japan-seasons-mcp
 ```
 
 ---

@@ -1,0 +1,8 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  configSchema: {}
+  exampleConfig: {}
+  commandFunction: |-
+    () => ({ command: "npx", args: ["-y", "japan-seasons-mcp"], env: {} })
