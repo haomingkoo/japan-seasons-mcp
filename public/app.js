@@ -300,6 +300,21 @@ function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
   return null; // use default from growthStage/floweringStage
 }
 
+function spotLiveStatus(spot) {
+  const dateAware = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+  if (dateAware) return dateAware;
+  if (spot.status) return spot.status;
+  if (spot.fullRate >= 100) return 'Full bloom';
+  if (spot.fullRate >= 90) return 'Nearly full bloom';
+  if (spot.fullRate >= 70) return 'Blooming — near full bloom';
+  if (spot.fullRate >= 20) return 'Starting to bloom';
+  if (spot.fullRate > 0 || spot.bloomRate >= 100) return 'Blooming';
+  if (spot.bloomRate >= 85) return 'Buds opening';
+  if (spot.bloomRate >= 60) return 'Buds swelling';
+  if (spot.bloomRate > 0) return 'Bud stage';
+  return 'Dormant';
+}
+
 function sakuraRadius(bloomRate, fullRate, fullBloomForecast) {
   if (fullRate >= 100 && fullBloomForecast) {
     const days = Math.max(0, daysSince(fullBloomForecast));
@@ -877,7 +892,7 @@ async function loadPrefSpots(prefCode, prefName) {
       loadWeatherCard(jma.name);
     }
     for (const spot of data.spots) {
-      html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status})})">
+      html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
         <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
         ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
         <div class="sub" style="margin-top:4px">
@@ -892,13 +907,14 @@ async function loadPrefSpots(prefCode, prefName) {
   }
 }
 
-function flyToSpot(lat, lon, name, bloomRate, fullRate, status) {
+function flyToSpot(lat, lon, name, bloomRate, fullRate, status, fullBloomForecast) {
   if (window.innerWidth <= 768) {
     document.querySelector('.sidebar').scrollTop = 0;
     mapInstance.invalidateSize();
   }
   mapInstance.flyTo([lat, lon], 14, { duration: 0.8 });
-  const isEnded = status.includes('Ended') || status.includes('Falling') || status.includes('green');
+  const liveStatus = spotLiveStatus({ bloomRate, fullRate, fullBloomForecast, status });
+  const isEnded = liveStatus.includes('Ended') || liveStatus.includes('Falling') || liveStatus.includes('green');
   const statusColor = isEnded ? C.ended : C.peak;
   const rate = fullRate > 0 ? fullRate : bloomRate;
   const label = fullRate > 0 ? 'Flowering' : 'Growth';
@@ -912,7 +928,7 @@ function flyToSpot(lat, lon, name, bloomRate, fullRate, status) {
     .setContent(`<div style="min-width:220px">
       <b>${name}</b>
       ${barHtml}
-      <div style="margin:4px 0"><b style="color:${statusColor}">${status}</b></div>
+      <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
       <div class="popup-weather" data-lat="${lat}" data-lon="${lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:54px">
         <div style="color:#ccc;font-size:11px">Loading weather…</div>
       </div>
@@ -1706,7 +1722,7 @@ async function searchTrip() {
         const stateNote = atPeak > 0 ? `${atPeak} at peak` : opening > 0 ? `${opening} opening` : 'in bloom';
         html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots in bloom (${stateNote})</div>`;
         nearbySakura.slice(0, 20).forEach(spot => {
-          html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status})})">
+          html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
             <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
             <div class="sub" style="margin-top:4px">${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)} &middot; ${fmtDates(spot.bloomForecast,spot.bloomRate,spot.fullBloomForecast,spot.fullRate)}</div>
           </div>`;
@@ -1837,7 +1853,7 @@ async function findNearMe() {
 
 function spotPopupHtml(spot) {
   const displayName = spot.nameRomaji ? `${esc(spot.name)} <span style="color:#888">${esc(spot.nameRomaji)}</span>` : esc(spot.name);
-  const liveStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || spot.status;
+  const liveStatus = spotLiveStatus(spot);
   const isEnded = liveStatus.includes('Ended') || liveStatus.includes('Falling') || liveStatus.includes('Past peak') || liveStatus.includes('green');
 
   // Full-width bar for popup (not the sidebar CSS class which is too narrow)
@@ -1879,7 +1895,7 @@ function spotPopupHtml(spot) {
 }
 
 function spotCardHtml(spot, extra) {
-  return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status})})">
+  return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
     <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''}</h4>
     ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
     <div class="sub" style="margin-top:4px">
