@@ -354,21 +354,46 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   server.tool(
     "get_kawazu_cherry",
-    "Use this for January-February cherry blossom requests or when the user specifically asks about Kawazu-zakura, early blossoms, or the Izu Peninsula. Returns the Japan Meteorological Corporation forecast comment, forecast map links, and 9 Kawazu cherry spots with bloom percentages, full-bloom percentages, forecast dates, and coordinates. Do not use this for standard Somei-Yoshino sakura elsewhere in Japan.",
-    {},
+    "Use this for January-February cherry blossom requests or when the user specifically asks about Kawazu-zakura, early blossoms, or the Izu Peninsula. Returns the Japan Meteorological Corporation forecast comment, forecast map links, and Kawazu cherry spots with bloom percentages, full-bloom percentages, forecast dates, and coordinates. Do not use this for standard Somei-Yoshino sakura elsewhere in Japan.",
+    {
+      include_spots: z.boolean().optional().describe(
+        "Whether to include the full list of Kawazu viewing spots. Defaults to true. Set false when the user only needs the overall forecast summary and map."
+      ),
+      spot_name: z.string().optional().describe(
+        "Optional case-insensitive substring filter for a specific Kawazu landmark or area, such as '原木', '駅前', 'iZoo', or '七滝'. Use this when the user asks about one named spot instead of the full list."
+      ),
+    },
     READONLY,
-    async () => {
+    async ({ include_spots = true, spot_name }) => {
       try {
         const result = await getKawazuForecast();
+        const filteredSpots = spot_name
+          ? result.spots.filter((spot) => spot.name.toLowerCase().includes(spot_name.toLowerCase()))
+          : result.spots;
+
         let output = `# Kawazu Cherry (河津桜) Forecast\nSource: ${result.source}\nLast updated: ${result.lastUpdated}\n\n`;
         output += `Kawazu cherry is a deep pink variety blooming Jan-Feb in Izu Peninsula, south of Mt. Fuji.\n\n`;
         if (result.forecastComment) output += `## Forecast\n${result.forecastComment}\n\n`;
         output += `## Map\n${preferredMapUrl(result.forecastMapUrlEn, result.forecastMapUrl, outputConfig)}\n\n`;
-        output += `## Spots (${result.spots.length})\n\n`;
-        for (const spot of result.spots) {
-          output += `### ${spot.name}\n- **${spot.status}**\n- Bloom: **${spot.bloomRate}%** → Full: **${spot.fullRate}%**\n`;
-          output += `- Forecast: ${formatSakuraDate(spot.bloomForecast, outputConfig)} → full ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}\n`;
-          output += coordinateLine(spot.lat, spot.lon, outputConfig);
+
+        if (spot_name && filteredSpots.length === 0) {
+          return {
+            content: [{
+              type: "text",
+              text: `No Kawazu cherry spots matched "${spot_name}". Try a broader landmark name such as '原木', '駅前', 'iZoo', or '七滝'.`,
+            }],
+          };
+        }
+
+        if (include_spots) {
+          output += `## Spots (${filteredSpots.length})\n\n`;
+          for (const spot of filteredSpots) {
+            output += `### ${spot.name}\n- **${spot.status}**\n- Bloom: **${spot.bloomRate}%** → Full: **${spot.fullRate}%**\n`;
+            output += `- Forecast: ${formatSakuraDate(spot.bloomForecast, outputConfig)} → full ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}\n`;
+            output += coordinateLine(spot.lat, spot.lon, outputConfig);
+          }
+        } else {
+          output += `Spot list omitted. Set include_spots=true when the user wants the detailed Kawazu viewing locations.\n`;
         }
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
@@ -382,24 +407,55 @@ Use the japan-seasons-mcp tools based on the travel month:
   server.tool(
     "get_koyo_forecast",
     "Use this when the user asks when autumn leaves peak, whether one city colors earlier than another, or wants a national overview for October-December. Returns city-level maple and ginkgo forecast dates, forecast maps, and regional commentary from Japan Meteorological Corporation. Do not use this for specific temples, gardens, or GPS-tagged locations; call get_koyo_spots next for those.",
-    {},
+    {
+      region: z.string().optional().describe(
+        "Optional case-insensitive filter for a region, prefecture, or city such as 'Kansai', 'Kyoto', 'Hokkaido', or 'Tokyo'. Use this when the user only cares about one part of Japan instead of the full national forecast."
+      ),
+      tree_type: z.enum(["all", "maple", "ginkgo"]).optional().describe(
+        "Optional tree filter. Use 'maple' for momiji-only dates, 'ginkgo' for ginkgo-only dates, or omit/use 'all' to return both."
+      ),
+    },
     READONLY,
-    async () => {
+    async ({ region, tree_type = "all" }) => {
       try {
         const forecast = await getKoyoForecast();
+        const regionFilter = region?.toLowerCase();
+        const filteredRegions = forecast.regions
+          .map((forecastRegion) => {
+            const matchingCities = forecastRegion.cities.filter((city) => {
+              if (!regionFilter) return true;
+              return (
+                forecastRegion.name.toLowerCase().includes(regionFilter) ||
+                city.name.toLowerCase().includes(regionFilter) ||
+                city.prefName.toLowerCase().includes(regionFilter)
+              );
+            });
+            return { ...forecastRegion, cities: matchingCities };
+          })
+          .filter((forecastRegion) => forecastRegion.cities.length > 0);
+
+        if (region && filteredRegions.length === 0) {
+          return {
+            content: [{
+              type: "text",
+              text: `No koyo forecast cities matched "${region}". Try a broader region, prefecture, or city name such as 'Kansai', 'Kyoto', 'Tohoku', or 'Hokkaido'.`,
+            }],
+          };
+        }
+
         let output = `# Autumn Leaves (Koyo) Forecast\nSource: ${forecast.source}\nLast updated: ${forecast.lastUpdated}\n\n`;
         if (forecast.forecastComment) output += `## Summary\n${forecast.forecastComment}\n\n`;
         output += `## Maps\n- Maple: ${preferredMapUrl(forecast.mapleForecastMapUrlEn, forecast.mapleForecastMapUrl, outputConfig)}\n- Ginkgo: ${preferredMapUrl(forecast.ginkgoForecastMapUrlEn, forecast.ginkgoForecastMapUrl, outputConfig)}\n\n`;
-        for (const region of forecast.regions) {
-          output += `## ${region.name}\n`;
-          for (const city of region.cities) {
+        for (const forecastRegion of filteredRegions) {
+          output += `## ${forecastRegion.name}\n`;
+          for (const city of forecastRegion.cities) {
             output += `### ${city.name} (${city.prefName})\n`;
-            if (city.maple) {
+            if (tree_type !== "ginkgo" && city.maple) {
               output += `- **Maple (${city.maple.species}):** ${formatKoyoOutputDate(city.maple.forecast, outputConfig)} — ${city.maple.normalDiffClass}`;
               if (city.maple.normalDiffDays > 0) output += ` (${city.maple.normalDiffDays} days)`;
               output += `\n`;
             }
-            if (city.ginkgo) {
+            if (tree_type !== "maple" && city.ginkgo) {
               output += `- **Ginkgo:** ${formatKoyoOutputDate(city.ginkgo.forecast, outputConfig)} — ${city.ginkgo.normalDiffClass}`;
               if (city.ginkgo.normalDiffDays > 0) output += ` (${city.ginkgo.normalDiffDays} days)`;
               output += `\n`;
@@ -864,7 +920,7 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.7" }, {
+const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.8" }, {
   instructions: SERVER_INSTRUCTIONS,
 });
 registerAllTools(server, getOutputConfigFromEnv());
@@ -960,7 +1016,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.3.7",
+        version: "0.3.8",
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -1040,7 +1096,7 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.7" }, {
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.8" }, {
         instructions: SERVER_INSTRUCTIONS,
       });
       registerAllTools(sessionServer, outputConfig);
