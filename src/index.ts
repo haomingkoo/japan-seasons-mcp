@@ -104,6 +104,26 @@ function gpsLine(lat: unknown, lon: unknown, outputConfig: OutputConfig): string
   return outputConfig.includeCoordinates ? `- **GPS:** ${lat}, ${lon}\n` : "";
 }
 
+// Returns how many days ago full bloom was forecast/observed, or null if not yet reached.
+// Used to detect post-peak / hazakura (green leaves) state, since JMC jr_data stays
+// frozen at full_rate=100 after peak and stops publishing observation data.
+function daysSinceFullBloom(fullBloomIso: string | null): number | null {
+  if (!fullBloomIso) return null;
+  const peak = new Date(fullBloomIso);
+  const today = new Date();
+  const days = Math.floor((today.getTime() - peak.getTime()) / 86_400_000);
+  return days > 0 ? days : null;
+}
+
+function postPeakNote(fullBloomIso: string | null): string | null {
+  const days = daysSinceFullBloom(fullBloomIso);
+  if (days === null) return null;
+  if (days <= 5) return null;  // still within typical peak window
+  if (days <= 10) return `Petals likely falling (full bloom ~${days} days ago)`;
+  if (days <= 20) return `Past peak — transitioning to hazakura/green leaves (~${days} days since full bloom)`;
+  return `Bloom season likely over — hazakura/green leaves (~${days} days since full bloom)`;
+}
+
 function preferredMapUrl(englishUrl: string | null | undefined, japaneseUrl: string | null | undefined, outputConfig: OutputConfig): string {
   if (outputConfig.mapLanguage === "japanese") return japaneseUrl || englishUrl || "N/A";
   return englishUrl || japaneseUrl || "N/A";
@@ -339,13 +359,19 @@ Use the japan-seasons-mcp tools based on the travel month:
         output += `## Viewing spots\n\n`;
         for (const spot of result.spots) {
           output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
+          const ppNote = postPeakNote(spot.fullBloomForecast);
           if (spot.observationStatus) {
             // Lead with real observation when available
             const obsDate = spot.observationUpdated ? ` (observed ${formatSakuraDate(spot.observationUpdated, outputConfig)})` : "";
             output += `- **${spot.observationStatus}**${obsDate}\n`;
+            if (ppNote) output += `- ⚠️ ${ppNote}\n`;
             output += `- _Forecast model: ${spot.status} — bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%_\n`;
+          } else if (ppNote) {
+            // No observation but we can estimate post-peak status from elapsed days
+            output += `- ⚠️ **${ppNote}**\n`;
+            output += `- _Last forecast model reading: ${spot.status} (bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%)_\n`;
           } else {
-            // Fall back to forecast model estimate
+            // Active season, no observation — use forecast model estimate
             output += `- **${spot.status}** _(forecast estimate)_\n`;
             output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
           }
