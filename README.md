@@ -144,11 +144,11 @@ All 48 JMA observation cities in one call: this year's forecast, actual dates wh
 
 **`get_sakura_spots`** — specific parks and temples
 
-1,012 spots across Japan with bloom percentage, full-bloom percentage, and GPS coordinates, updated daily.
+1,012 spots across Japan with current status, bloom percentages, and GPS coordinates. When JMC spot reporters have filed a recent update (within 48 hours), the tool uses that observed status as the primary reading. Otherwise it falls back to the JMC bloom-meter forecast. Stale observations are shown as context, not hidden.
 
 ```
 "Cherry blossom spots in Kyoto"
-→ 51 spots: Kiyomizu-dera (87%), Maruyama Park (91%), Philosopher's Path (76%)...
+→ 51 spots: Kiyomizu-dera (Full bloom, observed Apr 9), Maruyama Park (91% full-bloom)...
 ```
 
 **`get_sakura_best_dates`** — match travel dates to bloom
@@ -331,7 +331,21 @@ Static datasets load at startup and are served from memory with no disk I/O per 
 
 ## Bloom scale reference
 
-The official JMC scale used for all 1,012 sakura spots:
+JMC publishes two separate data products for sakura spots. Both are used:
+
+**Spot observations** — reported by JMC partners and spot managers, used as primary status when updated within 48 hours:
+
+```
+State 0  Pre-bloom (buds visible)
+State 1  First bloom — 開花 (a few flowers open)
+State 2  30% bloom — 三分咲き (sanbu-zaki)
+State 3  70% bloom — 七分咲き (nanabu-zaki)
+State 4  Full bloom — 満開 (mankai)
+State 5  Petals starting to fall — 散り始め
+State 6  Green leaves — 葉桜 (hazakura, bloom season over)
+```
+
+**Bloom-meter forecast** (jr_data) — mathematical model used as fallback when no fresh observation exists:
 
 ```
 BLOOM RATE — progress toward first bloom (開花)
@@ -346,6 +360,8 @@ FULL BLOOM RATE — progress toward mankai / 満開
  │Open│ 30% │ 50% │ 70% │Full │ <- Mankai!
  開花  三分咲き 五分咲き 七分咲き 満開
 ```
+
+The forecast model stays frozen at full-bloom=100% after peak and cannot detect petal fall or hazakura on its own. Spot observations (states 5–6) are the only way to confirm post-peak status for a specific park.
 
 Peak viewing is typically full bloom ± 3 days. Rain accelerates petal fall.
 
