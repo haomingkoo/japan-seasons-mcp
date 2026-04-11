@@ -320,7 +320,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     "get_sakura_spots",
     {
       title: "Cherry Blossom Viewing Spots",
-      description: "Use this when the user already knows the prefecture and needs exact cherry blossom viewing spots, bloom percentages, or GPS coordinates. Returns all Japan Meteorological Corporation sakura spots for one prefecture, plus the prefecture's reference JMA station summary when available. Do not use this for nationwide timing comparisons or date matching; use get_sakura_forecast or get_sakura_best_dates first.",
+      description: "Use this when the user already knows the prefecture and needs exact cherry blossom viewing spots with current status and GPS coordinates. Each spot uses JMC reporter observations as the primary status when filed within the last 48 hours (states: pre-bloom through hazakura/green leaves); falls back to the JMC bloom-meter estimate otherwise, with any stale observation shown as secondary context. Also returns the prefecture's JMA reference station summary. Do not use this for nationwide timing comparisons or date matching; use get_sakura_forecast or get_sakura_best_dates first.",
       inputSchema: {
         prefecture: z.string().describe("Required prefecture filter. Accepts English prefecture name or numeric prefecture code such as 'Tokyo', 'Kyoto', 'Hokkaido', or '13'. This tool returns one prefecture at a time.").meta({ title: "Prefecture Name or Code" }),
       },

@@ -1736,6 +1736,32 @@ async function searchTrip() {
       return { show: true, phase: 'peak' };
     }
 
+    // Trip-context display labels — what the spot will be like during the trip,
+    // not what it is live today.
+    const TRIP_PHASE_LABELS = {
+      bud_swell:  'Not yet open during your trip',
+      blooming:   'Opening during your trip',
+      peak:       'Full bloom during your trip',
+      past_peak:  'Just past peak during your trip',
+      falling:    'Petals falling during your trip',
+      ended:      'Bloom over by your trip',
+    };
+    function asTripSpot(spot) {
+      const ph = spot._tripPhase;
+      if (!ph) return spot;
+      return {
+        ...spot,
+        phase: ph,
+        displayStatus: TRIP_PHASE_LABELS[ph] || spotDisplayStatus(spot),
+        statusSource: 'estimate',
+        // Clear live observation fields so popup doesn't show stale "observed today" notes
+        observationUpdated: null,
+        observationFresh: false,
+        observationStatus: null,
+        statusUpdated: null,
+      };
+    }
+
     const nearbySakura = [];
     if (isSakuraSeason && allSpotsData) {
       for (const spot of allSpotsData.spots) {
@@ -1792,7 +1818,7 @@ async function searchTrip() {
           fillColor: spot._tripColor,
           color: 'white', weight: 1.5, fillOpacity: 0.9,
         });
-        mk.bindPopup(spotPopupHtml(spot));
+        mk.bindPopup(spotPopupHtml(asTripSpot(spot)));
         clusterGroup.addLayer(mk);
         bounds.push([spot.lat, spot.lon]);
       }
@@ -1863,7 +1889,7 @@ async function searchTrip() {
         const stateNote = stateParts.join(', ') || 'matched to your dates';
         html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots that match your dates (${stateNote})</div>`;
         nearbySakura.slice(0, 20).forEach(spot => {
-          html += spotCardHtml(spot, `${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)}`);
+          html += spotCardHtml(asTripSpot(spot), `${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)}`);
         });
         if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbySakura.length - 20} more spots on map</div>`;
       } else {
@@ -2070,7 +2096,16 @@ async function loadWeatherCard(cityName) {
     } else {
       $('sidebar-content').appendChild(weatherDiv);
     }
-  } catch {} // Weather is optional — failure is silent by design (weather card doesn't mount on error)
+  } catch {
+    // Weather is supplementary — show a minimal card so the space doesn't silently vanish
+    const weatherDiv = document.createElement('div');
+    weatherDiv.className = 'spot-item';
+    weatherDiv.style.cssText = 'background:#f8fafc;';
+    weatherDiv.innerHTML = '<h4 style="color:#0369a1">Weather Forecast</h4><div style="font-size:11px;color:#94a3b8;padding:4px 0">Weather unavailable</div>';
+    const firstSpot = $('sidebar-content').querySelector('.spot-item:nth-child(2)');
+    if (firstSpot) $('sidebar-content').insertBefore(weatherDiv, firstSpot);
+    else $('sidebar-content').appendChild(weatherDiv);
+  }
 }
 
 // ── Load all 1,012 spots on map ──
