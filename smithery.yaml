@@ -2,7 +2,47 @@
 
 startCommand:
   type: stdio
-  configSchema: {}
-  exampleConfig: {}
+  configSchema:
+    type: object
+    properties:
+      dateStyle:
+        type: string
+        description: How dates should be rendered in tool output.
+        enum:
+          - friendly
+          - iso
+        default: friendly
+      temperatureUnit:
+        type: string
+        description: Preferred temperature unit for weather output.
+        enum:
+          - celsius
+          - fahrenheit
+        default: celsius
+      includeCoordinates:
+        type: boolean
+        description: Whether GPS coordinates should be included for spots, farms, and festivals.
+        default: true
+      mapLanguage:
+        type: string
+        description: Preferred language for forecast map links when both English and Japanese URLs are available.
+        enum:
+          - english
+          - japanese
+        default: english
+  exampleConfig:
+    dateStyle: friendly
+    temperatureUnit: celsius
+    includeCoordinates: true
+    mapLanguage: english
   commandFunction: |-
-    () => ({ command: "npx", args: ["-y", "japan-seasons-mcp"], env: {} })
+    (config) => ({
+      command: "npx",
+      args: ["-y", "japan-seasons-mcp"],
+      env: {
+        ...(config.dateStyle ? { JAPAN_SEASONS_DATE_STYLE: config.dateStyle } : {}),
+        ...(config.temperatureUnit ? { JAPAN_SEASONS_TEMPERATURE_UNIT: config.temperatureUnit } : {}),
+        ...(config.includeCoordinates !== undefined ? { JAPAN_SEASONS_INCLUDE_COORDINATES: String(config.includeCoordinates) } : {}),
+        ...(config.mapLanguage ? { JAPAN_SEASONS_MAP_LANGUAGE: config.mapLanguage } : {})
+      }
+    })

@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "properties": {
+    "dateStyle": {
+      "type": "string",
+      "title": "Date Style",
+      "description": "How dates should be rendered in tool output.",
+      "enum": ["friendly", "iso"],
+      "default": "friendly"
+    },
+    "temperatureUnit": {
+      "type": "string",
+      "title": "Temperature Unit",
+      "description": "Preferred temperature unit for weather output.",
+      "enum": ["celsius", "fahrenheit"],
+      "default": "celsius"
+    },
+    "includeCoordinates": {
+      "type": "boolean",
+      "title": "Include Coordinates",
+      "description": "Whether GPS coordinates should be included for spots, farms, and festivals.",
+      "default": true
+    },
+    "mapLanguage": {
+      "type": "string",
+      "title": "Map Language",
+      "description": "Preferred language for forecast map links when both English and Japanese URLs are available.",
+      "enum": ["english", "japanese"],
+      "default": "english"
+    }
+  }
+}

@@ -91,6 +91,13 @@ Any MCP client that supports HTTP transport can point directly at the hosted ins
 https://seasons.kooexperience.com/mcp
 ```
 
+Optional connection preferences supported by the hosted endpoint:
+
+- `dateStyle` — `friendly` or `iso`
+- `temperatureUnit` — `celsius` or `fahrenheit`
+- `includeCoordinates` — `true` or `false`
+- `mapLanguage` — `english` or `japanese`
+
 **Self-host**
 
 ```bash
@@ -283,6 +290,7 @@ Typical workflow:
 1. Ask for timing first with `get_sakura_best_dates`, `get_koyo_best_dates`, `get_sakura_forecast`, or `get_koyo_forecast`.
 2. Drill into exact parks, temples, farms, or events with `get_sakura_spots`, `get_koyo_spots`, `get_fruit_farms`, `get_flowers`, or `get_festivals`.
 3. Check `get_weather_forecast` if rain or temperature could change the recommendation.
+4. Set optional connection preferences if you want ISO dates, Fahrenheit weather, Japanese map links, or outputs without GPS coordinates.
 
 ---
 

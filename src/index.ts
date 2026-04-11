@@ -28,6 +28,16 @@ import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } fro
 
 // ─── Shared types ────────────────────────────────────────────────────────────
 type AnySpot = Record<string, unknown>;
+type DateStyle = "friendly" | "iso";
+type TemperatureUnit = "celsius" | "fahrenheit";
+type MapLanguage = "english" | "japanese";
+
+interface OutputConfig {
+  dateStyle: DateStyle;
+  temperatureUnit: TemperatureUnit;
+  includeCoordinates: boolean;
+  mapLanguage: MapLanguage;
+}
 
 // ─── Static JSON: load once at startup, reused across all MCP tool calls ─────
 function loadStaticJSON(filename: string) {
@@ -43,6 +53,92 @@ const STATIC_MCP = {
 // All tools are read-only (no side effects) and idempotent (same input = same output)
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 const READONLY: ToolAnnotations = { readOnlyHint: true, idempotentHint: true };
+const DEFAULT_OUTPUT_CONFIG: OutputConfig = {
+  dateStyle: "friendly",
+  temperatureUnit: "celsius",
+  includeCoordinates: true,
+  mapLanguage: "english",
+};
+
+function firstValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseEnum<T extends string>(value: string | undefined | null, allowed: readonly T[]): T | undefined {
+  if (!value) return undefined;
+  return allowed.includes(value as T) ? (value as T) : undefined;
+}
+
+function parseBoolean(value: string | undefined | null): boolean | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  return undefined;
+}
+
+function formatIsoDate(iso: string | null): string {
+  if (!iso) return "N/A";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toISOString().slice(0, 10);
+}
+
+function formatSakuraDate(iso: string | null, outputConfig: OutputConfig): string {
+  return outputConfig.dateStyle === "iso" ? formatIsoDate(iso) : formatDate(iso);
+}
+
+function formatKoyoOutputDate(iso: string | null, outputConfig: OutputConfig): string {
+  return outputConfig.dateStyle === "iso" ? formatIsoDate(iso) : formatKoyoDate(iso);
+}
+
+function coordinateLine(lat: unknown, lon: unknown, outputConfig: OutputConfig): string {
+  return outputConfig.includeCoordinates ? `- 📍 ${lat}, ${lon}\n` : "";
+}
+
+function gpsLine(lat: unknown, lon: unknown, outputConfig: OutputConfig): string {
+  return outputConfig.includeCoordinates ? `- **GPS:** ${lat}, ${lon}\n` : "";
+}
+
+function preferredMapUrl(englishUrl: string | null | undefined, japaneseUrl: string | null | undefined, outputConfig: OutputConfig): string {
+  if (outputConfig.mapLanguage === "japanese") return japaneseUrl || englishUrl || "N/A";
+  return englishUrl || japaneseUrl || "N/A";
+}
+
+function resolveOutputConfig(values: {
+  dateStyle?: string | null;
+  temperatureUnit?: string | null;
+  includeCoordinates?: string | null;
+  mapLanguage?: string | null;
+}): OutputConfig {
+  return {
+    dateStyle: parseEnum(values.dateStyle, ["friendly", "iso"]) ?? DEFAULT_OUTPUT_CONFIG.dateStyle,
+    temperatureUnit: parseEnum(values.temperatureUnit, ["celsius", "fahrenheit"]) ?? DEFAULT_OUTPUT_CONFIG.temperatureUnit,
+    includeCoordinates: parseBoolean(values.includeCoordinates) ?? DEFAULT_OUTPUT_CONFIG.includeCoordinates,
+    mapLanguage: parseEnum(values.mapLanguage, ["english", "japanese"]) ?? DEFAULT_OUTPUT_CONFIG.mapLanguage,
+  };
+}
+
+function getOutputConfig(
+  searchParams: URLSearchParams,
+  headers: Record<string, string | string[] | undefined> = {},
+): OutputConfig {
+  return resolveOutputConfig({
+    dateStyle: searchParams.get("dateStyle") ?? firstValue(headers["x-date-style"]),
+    temperatureUnit: searchParams.get("temperatureUnit") ?? firstValue(headers["x-temperature-unit"]),
+    includeCoordinates: searchParams.get("includeCoordinates") ?? firstValue(headers["x-include-coordinates"]),
+    mapLanguage: searchParams.get("mapLanguage") ?? firstValue(headers["x-map-language"]),
+  });
+}
+
+function getOutputConfigFromEnv(env: NodeJS.ProcessEnv = process.env): OutputConfig {
+  return resolveOutputConfig({
+    dateStyle: env.JAPAN_SEASONS_DATE_STYLE,
+    temperatureUnit: env.JAPAN_SEASONS_TEMPERATURE_UNIT,
+    includeCoordinates: env.JAPAN_SEASONS_INCLUDE_COORDINATES,
+    mapLanguage: env.JAPAN_SEASONS_MAP_LANGUAGE,
+  });
+}
 
 const SERVER_INSTRUCTIONS = `You are connected to Japan in Seasons, a read-only MCP server for live Japan seasonal travel data.
 
@@ -66,7 +162,7 @@ Important rules:
 
 // ─── Shared tool & prompt registration ───────────────────────────────────────
 
-function registerAllTools(server: McpServer) {
+function registerAllTools(server: McpServer, outputConfig: OutputConfig = DEFAULT_OUTPUT_CONFIG) {
 
   // ── Prompt: plan_japan_trip ──
 
@@ -169,13 +265,13 @@ Use the japan-seasons-mcp tools based on the travel month:
           if (cities.length === 0) {
             return { content: [{ type: "text", text: `No sakura forecast found for "${city}". Try city, prefecture, or region names.` }] };
           }
-          return { content: [{ type: "text", text: formatCityResults(cities) }] };
+          return { content: [{ type: "text", text: formatCityResults(cities, outputConfig) }] };
         }
         let output = `# Sakura Forecast ${new Date().getFullYear()}\nSource: ${forecast.source}\nTotal observation cities: ${forecast.totalCities}\n\n`;
         for (const region of forecast.regions) {
           output += `## ${region.nameEn} (${region.name})\n`;
           if (region.comment.length > 0) output += `> ${region.comment[0]}\n\n`;
-          output += formatCityResults(region.cities) + "\n";
+          output += formatCityResults(region.cities, outputConfig) + "\n";
         }
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
@@ -205,16 +301,16 @@ Use the japan-seasons-mcp tools based on the travel month:
         if (result.jmaStation) {
           const jma = result.jmaStation;
           output += `## JMA Station: ${jma.name}\n- Bloom: **${jma.bloomRate}%** | Full bloom: **${jma.fullRate}%**\n`;
-          output += `- Bloom: ${formatDate(jma.bloomForecast)}${jma.bloomObservation ? ` → observed ${formatDate(jma.bloomObservation)}` : ""} (avg ${jma.bloomNormal ?? "N/A"})\n`;
-          output += `- Full bloom: ${formatDate(jma.fullForecast)}${jma.fullObservation ? ` → observed ${formatDate(jma.fullObservation)}` : ""} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
+          output += `- Bloom: ${formatSakuraDate(jma.bloomForecast, outputConfig)}${jma.bloomObservation ? ` → observed ${formatSakuraDate(jma.bloomObservation, outputConfig)}` : ""} (avg ${jma.bloomNormal ?? "N/A"})\n`;
+          output += `- Full bloom: ${formatSakuraDate(jma.fullForecast, outputConfig)}${jma.fullObservation ? ` → observed ${formatSakuraDate(jma.fullObservation, outputConfig)}` : ""} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
         }
         output += `## Spots\n\n`;
         for (const spot of result.spots) {
           output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
           output += `- **${spot.status}**\n`;
           output += `- Bloom: **${spot.bloomRate}%** → Full bloom: **${spot.fullRate}%**\n`;
-          output += `- Forecast: ${formatDate(spot.bloomForecast)}${spot.fullBloomForecast ? ` → full ${formatDate(spot.fullBloomForecast)}` : ""}\n`;
-          output += `- 📍 ${spot.lat}, ${spot.lon}\n`;
+          output += `- Forecast: ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
+          output += coordinateLine(spot.lat, spot.lon, outputConfig);
         }
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
@@ -246,7 +342,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           return { content: [{ type: "text", text: `No cities in bloom during ${start_date} to ${end_date}.\n\nSeason: Okinawa Jan-Feb, Kyushu/Kansai late Mar, Kanto early Apr, Tohoku mid Apr, Hokkaido late Apr-May.\nTry get_kawazu_cherry for Jan-Feb early blooms.` }] };
         }
         let output = `# Best cities for sakura: ${start_date} to ${end_date}\n\n${matches.length} cities with bloom in your window.\nUse get_sakura_spots to find specific parks.\n\n`;
-        output += formatCityResults(matches);
+        output += formatCityResults(matches, outputConfig);
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
@@ -267,11 +363,12 @@ Use the japan-seasons-mcp tools based on the travel month:
         let output = `# Kawazu Cherry (河津桜) Forecast\nSource: ${result.source}\nLast updated: ${result.lastUpdated}\n\n`;
         output += `Kawazu cherry is a deep pink variety blooming Jan-Feb in Izu Peninsula, south of Mt. Fuji.\n\n`;
         if (result.forecastComment) output += `## Forecast\n${result.forecastComment}\n\n`;
-        output += `## Map\n${result.forecastMapUrlEn || result.forecastMapUrl}\n\n`;
+        output += `## Map\n${preferredMapUrl(result.forecastMapUrlEn, result.forecastMapUrl, outputConfig)}\n\n`;
         output += `## Spots (${result.spots.length})\n\n`;
         for (const spot of result.spots) {
           output += `### ${spot.name}\n- **${spot.status}**\n- Bloom: **${spot.bloomRate}%** → Full: **${spot.fullRate}%**\n`;
-          output += `- Forecast: ${formatDate(spot.bloomForecast)} → full ${formatDate(spot.fullBloomForecast)}\n- 📍 ${spot.lat}, ${spot.lon}\n`;
+          output += `- Forecast: ${formatSakuraDate(spot.bloomForecast, outputConfig)} → full ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}\n`;
+          output += coordinateLine(spot.lat, spot.lon, outputConfig);
         }
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
@@ -292,18 +389,18 @@ Use the japan-seasons-mcp tools based on the travel month:
         const forecast = await getKoyoForecast();
         let output = `# Autumn Leaves (Koyo) Forecast\nSource: ${forecast.source}\nLast updated: ${forecast.lastUpdated}\n\n`;
         if (forecast.forecastComment) output += `## Summary\n${forecast.forecastComment}\n\n`;
-        output += `## Maps\n- Maple: ${forecast.mapleForecastMapUrlEn || forecast.mapleForecastMapUrl}\n- Ginkgo: ${forecast.ginkgoForecastMapUrlEn || forecast.ginkgoForecastMapUrl}\n\n`;
+        output += `## Maps\n- Maple: ${preferredMapUrl(forecast.mapleForecastMapUrlEn, forecast.mapleForecastMapUrl, outputConfig)}\n- Ginkgo: ${preferredMapUrl(forecast.ginkgoForecastMapUrlEn, forecast.ginkgoForecastMapUrl, outputConfig)}\n\n`;
         for (const region of forecast.regions) {
           output += `## ${region.name}\n`;
           for (const city of region.cities) {
             output += `### ${city.name} (${city.prefName})\n`;
             if (city.maple) {
-              output += `- **Maple (${city.maple.species}):** ${formatKoyoDate(city.maple.forecast)} — ${city.maple.normalDiffClass}`;
+              output += `- **Maple (${city.maple.species}):** ${formatKoyoOutputDate(city.maple.forecast, outputConfig)} — ${city.maple.normalDiffClass}`;
               if (city.maple.normalDiffDays > 0) output += ` (${city.maple.normalDiffDays} days)`;
               output += `\n`;
             }
             if (city.ginkgo) {
-              output += `- **Ginkgo:** ${formatKoyoDate(city.ginkgo.forecast)} — ${city.ginkgo.normalDiffClass}`;
+              output += `- **Ginkgo:** ${formatKoyoOutputDate(city.ginkgo.forecast, outputConfig)} — ${city.ginkgo.normalDiffClass}`;
               if (city.ginkgo.normalDiffDays > 0) output += ` (${city.ginkgo.normalDiffDays} days)`;
               output += `\n`;
             }
@@ -338,8 +435,8 @@ Use the japan-seasons-mcp tools based on the travel month:
           output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
           output += `- **${spot.status}**\n`;
           output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
-          output += `- Best: ${formatKoyoDate(spot.bestStart)} → peak ${formatKoyoDate(spot.bestPeak)} → end ${formatKoyoDate(spot.bestEnd)}\n`;
-          output += `- 📍 ${spot.lat}, ${spot.lon}\n`;
+          output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
+          output += coordinateLine(spot.lat, spot.lon, outputConfig);
         }
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
@@ -391,8 +488,8 @@ Use the japan-seasons-mcp tools based on the travel month:
         let output = `# Best cities for koyo: ${start_date} to ${end_date}\n\n${matches.length} cities with autumn colour in your window.\nUse get_koyo_spots to find specific parks and temples.\n\n`;
         for (const m of matches) {
           output += `### ${m.name} (${m.pref})\n`;
-          if (m.mapleDate) output += `- 🍁 Maple peak: ${formatKoyoDate(m.mapleDate)}\n`;
-          if (m.ginkgoDate) output += `- 🟡 Ginkgo peak: ${formatKoyoDate(m.ginkgoDate)}\n`;
+          if (m.mapleDate) output += `- 🍁 Maple peak: ${formatKoyoOutputDate(m.mapleDate, outputConfig)}\n`;
+          if (m.ginkgoDate) output += `- 🟡 Ginkgo peak: ${formatKoyoOutputDate(m.ginkgoDate, outputConfig)}\n`;
           output += "\n";
         }
         return { content: [{ type: "text", text: output }] };
@@ -419,9 +516,11 @@ Use the japan-seasons-mcp tools based on the travel month:
         for (const day of forecast.forecasts) {
           output += `### ${day.dateLabel} (${day.date})\n**${day.telop}**\n`;
           if (day.detail.weather) output += `${day.detail.weather}\n`;
-          const minC = day.temperature.min.celsius;
-          const maxC = day.temperature.max.celsius;
-          if (minC || maxC) output += `Temp: ${minC ?? "—"}°C / ${maxC ?? "—"}°C\n`;
+          const useFahrenheit = outputConfig.temperatureUnit === "fahrenheit";
+          const unitLabel = useFahrenheit ? "F" : "C";
+          const minTemp = useFahrenheit ? day.temperature.min.fahrenheit : day.temperature.min.celsius;
+          const maxTemp = useFahrenheit ? day.temperature.max.fahrenheit : day.temperature.max.celsius;
+          if (minTemp || maxTemp) output += `Temp: ${minTemp ?? "—"}°${unitLabel} / ${maxTemp ?? "—"}°${unitLabel}\n`;
           output += `Rain: ${day.chanceOfRain.T00_06} | ${day.chanceOfRain.T06_12} | ${day.chanceOfRain.T12_18} | ${day.chanceOfRain.T18_24}\n\n`;
         }
         return { content: [{ type: "text", text: output }] };
@@ -492,7 +591,7 @@ Use the japan-seasons-mcp tools based on the travel month:
             if (s["peakStart"] && s["peakEnd"]) output += `- **Peak:** ${s["peakStart"]} → ${s["peakEnd"]}\n`;
             if (s["note"]) output += `- **Note:** ${s["note"]}\n`;
             output += `- **Official site:** ${s["url"]}\n`;
-            output += `- **GPS:** ${s["lat"]}, ${s["lon"]}\n\n`;
+            output += gpsLine(s["lat"], s["lon"], outputConfig) + "\n";
           }
         }
 
@@ -622,7 +721,7 @@ Use the japan-seasons-mcp tools based on the travel month:
             if (s["attendance"]) output += `- **Attendance:** ~${(s["attendance"] as number).toLocaleString()} visitors\n`;
             if (s["note"]) output += `- **Note:** ${s["note"]}\n`;
             output += `- **Official site:** ${s["url"]}\n`;
-            output += `- **GPS:** ${s["lat"]}, ${s["lon"]}\n\n`;
+            output += gpsLine(s["lat"], s["lon"], outputConfig) + "\n";
           }
         }
 
@@ -692,7 +791,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           if (f["address"]) output += `- **Address:** ${f["address"]}\n`;
           const fruits = f["fruits"] as string[] | undefined;
           if (fruits?.length) output += `- **Fruits:** ${fruits.join(", ")}\n`;
-          if (f["lat"] && f["lon"]) output += `- **GPS:** ${f["lat"]}, ${f["lon"]}\n`;
+          if (f["lat"] && f["lon"]) output += gpsLine(f["lat"], f["lon"], outputConfig);
           if (f["url"]) output += `- **Link:** ${f["url"]}\n`;
           output += "\n";
         }
@@ -711,16 +810,16 @@ Use the japan-seasons-mcp tools based on the travel month:
 
 // ─── Formatting helper ───────────────────────────────────────────────────────
 
-function formatCityResults(cities: SakuraCity[]): string {
+function formatCityResults(cities: SakuraCity[], outputConfig: OutputConfig): string {
   let output = "";
   for (const city of cities) {
     output += `### ${city.cityName} (${city.prefName})\n`;
     output += `- **Status:** ${city.status}\n`;
-    output += `- **Bloom:** forecast ${formatDate(city.bloom.forecast)}`;
-    if (city.bloom.observation) output += ` → observed ${formatDate(city.bloom.observation)}`;
+    output += `- **Bloom:** forecast ${formatSakuraDate(city.bloom.forecast, outputConfig)}`;
+    if (city.bloom.observation) output += ` → observed ${formatSakuraDate(city.bloom.observation, outputConfig)}`;
     output += ` (avg ${city.bloom.normal ?? "N/A"})\n`;
-    output += `- **Full bloom:** forecast ${formatDate(city.fullBloom.forecast)}`;
-    if (city.fullBloom.observation) output += ` → observed ${formatDate(city.fullBloom.observation)}`;
+    output += `- **Full bloom:** forecast ${formatSakuraDate(city.fullBloom.forecast, outputConfig)}`;
+    if (city.fullBloom.observation) output += ` → observed ${formatSakuraDate(city.fullBloom.observation, outputConfig)}`;
     output += ` (avg ${city.fullBloom.normal ?? "N/A"})\n`;
   }
   return output;
@@ -768,7 +867,7 @@ const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.6" }, {
   instructions: SERVER_INSTRUCTIONS,
 });
-registerAllTools(server);
+registerAllTools(server, getOutputConfigFromEnv());
 
 async function main() {
   if (isHttpMode) {
@@ -914,9 +1013,20 @@ async function startHttpServer() {
 
       const isInit = parsedBody?.method === "initialize" ||
         (Array.isArray(parsedBody) && parsedBody.some((m: any) => m.method === "initialize"));
+      const outputConfig = getOutputConfig(url.searchParams, req.headers);
 
       // For non-init requests without session ID (e.g. Smithery probes),
       // use a stateless transport so they don't need initialization.
+      if (sessionId && !isInit) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          jsonrpc: "2.0",
+          error: { code: -32001, message: "Session not found" },
+          id: parsedBody?.id ?? null,
+        }));
+        return;
+      }
+
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: isInit ? () => crypto.randomUUID() : undefined,
       });
@@ -933,16 +1043,17 @@ async function startHttpServer() {
       const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.6" }, {
         instructions: SERVER_INSTRUCTIONS,
       });
-      registerAllTools(sessionServer);
+      registerAllTools(sessionServer, outputConfig);
       await sessionServer.connect(transport);
+
+      // Pass the pre-parsed body so the transport doesn't try to re-read the stream
+      await transport.handleRequest(req, res, parsedBody);
 
       if (isInit && transport.sessionId) {
         transports.set(transport.sessionId, transport);
         sessionLastActive.set(transport.sessionId, Date.now());
+        logger.info(`Initialized MCP session ${transport.sessionId.slice(0, 8)}...`);
       }
-
-      // Pass the pre-parsed body so the transport doesn't try to re-read the stream
-      await transport.handleRequest(req, res, parsedBody);
       return;
     }
 

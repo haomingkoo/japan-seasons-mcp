@@ -7,11 +7,61 @@
     "source": "github"
   },
   "version": "0.3.6",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://seasons.kooexperience.com/mcp?dateStyle={dateStyle}&temperatureUnit={temperatureUnit}&includeCoordinates={includeCoordinates}&mapLanguage={mapLanguage}",
+      "variables": {
+        "dateStyle": {
+          "description": "How dates are rendered in tool output.",
+          "choices": ["friendly", "iso"],
+          "default": "friendly"
+        },
+        "temperatureUnit": {
+          "description": "Preferred temperature unit for weather output.",
+          "choices": ["celsius", "fahrenheit"],
+          "default": "celsius"
+        },
+        "includeCoordinates": {
+          "description": "Whether spot, festival, and farm outputs include GPS coordinates.",
+          "format": "boolean",
+          "default": "true"
+        },
+        "mapLanguage": {
+          "description": "Preferred language for forecast map links when both English and Japanese versions exist.",
+          "choices": ["english", "japanese"],
+          "default": "english"
+        }
+      }
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
       "identifier": "japan-seasons-mcp",
       "version": "0.3.6",
+      "environmentVariables": [
+        {
+          "name": "JAPAN_SEASONS_DATE_STYLE",
+          "description": "How dates are rendered in tool output.",
+          "value": "friendly"
+        },
+        {
+          "name": "JAPAN_SEASONS_TEMPERATURE_UNIT",
+          "description": "Preferred temperature unit for weather output.",
+          "value": "celsius"
+        },
+        {
+          "name": "JAPAN_SEASONS_INCLUDE_COORDINATES",
+          "description": "Whether spot, festival, and farm outputs include GPS coordinates.",
+          "value": "true"
+        },
+        {
+          "name": "JAPAN_SEASONS_MAP_LANGUAGE",
+          "description": "Preferred language for forecast map links when both English and Japanese versions exist.",
+          "value": "english"
+        }
+      ],
       "transport": {
         "type": "stdio"
       }
@@ -25,6 +75,26 @@
           "name": "PORT",
           "description": "Local port used when starting the package in HTTP MCP mode.",
           "value": "3000"
+        },
+        {
+          "name": "JAPAN_SEASONS_DATE_STYLE",
+          "description": "How dates are rendered in tool output.",
+          "value": "friendly"
+        },
+        {
+          "name": "JAPAN_SEASONS_TEMPERATURE_UNIT",
+          "description": "Preferred temperature unit for weather output.",
+          "value": "celsius"
+        },
+        {
+          "name": "JAPAN_SEASONS_INCLUDE_COORDINATES",
+          "description": "Whether spot, festival, and farm outputs include GPS coordinates.",
+          "value": "true"
+        },
+        {
+          "name": "JAPAN_SEASONS_MAP_LANGUAGE",
+          "description": "Preferred language for forecast map links when both English and Japanese versions exist.",
+          "value": "english"
         }
       ],
       "packageArguments": [
