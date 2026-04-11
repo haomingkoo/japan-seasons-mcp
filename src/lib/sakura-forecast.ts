@@ -50,9 +50,9 @@ export interface SakuraSpot {
   prefecture: string;     // prefecture name
   bloomForecast: string | null;   // ISO date
   fullBloomForecast: string | null;
-  bloomRate: number;      // 0-100+ (% progress toward blooming)
-  fullRate: number;       // 0-100+ (% progress toward full bloom)
-  status: string;         // computed from rates
+  bloomRate: number;      // 0-100 (% progress toward first bloom)
+  fullRate: number;       // 0-100 (% progress from first bloom to full bloom)
+  status: string;         // human-readable model status
 }
 
 export interface SakuraSpotResult {
@@ -71,6 +71,13 @@ export interface SakuraSpotResult {
     fullNormal: string | null;
   } | null;
   spots: SakuraSpot[];
+}
+
+interface SakuraRateStage {
+  min: number;
+  max: number;
+  summary: string;
+  status: string;
 }
 
 // ─── Region name mapping ─────────────────────────────────────────────────────
@@ -292,34 +299,48 @@ function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
   };
 }
 
-// Official n-kishou bloom scale (from their documentation):
-//
-// BLOOM RATE (生長率) — progress from bud to first bloom:
-//   0-59%   花芽〜つぼみ         Bud stage
-//   60-84%  つぼみが膨らみ始める  Buds swelling
-//   85-99%  つぼみが開き始める    Buds starting to open
-//   100%    開花                  First bloom!
-//
-// FULL BLOOM RATE (満開率) — progress from first bloom to full bloom:
-//   0-19%   開花                  Just bloomed (1-2 branches)
-//   20-39%  三分咲き              30% bloom (sanbu-zaki)
-//   40-69%  五分咲き              50% bloom (gobu-zaki)
-//   70-89%  七分咲き              70% bloom (nanabu-zaki)
-//   90-100% 満開                  Full bloom (mankai)!
+// Official JMC sakura spot scale. Keep thresholds here so status text and
+// prompt copy stay aligned with one source of truth.
+const SAKURA_BLOOM_RATE_STAGES: readonly SakuraRateStage[] = [
+  { min: 0, max: 59, summary: "bud", status: "Bud stage (estimated)" },
+  { min: 60, max: 84, summary: "swelling", status: "Buds swelling (estimated)" },
+  { min: 85, max: 99, summary: "opening", status: "Buds opening (estimated)" },
+  { min: 100, max: 100, summary: "first bloom", status: "First flowers open (estimated)" },
+];
+
+const SAKURA_FULL_BLOOM_RATE_STAGES: readonly SakuraRateStage[] = [
+  { min: 0, max: 19, summary: "just opened", status: "Just started blooming (estimated)" },
+  { min: 20, max: 39, summary: "30% bloom", status: "Some blossoms open (estimated 30% bloom)" },
+  { min: 40, max: 69, summary: "50% bloom", status: "Blooming now (estimated 50% bloom)" },
+  { min: 70, max: 89, summary: "70% bloom", status: "Good viewing now (estimated 70% bloom)" },
+  { min: 90, max: 100, summary: "full bloom (mankai)", status: "Best viewing now (estimated full bloom)" },
+];
+
+function formatRateRange({ min, max }: SakuraRateStage): string {
+  return min === max ? `${min}%` : `${min}-${max}%`;
+}
+
+function formatScaleLine(label: string, stages: readonly SakuraRateStage[]): string {
+  return `${label}: ${stages.map((stage) => `${formatRateRange(stage)} ${stage.summary}`).join(" -> ")}`;
+}
+
+function getStageStatus(rate: number, stages: readonly SakuraRateStage[]): string {
+  for (let i = stages.length - 1; i >= 0; i--) {
+    const stage = stages[i];
+    if (rate >= stage.min && rate <= stage.max) return stage.status;
+  }
+  return stages[0]?.status ?? "Status unavailable";
+}
+
+export const SAKURA_FULL_BLOOM_MANKAI_MIN = SAKURA_FULL_BLOOM_RATE_STAGES[SAKURA_FULL_BLOOM_RATE_STAGES.length - 1]?.min ?? 90;
+export const SAKURA_BLOOM_RATE_SCALE_LINE = formatScaleLine("Bloom rate", SAKURA_BLOOM_RATE_STAGES);
+export const SAKURA_FULL_BLOOM_RATE_SCALE_LINE = formatScaleLine("Full-bloom rate", SAKURA_FULL_BLOOM_RATE_STAGES);
+export const SAKURA_SPOT_MODEL_NOTE =
+  "Spot statuses below are JMC model estimates from the bloom meter. They are not official JMA confirmations, and they can differ from the prefecture reference tree above or from JMC's separate spot-observation views.";
 
 function computeSpotStatus(bloomRate: number, fullRate: number): string {
-  if (fullRate >= 100) return "Full bloom — best viewing!";
-  if (fullRate >= 90) return "Nearly full bloom";
-  if (fullRate >= 70) return "70% bloom";
-  if (fullRate >= 40) return "50% bloom";
-  if (fullRate >= 20) return "30% bloom";
-  if (fullRate > 0) return "Just started blooming";
-
-  if (bloomRate >= 100) return "Blooming — petals opening!";
-  if (bloomRate >= 85) return "Buds opening";
-  if (bloomRate >= 60) return "Buds swelling";
-  if (bloomRate > 0) return "Bud stage";
-  return "Dormant";
+  if (fullRate > 0) return getStageStatus(fullRate, SAKURA_FULL_BLOOM_RATE_STAGES);
+  return getStageStatus(bloomRate, SAKURA_BLOOM_RATE_STAGES);
 }
 
 export function getAvailablePrefectures(): string[] {
