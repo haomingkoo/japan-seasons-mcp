@@ -1580,36 +1580,37 @@ async function searchTrip() {
       bounds.push([city.lat, city.lon]);
     }
 
-    // ── Sakura spots — predict state at trip dates, hide ended spots ──
-    // fullBloomForecast = date trees reach 100%. Petals fall ~14 days after.
-    // bloomForecast     = date trees start blooming (~10 days before full bloom).
-    // We color and filter based on predicted state at trip midpoint, NOT today.
+    // ── Sakura spots — predict state at trip dates, drop past-peak spots ──
+    // fullBloomForecast = date trees reach 100%. We keep spots only while the
+    // trip still overlaps a useful viewing window, rather than showing green / falling dots.
     function tripSakuraState(spot) {
-      const tripMid  = new Date((startDate.getTime() + endDate.getTime()) / 2);
       const fullBloom = spot.fullBloomForecast && sakuraDateOk(spot.fullBloomForecast)
         ? new Date(spot.fullBloomForecast) : null;
       const bloomStart = spot.bloomForecast && sakuraDateOk(spot.bloomForecast)
         ? new Date(spot.bloomForecast)
         : fullBloom ? new Date(fullBloom.getTime() - 10 * 86400000) : null;
-      const petalEnd = fullBloom ? new Date(fullBloom.getTime() + 14 * 86400000) : null;
+      const bestStart = fullBloom ? new Date(fullBloom.getTime() - 3 * 86400000) : null;
+      const bestEnd = fullBloom ? new Date(fullBloom.getTime() + 7 * 86400000) : null;
 
-      // No usable forecast → fall back to current live data
+      // No usable forecast → fall back to current live data, but still drop
+      // obviously past-peak green spots from the planner.
       if (!fullBloom) {
-        const ended = spot.fullRate >= 100 && daysSince(spot.fullBloomForecast) > 10;
-        return { show: !ended, color: sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) };
+        const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+        const show = color !== C.ended && color !== C.falling;
+        return { show, color };
       }
 
-      // Trip is entirely after petals have fallen → hide
-      if (startDate > petalEnd) return { show: false };
+      // Trip is entirely after the worthwhile viewing window → hide
+      if (startDate > bestEnd) return { show: false };
 
       // Trip is entirely before bloom starts → not yet open (bud)
       if (endDate < bloomStart) return { show: true, color: C.budSwell };
 
-      // Trip overlaps bloom window — color by how close to peak
-      const daysFromPeak = Math.floor((tripMid - fullBloom) / 86400000);
-      if (daysFromPeak >= -3 && daysFromPeak <= 7)  return { show: true, color: C.peak }; // at peak
-      if (daysFromPeak < -3)                         return { show: true, color: C.blooming }; // opening
-      return { show: true, color: C.falling };                                                // falling
+      // Trip is before peak but bloom should be underway
+      if (endDate < bestStart) return { show: true, color: C.blooming };
+
+      // Otherwise the trip overlaps the best viewing window
+      return { show: true, color: C.peak };
     }
 
     const nearbySakura = [];
