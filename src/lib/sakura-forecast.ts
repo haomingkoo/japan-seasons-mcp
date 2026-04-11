@@ -500,7 +500,7 @@ export const SAKURA_FULL_BLOOM_MANKAI_MIN = SAKURA_FULL_BLOOM_RATE_STAGES[SAKURA
 export const SAKURA_BLOOM_RATE_SCALE_LINE = formatScaleLine("Bloom rate", SAKURA_BLOOM_RATE_STAGES);
 export const SAKURA_FULL_BLOOM_RATE_SCALE_LINE = formatScaleLine("Full-bloom rate", SAKURA_FULL_BLOOM_RATE_STAGES);
 export const SAKURA_SPOT_MODEL_NOTE =
-  `Spot status uses fresh JMC spot observations first when updated within the last ${SAKURA_SPOT_OBSERVATION_FRESH_HOURS} hours. If a current spot observation is missing or stale, the JMC bloom-meter forecast is used instead. The prefecture JMA reference tree is context only.`;
+  `Spot status uses fresh JMC spot observations first when updated within the last ${SAKURA_SPOT_OBSERVATION_FRESH_HOURS} hours. If a spot observation is missing or stale, we show the JMC bloom-meter estimate and keep the last observed status visible as context when available. The prefecture JMA reference tree is context only.`;
 
 function computeSpotStatus(bloomRate: number, fullRate: number): string {
   if (fullRate > 0) return getStageStatus(fullRate, SAKURA_FULL_BLOOM_RATE_STAGES);

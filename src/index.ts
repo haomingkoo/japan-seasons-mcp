@@ -369,10 +369,10 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += `- **${spot.displayStatus}**${obsDate}\n`;
             output += `- _Forecast model: ${spot.status} — bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%_\n`;
           } else {
-            const staleNote = spot.observationUpdated && !spot.observationFresh
-              ? `; last spot observation ${formatSakuraDate(spot.observationUpdated, outputConfig)} is stale`
-              : "";
-            output += `- **${spot.displayStatus}** _(forecast estimate${staleNote})_\n`;
+            output += `- **${spot.displayStatus}** _(forecast estimate)_\n`;
+            if (spot.observationUpdated && !spot.observationFresh && spot.observationStatus) {
+              output += `- _Last spot observation: ${spot.observationStatus} (${formatSakuraDate(spot.observationUpdated, outputConfig)}, now stale)_\n`;
+            }
             output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
           }
           if (spot.bloomForecast || spot.fullBloomForecast) {

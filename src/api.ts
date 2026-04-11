@@ -70,6 +70,8 @@ function slimSakuraSpot(s: Record<string, unknown>) {
     displayStatus: s.displayStatus,
     statusSource: s.statusSource,
     statusUpdated: s.statusUpdated,
+    observationState: s.observationState,
+    observationStatus: s.observationStatus,
     observationUpdated: s.observationUpdated,
     observationFresh: s.observationFresh,
     phase: s.phase,

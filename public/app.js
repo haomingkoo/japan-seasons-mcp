@@ -48,7 +48,7 @@ function reg(data) { const id = _rid++; _registry.set(id, data); return id; }
 function handleSpotClick(id) {
   const d = _registry.get(id);
   if (!d) return;
-  if (d.action === 'flyToSpot') flyToSpot(d.lat, d.lon, d.name, d.bloomRate, d.fullRate, d.status, d.fullBloomForecast);
+  if (d.action === 'flyToSpot') flyToSpot(d);
   if (d.action === 'loadPrefSpots') loadPrefSpots(d.prefCode, d.prefName);
   if (d.action === 'flyToFarm') mapInstance.flyTo([d.lat, d.lon], d.zoom || 14);
   if (d.action === 'flyToKoyo') mapInstance.flyTo([d.lat, d.lon], d.zoom || 13);
@@ -294,6 +294,22 @@ function isPostPeakSakuraPhase(phase) {
   return phase === 'past_peak' || phase === 'falling' || phase === 'ended';
 }
 
+const SAKURA_PHASES = new Set(['dormant', 'buds', 'bud_swell', 'bud_open', 'starting', 'blooming', 'peak', 'past_peak', 'falling', 'ended']);
+
+function isSpotRecord(value) {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function normalizeSakuraSpotPhase(phase) {
+  return SAKURA_PHASES.has(phase) ? phase : null;
+}
+
+function sakuraSpotPhase(spot) {
+  const apiPhase = normalizeSakuraSpotPhase(spot?.phase);
+  if (apiPhase) return apiPhase;
+  return sakuraPhase(spot?.bloomRate, spot?.fullRate, spot?.fullBloomForecast);
+}
+
 function hasSakuraTimelineData(bloomRate, fullRate, bloomForecast, fullBloomForecast) {
   return Boolean(fullBloomForecast || bloomForecast || (Number(bloomRate) || 0) > 0 || (Number(fullRate) || 0) > 0);
 }
@@ -362,11 +378,38 @@ function fmtDates(bloomForecast, bloomRate, fullBloomForecast, fullRate) {
   return `${b} · ${f}`;
 }
 
-// ── Color by bloom rate + date ──
-// Lifecycle: orange (bud/growth) → pink (flowering) → green (ended/leaves)
-// fullRate stays at 100% forever after peak — use forecast date to detect "ended"
-function sakuraColor(bloomRate, fullRate, fullBloomForecast) {
-  return sakuraPhaseColor(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
+function spotDisplayStatus(spot) {
+  if (spot?.displayStatus) return spot.displayStatus;
+  if (hasSakuraTimelineData(spot?.bloomRate, spot?.fullRate, spot?.bloomForecast, spot?.fullBloomForecast)) {
+    return spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+  }
+  return spot?.status || 'Dormant';
+}
+
+function spotStatusNote(spot) {
+  if (!isSpotRecord(spot)) return '';
+  if (spot.statusSource === 'observation') {
+    return spot.statusUpdated ? `Current observation · ${fmtDate(spot.statusUpdated)}` : 'Current observation';
+  }
+  if (spot.observationFresh === false && spot.observationUpdated && spot.observationStatus) {
+    return `Last observed ${fmtDate(spot.observationUpdated)} · ${spot.observationStatus}`;
+  }
+  return '';
+}
+
+function spotForecastDates(spot) {
+  const line = fmtDates(spot?.bloomForecast, spot?.bloomRate, spot?.fullBloomForecast, spot?.fullRate);
+  return spot?.statusSource === 'observation' ? `Forecast meter · ${line}` : line;
+}
+
+// ── Color by phase ──
+// Prefer backend phase for sakura spots so map/filtering follows the same
+// source-selection rule as the MCP output. Fall back to local forecast logic.
+function sakuraColor(spotOrBloomRate, fullRate, fullBloomForecast) {
+  const phase = isSpotRecord(spotOrBloomRate)
+    ? sakuraSpotPhase(spotOrBloomRate)
+    : sakuraPhase(spotOrBloomRate, fullRate, fullBloomForecast);
+  return sakuraPhaseColor(phase);
 }
 
 // Spot status text reads from the same shared phase thresholds as map dots.
@@ -375,22 +418,25 @@ function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
 }
 
 function spotLiveStatus(spot) {
-  if (hasSakuraTimelineData(spot.bloomRate, spot.fullRate, spot.bloomForecast, spot.fullBloomForecast)) {
-    return spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-  }
-  return spot.status || 'Dormant';
+  return spotDisplayStatus(spot);
 }
 
-function sakuraRadius(bloomRate, fullRate, fullBloomForecast) {
-  return sakuraPhaseRadius(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
+function sakuraRadius(spotOrBloomRate, fullRate, fullBloomForecast) {
+  const phase = isSpotRecord(spotOrBloomRate)
+    ? sakuraSpotPhase(spotOrBloomRate)
+    : sakuraPhase(spotOrBloomRate, fullRate, fullBloomForecast);
+  return sakuraPhaseRadius(phase);
 }
 
 // ── Bloom category (for filter) ──
 let bloomFilter = 'all'; // kept for legacy compat
 let bloomFilters = new Set(); // empty = show all
 
-function bloomCategory(bloomRate, fullRate, fullBloomForecast) {
-  return sakuraPhaseCategory(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
+function bloomCategory(spotOrBloomRate, fullRate, fullBloomForecast) {
+  const phase = isSpotRecord(spotOrBloomRate)
+    ? sakuraSpotPhase(spotOrBloomRate)
+    : sakuraPhase(spotOrBloomRate, fullRate, fullBloomForecast);
+  return sakuraPhaseCategory(phase);
 }
 
 function matchesBloomFilter(category) {
@@ -445,7 +491,7 @@ function applyBloomFilter(filter, el) {
   } else {
     const labelMap = { peak:'🌺 Full Bloom', blooming:'🌸 Blooming', buds:'🌷 Budding', ended:'🍃 Past Peak' };
     const labels = [...bloomFilters].map(f => labelMap[f]).join(' + ');
-    const filtered = allSpotsData.spots.filter(s => matchesBloomFilter(bloomCategory(s.bloomRate, s.fullRate, s.fullBloomForecast)));
+    const filtered = allSpotsData.spots.filter(s => matchesBloomFilter(bloomCategory(s)));
     const listHtml = filtered.length
       ? filtered.slice(0, 80).map(s => spotCardHtml(s, s.prefecture || '')).join('')
       : '<div class="loading">No spots found for this filter.</div>';
@@ -471,13 +517,21 @@ function floweringStage(fullRate) {
   return 'Not yet';
 }
 // Show only the most relevant bar. Hide entirely once past peak (> 3 days after full bloom).
-function bloomBar(bloomRate, fullRate, fullBloomForecast) {
-  if (fullRate >= 100 && fullBloomForecast) {
-    const days = daysSince(fullBloomForecast);
-    if (days > 3) return ''; // past peak — no bar, status line says it all
+function bloomBar(spotOrBloomRate, fullRate, fullBloomForecast) {
+  const spot = isSpotRecord(spotOrBloomRate) ? spotOrBloomRate : null;
+  const bloomRate = spot ? (Number(spot.bloomRate) || 0) : (Number(spotOrBloomRate) || 0);
+  const full = spot ? (Number(spot.fullRate) || 0) : (Number(fullRate) || 0);
+  const forecast = spot ? spot.fullBloomForecast : fullBloomForecast;
+  const phase = spot ? sakuraSpotPhase(spot) : sakuraPhase(bloomRate, full, forecast);
+
+  if (spot?.statusSource === 'observation') return '';
+  if (isPostPeakSakuraPhase(phase)) return '';
+  if (full >= 100 && forecast) {
+    const days = daysSince(forecast);
+    if (days > 3) return '';
   }
-  if (fullRate > 0) {
-    return `<div class="bloom-row"><span class="bloom-label">Flowering</span><div class="bloom-track"><div class="bloom-fill f" style="width:${Math.min(fullRate,100)}%">${fullRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${floweringStage(fullRate)}</span></div>`;
+  if (full > 0) {
+    return `<div class="bloom-row"><span class="bloom-label">Flowering</span><div class="bloom-track"><div class="bloom-fill f" style="width:${Math.min(full,100)}%">${full}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${floweringStage(full)}</span></div>`;
   }
   return `<div class="bloom-row"><span class="bloom-label">Growth</span><div class="bloom-track"><div class="bloom-fill b" style="width:${Math.min(bloomRate,100)}%">${bloomRate}%</div></div><span style="font-size:0.72rem;color:var(--gray-600);width:80px;text-align:right">${growthStage(bloomRate)}</span></div>`;
 }
@@ -904,8 +958,8 @@ async function loadPrefSpots(prefCode, prefName) {
     const bounds = [];
     for (const spot of data.spots) {
       if (!spot.lat || !spot.lon) continue;
-      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-      const radius = sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+      const color = sakuraColor(spot);
+      const radius = sakuraRadius(spot);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5,
         fillOpacity: 0.9,
@@ -917,10 +971,11 @@ async function loadPrefSpots(prefCode, prefName) {
     if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
 
     // Sidebar
-    const updated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Unknown';
+    const forecastUpdated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Unknown';
+    const observationUpdated = data.observationUpdated ? new Date(data.observationUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : null;
     $('sidebar-header').innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h2>${prefName}</h2><p>${data.spots.length} spots &middot; Updated: ${updated}</p></div>
+        <div><h2>${prefName}</h2><p>${data.spots.length} spots &middot; Forecast: ${forecastUpdated}${observationUpdated ? ` &middot; Observations: ${observationUpdated}` : ''}</p></div>
         <button onclick="loadSakura()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
       </div>`;
 
@@ -936,14 +991,7 @@ async function loadPrefSpots(prefCode, prefName) {
       loadWeatherCard(jma.name);
     }
     for (const spot of data.spots) {
-      html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
-        <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
-        ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
-        <div class="sub" style="margin-top:4px">
-          ${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}
-          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom}">Google Maps &rarr;</a>
-        </div>
-      </div>`;
+      html += spotCardHtml(spot);
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
@@ -951,30 +999,31 @@ async function loadPrefSpots(prefCode, prefName) {
   }
 }
 
-function flyToSpot(lat, lon, name, bloomRate, fullRate, status, fullBloomForecast) {
+function flyToSpot(spot) {
+  const lat = spot?.lat;
+  const lon = spot?.lon;
+  const name = spot?.name || 'Spot';
   if (window.innerWidth <= 768) {
     document.querySelector('.sidebar').scrollTop = 0;
     mapInstance.invalidateSize();
   }
   mapInstance.flyTo([lat, lon], 14, { duration: 0.8 });
-  const hasTimeline = hasSakuraTimelineData(bloomRate, fullRate, null, fullBloomForecast);
-  const phase = hasTimeline ? sakuraPhase(bloomRate, fullRate, fullBloomForecast) : null;
-  const liveStatus = spotLiveStatus({ bloomRate, fullRate, fullBloomForecast, status });
-  const isPostPeak = phase ? isPostPeakSakuraPhase(phase) : false;
+  const phase = sakuraSpotPhase(spot);
+  const liveStatus = spotLiveStatus(spot);
+  const statusNote = spotStatusNote(spot);
   const statusColor = phase ? sakuraPhaseColor(phase) : C.gray;
-  const rate = fullRate > 0 ? fullRate : bloomRate;
-  const label = fullRate > 0 ? 'Flowering' : 'Growth';
-  const grad = fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
-  const barHtml = !isPostPeak && rate > 0 ? `<div style="margin:8px 0">
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px"><span>${label}</span><span>${rate}%</span></div>
-    <div style="height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden">
-      <div style="width:${Math.min(rate,100)}%;height:100%;background:${grad};border-radius:7px"></div>
-    </div></div>` : '';
+  const barHtml = bloomBar(spot);
+  const forecastLine = hasSakuraTimelineData(spot?.bloomRate, spot?.fullRate, spot?.bloomForecast, spot?.fullBloomForecast)
+    ? `<div style="font-size:11px;color:#888">${spotForecastDates(spot)}</div>`
+    : '';
+  const statusNoteHtml = statusNote ? `<div style="font-size:11px;color:#888">${statusNote}</div>` : '';
   L.popup().setLatLng([lat, lon])
     .setContent(`<div style="min-width:220px">
       <b>${name}</b>
       ${barHtml}
       <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
+      ${statusNoteHtml}
+      ${forecastLine}
       <div class="popup-weather" data-lat="${lat}" data-lon="${lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:54px">
         <div style="color:#ccc;font-size:11px">Loading weather…</div>
       </div>
@@ -1533,7 +1582,7 @@ async function searchTrip() {
         });
         for (const spot of allSpotsData.spots) {
           if (!spot.lat || !spot.lon) continue;
-          const col = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+          const col = sakuraColor(spot);
           const mk = L.circleMarker([spot.lat, spot.lon], { radius: 6, fillColor: col, color: 'white', weight: 1, fillOpacity: 0.85 });
           mk.bindPopup(spotPopupHtml(spot));
           sakuraCluster.addLayer(mk);
@@ -1793,10 +1842,7 @@ async function searchTrip() {
         const stateNote = stateParts.join(', ') || 'matched to your dates';
         html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots that match your dates (${stateNote})</div>`;
         nearbySakura.slice(0, 20).forEach(spot => {
-          html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
-            <h4>${spot.name} ${spot.nameRomaji ? '<span style="font-weight:400;color:var(--gray-600)">'+spot.nameRomaji+'</span>' : ''}</h4>
-            <div class="sub" style="margin-top:4px">${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)} &middot; ${fmtDates(spot.bloomForecast,spot.bloomRate,spot.fullBloomForecast,spot.fullRate)}</div>
-          </div>`;
+          html += spotCardHtml(spot, `${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)}`);
         });
         if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbySakura.length - 20} more spots on map</div>`;
       } else {
@@ -1890,9 +1936,9 @@ async function findNearMe() {
 
       // Add to map
       for (const spot of nearby) {
-        const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+        const color = sakuraColor(spot);
         const marker = L.circleMarker([spot.lat, spot.lon], {
-          radius: sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast),
+          radius: sakuraRadius(spot),
           fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
         }).addTo(mapInstance);
         marker.bindPopup(spotPopupHtml(spot));
@@ -1924,24 +1970,10 @@ async function findNearMe() {
 
 function spotPopupHtml(spot) {
   const displayName = spot.nameRomaji ? `${esc(spot.name)} <span style="color:#888">${esc(spot.nameRomaji)}</span>` : esc(spot.name);
-  const hasTimeline = hasSakuraTimelineData(spot.bloomRate, spot.fullRate, spot.bloomForecast, spot.fullBloomForecast);
-  const phase = hasTimeline ? sakuraPhase(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) : null;
+  const phase = sakuraSpotPhase(spot);
   const liveStatus = spotLiveStatus(spot);
-  const isPostPeak = phase ? isPostPeakSakuraPhase(phase) : false;
-
-  // Full-width bar for popup (not the sidebar CSS class which is too narrow)
-  let barsHtml = '';
-  if (!isPostPeak) {
-    const rate = spot.fullRate > 0 ? spot.fullRate : spot.bloomRate;
-    const label = spot.fullRate > 0 ? 'Flowering' : 'Growth';
-    const grad = spot.fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
-    barsHtml = `<div style="margin:8px 0">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px"><span>${label}</span><span>${rate}%</span></div>
-      <div style="height:16px;background:#f0f0f0;border-radius:8px;overflow:hidden">
-        <div style="width:${Math.min(rate,100)}%;height:100%;background:${grad};border-radius:8px"></div>
-      </div>
-    </div>`;
-  }
+  const barsHtml = bloomBar(spot);
+  const statusNote = spotStatusNote(spot);
 
   // Link to JMA prefecture forecast text page (shows city-level table directly)
   // Hokkaido (01) has multiple offices — default to Sapporo/Ishikari area
@@ -1956,7 +1988,8 @@ function spotPopupHtml(spot) {
     <b>${displayName}</b>
     ${barsHtml}
     <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
-    <span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span>
+    ${statusNote ? `<div style="font-size:11px;color:#888">${esc(statusNote)}</div>` : ''}
+    <span style="font-size:11px;color:#888">${esc(spotForecastDates(spot))}</span>
     <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:60px">
       <div style="color:#ccc;font-size:11px">Loading weather…</div>
     </div>
@@ -1968,11 +2001,18 @@ function spotPopupHtml(spot) {
 }
 
 function spotCardHtml(spot, extra) {
-  return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:spot.bloomRate,fullRate:spot.fullRate,status:spot.status,fullBloomForecast:spot.fullBloomForecast})})">
+  const phase = sakuraSpotPhase(spot);
+  const status = spotLiveStatus(spot);
+  const statusNote = spotStatusNote(spot);
+  const extraText = extra ? `${esc(extra)} &middot; ` : '';
+  return `<div class="spot-item" onclick="handleSpotClick(${reg({...spot, action:'flyToSpot'})})">
     <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''}</h4>
-    ${bloomBar(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)}
+    <div class="sub">
+      <span class="badge ${sakuraBadgeClass(phase)}">${esc(status)}</span>${statusNote ? ` &middot; ${esc(statusNote)}` : ''}
+    </div>
+    ${bloomBar(spot)}
     <div class="sub" style="margin-top:4px">
-      ${extra ? extra + ' &middot; ' : ''}${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}
+      ${extraText}${esc(spotForecastDates(spot))}
       &middot; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom}">Maps</a>
     </div>
   </div>`;
@@ -2032,7 +2072,7 @@ async function loadAllSpotsOnMap() {
         // Count spots by shared phase so cluster colors match dots and labels.
         let ended = 0, falling = 0, pastPeak = 0, peak = 0, blooming = 0, buds = 0, dormant = 0;
         childMarkers.forEach(m => {
-          const phase = sakuraPhase(m.options.bloomRate, m.options.fullRate, m.options.fullBloomForecast);
+          const phase = normalizeSakuraSpotPhase(m.options.phase) || sakuraPhase(m.options.bloomRate, m.options.fullRate, m.options.fullBloomForecast);
           if (phase === 'ended') { ended++; return; }
           if (phase === 'falling') { falling++; return; }
           if (phase === 'past_peak') { pastPeak++; return; }
@@ -2067,12 +2107,12 @@ async function loadAllSpotsOnMap() {
 
     for (const spot of allSpotsData.spots) {
       if (!spot.lat || !spot.lon) continue;
-      if (!matchesBloomFilter(bloomCategory(spot.bloomRate, spot.fullRate, spot.fullBloomForecast))) continue;
-      const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-      const radius = sakuraRadius(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+      if (!matchesBloomFilter(bloomCategory(spot))) continue;
+      const color = sakuraColor(spot);
+      const radius = sakuraRadius(spot);
       const marker = L.circleMarker([spot.lat, spot.lon], {
         radius, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
-        bloomRate: spot.bloomRate, fullRate: spot.fullRate, fullBloomForecast: spot.fullBloomForecast,
+        bloomRate: spot.bloomRate, fullRate: spot.fullRate, fullBloomForecast: spot.fullBloomForecast, phase: sakuraSpotPhase(spot),
       });
       marker.bindPopup(spotPopupHtml(spot));
       clusterGroup.addLayer(marker);
@@ -2189,7 +2229,7 @@ function globalSpotSearch(q) {
   const bounds = [];
   for (const spot of matches) {
     if (!spot.lat || !spot.lon) continue;
-    const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+    const color = sakuraColor(spot);
     const marker = L.circleMarker([spot.lat, spot.lon], {
       radius: 8, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
     }).addTo(mapInstance);
