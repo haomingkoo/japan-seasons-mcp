@@ -12,7 +12,7 @@ const C = {
   blooming:    '#f472b6',
   bloom:       '#ec4899',  // = CSS --pink
   peak:        '#be185d',  // = CSS --pink-dark
-  falling:     '#86efac',
+  falling:     '#fbcfe8',
   ended:       '#4ade80',
   // Koyo (autumn leaves)
   koyoPeak:    '#ea580c',  // = CSS --orange
@@ -48,7 +48,7 @@ function reg(data) { const id = _rid++; _registry.set(id, data); return id; }
 function handleSpotClick(id) {
   const d = _registry.get(id);
   if (!d) return;
-  if (d.action === 'flyToSpot') flyToSpot(d.lat, d.lon, d.name, d.bloomRate, d.fullRate, d.status);
+  if (d.action === 'flyToSpot') flyToSpot(d.lat, d.lon, d.name, d.bloomRate, d.fullRate, d.status, d.fullBloomForecast);
   if (d.action === 'loadPrefSpots') loadPrefSpots(d.prefCode, d.prefName);
   if (d.action === 'flyToFarm') mapInstance.flyTo([d.lat, d.lon], d.zoom || 14);
   if (d.action === 'flyToKoyo') mapInstance.flyTo([d.lat, d.lon], d.zoom || 13);
@@ -227,6 +227,99 @@ function daysSince(iso) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 
+function sakuraPhase(bloomRate, fullRate, fullBloomForecast) {
+  const bloom = Number(bloomRate) || 0;
+  const full = Number(fullRate) || 0;
+
+  if (full >= 100) {
+    const days = fullBloomForecast ? Math.max(0, daysSince(fullBloomForecast)) : 0;
+    if (days > 10) return 'ended';
+    if (days > 6) return 'falling';
+    if (days > 3) return 'past_peak';
+    return 'peak';
+  }
+  if (full >= 70) return 'blooming';
+  if (full > 0) return 'starting';
+  if (bloom >= 85) return 'bud_open';
+  if (bloom >= 60) return 'bud_swell';
+  if (bloom > 0) return 'buds';
+  return 'dormant';
+}
+
+function sakuraPhaseColor(phase) {
+  if (phase === 'ended') return C.ended;
+  if (phase === 'falling') return C.falling;
+  if (phase === 'past_peak') return C.blooming;
+  if (phase === 'peak') return C.peak;
+  if (phase === 'blooming') return C.bloom;
+  if (phase === 'starting') return C.starting;
+  if (phase === 'bud_open') return C.budOpen;
+  if (phase === 'bud_swell') return C.budSwell;
+  if (phase === 'buds') return C.bud;
+  return C.dormant;
+}
+
+function sakuraPhaseLabel(phase) {
+  if (phase === 'ended') return 'Ended — green leaves';
+  if (phase === 'falling') return 'Falling — petals scattering';
+  if (phase === 'past_peak') return 'Past peak — still some petals';
+  if (phase === 'peak') return 'Full bloom — best viewing!';
+  if (phase === 'blooming') return 'Blooming — near full bloom';
+  if (phase === 'starting') return 'Starting to bloom';
+  if (phase === 'bud_open') return 'Buds opening';
+  if (phase === 'bud_swell') return 'Buds swelling';
+  if (phase === 'buds') return 'Bud stage';
+  return 'Dormant';
+}
+
+function sakuraPhaseRadius(phase) {
+  if (phase === 'peak') return 9;
+  if (phase === 'past_peak' || phase === 'blooming') return 8;
+  if (phase === 'starting') return 7;
+  if (phase === 'falling') return 6;
+  if (phase === 'ended' || phase === 'bud_open') return 5;
+  if (phase === 'bud_swell' || phase === 'buds') return 5;
+  return 4;
+}
+
+function sakuraPhaseCategory(phase) {
+  if (phase === 'peak') return 'peak';
+  if (phase === 'past_peak' || phase === 'falling' || phase === 'ended') return 'ended';
+  if (phase === 'blooming' || phase === 'starting') return 'blooming';
+  if (phase === 'bud_open' || phase === 'bud_swell' || phase === 'buds') return 'buds';
+  return 'dormant';
+}
+
+function isPostPeakSakuraPhase(phase) {
+  return phase === 'past_peak' || phase === 'falling' || phase === 'ended';
+}
+
+function hasSakuraTimelineData(bloomRate, fullRate, bloomForecast, fullBloomForecast) {
+  return Boolean(fullBloomForecast || bloomForecast || (Number(bloomRate) || 0) > 0 || (Number(fullRate) || 0) > 0);
+}
+
+function cityStatusPhase(status) {
+  const s = status || '';
+  if (s.includes('Ended') || s.includes('green leaves')) return 'ended';
+  if (s.includes('Falling') || s.includes('scattering')) return 'falling';
+  if (s.includes('Past peak')) return 'past_peak';
+  if (s.includes('Full bloom') || s.includes('mankai') || s.includes('best')) return 'peak';
+  if (s.includes('Starting to bloom')) return 'starting';
+  if (s.includes('Blooming') || s.includes('Approaching') || s.includes('咲き')) return 'blooming';
+  if (s.includes('Buds opening')) return 'bud_open';
+  if (s.includes('Buds swelling')) return 'bud_swell';
+  if (s.includes('Coming') || s.includes('soon') || s.includes('Bud') || s.includes('つぼみ')) return 'buds';
+  return 'dormant';
+}
+
+function sakuraBadgeClass(phase) {
+  if (phase === 'peak') return 'peak';
+  if (phase === 'ended') return 'ended';
+  if (isPostPeakSakuraPhase(phase) || phase === 'blooming' || phase === 'starting') return 'bloom';
+  if (phase === 'bud_open' || phase === 'bud_swell' || phase === 'buds') return 'soon';
+  return 'ended';
+}
+
 // WMO weather code → emoji (https://open-meteo.com/en/docs)
 function wmoIcon(code) {
   if (code === 0) return '☀️';
@@ -273,57 +366,23 @@ function fmtDates(bloomForecast, bloomRate, fullBloomForecast, fullRate) {
 // Lifecycle: orange (bud/growth) → pink (flowering) → green (ended/leaves)
 // fullRate stays at 100% forever after peak — use forecast date to detect "ended"
 function sakuraColor(bloomRate, fullRate, fullBloomForecast) {
-  if (fullRate >= 100) {
-    const daysSinceFull = fullBloomForecast ? Math.max(0, daysSince(fullBloomForecast)) : 0;
-    if (daysSinceFull > 10) return C.ended;
-    if (daysSinceFull > 6)  return C.falling;
-    return C.peak;
-  }
-  if (fullRate >= 70) return C.bloom;
-  if (fullRate >= 20) return C.blooming;
-  if (fullRate > 0)   return C.starting;
-  if (bloomRate >= 85) return C.budOpen;
-  if (bloomRate >= 60) return C.budSwell;
-  if (bloomRate > 0)   return C.bud;
-  return C.dormant;
+  return sakuraPhaseColor(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
 }
 
-// Spot status text also needs the date check
+// Spot status text reads from the same shared phase thresholds as map dots.
 function spotStatusWithDate(bloomRate, fullRate, fullBloomForecast) {
-  if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.max(0, daysSince(fullBloomForecast));
-    if (days > 10) return 'Ended — green leaves';
-    if (days > 6) return 'Falling — petals scattering';
-    if (days > 3) return 'Past peak — still some petals';
-    return 'Full bloom — best viewing!';
-  }
-  return null; // use default from growthStage/floweringStage
+  return sakuraPhaseLabel(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
 }
 
 function spotLiveStatus(spot) {
-  const dateAware = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-  if (dateAware) return dateAware;
-  if (spot.status) return spot.status;
-  if (spot.fullRate >= 100) return 'Full bloom';
-  if (spot.fullRate >= 90) return 'Nearly full bloom';
-  if (spot.fullRate >= 70) return 'Blooming — near full bloom';
-  if (spot.fullRate >= 20) return 'Starting to bloom';
-  if (spot.fullRate > 0 || spot.bloomRate >= 100) return 'Blooming';
-  if (spot.bloomRate >= 85) return 'Buds opening';
-  if (spot.bloomRate >= 60) return 'Buds swelling';
-  if (spot.bloomRate > 0) return 'Bud stage';
-  return 'Dormant';
+  if (hasSakuraTimelineData(spot.bloomRate, spot.fullRate, spot.bloomForecast, spot.fullBloomForecast)) {
+    return spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+  }
+  return spot.status || 'Dormant';
 }
 
 function sakuraRadius(bloomRate, fullRate, fullBloomForecast) {
-  if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.max(0, daysSince(fullBloomForecast));
-    if (days > 6) return 5;  // ended — smaller
-  }
-  if (fullRate >= 90) return 9;
-  if (fullRate > 0) return 7;
-  if (bloomRate > 0) return 5;
-  return 4;
+  return sakuraPhaseRadius(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
 }
 
 // ── Bloom category (for filter) ──
@@ -331,14 +390,7 @@ let bloomFilter = 'all'; // kept for legacy compat
 let bloomFilters = new Set(); // empty = show all
 
 function bloomCategory(bloomRate, fullRate, fullBloomForecast) {
-  if (fullRate >= 100 && fullBloomForecast) {
-    const days = Math.max(0, daysSince(fullBloomForecast));
-    if (days > 6) return 'ended';
-    return 'peak';
-  }
-  if (fullRate > 0) return 'blooming';
-  if (bloomRate > 0) return 'buds';
-  return 'dormant';
+  return sakuraPhaseCategory(sakuraPhase(bloomRate, fullRate, fullBloomForecast));
 }
 
 function matchesBloomFilter(category) {
@@ -346,12 +398,7 @@ function matchesBloomFilter(category) {
 }
 
 function cityBloomCategory(city) {
-  const status = city?.status || '';
-  if (status.includes('Ended')) return 'ended';
-  if (status.includes('Full bloom') || status.includes('mankai') || status.includes('best')) return 'peak';
-  if (status.includes('Bloom') || status.includes('bloom') || status.includes('Approaching') || status.includes('Falling') || status.includes('咲き')) return 'blooming';
-  if (status.includes('Coming') || status.includes('soon') || status.includes('Bud') || status.includes('つぼみ')) return 'buds';
-  return 'dormant';
+  return sakuraPhaseCategory(cityStatusPhase(city?.status));
 }
 
 function applyBloomFilter(filter, el) {
@@ -437,25 +484,16 @@ function bloomBar(bloomRate, fullRate, fullBloomForecast) {
 
 // Map city status text to dot color/size for the overview map
 function statusToColor(status) {
-  if (status.includes('Full bloom') || status.includes('best')) return C.peak;
-  if (status.includes('Falling') || status.includes('scattering')) return C.starting;
-  if (status.includes('Blooming') || status.includes('Approaching')) return C.bloom;
-  if (status.includes('Coming') || status.includes('soon')) return C.budOpen;
-  if (status.includes('Ended')) return C.ended;
-  return C.dormant;
+  return sakuraPhaseColor(cityStatusPhase(status));
 }
 function statusToRadius(status) {
-  if (status.includes('Full bloom') || status.includes('best')) return 10;
-  if (status.includes('Blooming') || status.includes('Falling')) return 8;
-  if (status.includes('Coming') || status.includes('soon')) return 6;
-  return 5;
+  return sakuraPhaseRadius(cityStatusPhase(status));
 }
 
 function statusText(status) {
-  if (status.includes('Full bloom') || status.includes('mankai') || status.includes('best')) return { text: status.split('—')[0].trim(), cls: 'peak' };
-  if (status.includes('bloom') || status.includes('Bloom') || status.includes('咲き')) return { text: status.split('—')[0].trim(), cls: 'bloom' };
-  if (status.includes('Coming') || status.includes('soon') || status.includes('つぼみ') || status.includes('Bud')) return { text: status.split('—')[0].trim(), cls: 'soon' };
-  return { text: status.split('—')[0].trim(), cls: 'ended' };
+  const phase = cityStatusPhase(status);
+  const text = (status || 'Dormant').split('—')[0].trim();
+  return { text, cls: sakuraBadgeClass(phase) };
 }
 
 // ── City coordinates for map markers (48 JMA observation cities) ──
@@ -913,13 +951,15 @@ function flyToSpot(lat, lon, name, bloomRate, fullRate, status, fullBloomForecas
     mapInstance.invalidateSize();
   }
   mapInstance.flyTo([lat, lon], 14, { duration: 0.8 });
+  const hasTimeline = hasSakuraTimelineData(bloomRate, fullRate, null, fullBloomForecast);
+  const phase = hasTimeline ? sakuraPhase(bloomRate, fullRate, fullBloomForecast) : null;
   const liveStatus = spotLiveStatus({ bloomRate, fullRate, fullBloomForecast, status });
-  const isEnded = liveStatus.includes('Ended') || liveStatus.includes('Falling') || liveStatus.includes('green');
-  const statusColor = isEnded ? C.ended : C.peak;
+  const isPostPeak = phase ? isPostPeakSakuraPhase(phase) : false;
+  const statusColor = phase ? sakuraPhaseColor(phase) : C.gray;
   const rate = fullRate > 0 ? fullRate : bloomRate;
   const label = fullRate > 0 ? 'Flowering' : 'Growth';
   const grad = fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
-  const barHtml = !isEnded && rate > 0 ? `<div style="margin:8px 0">
+  const barHtml = !isPostPeak && rate > 0 ? `<div style="margin:8px 0">
     <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px"><span>${label}</span><span>${rate}%</span></div>
     <div style="height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden">
       <div style="width:${Math.min(rate,100)}%;height:100%;background:${grad};border-radius:7px"></div>
@@ -1072,6 +1112,8 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:${C.starting}"></div> Starting to bloom</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.bloom}"></div> Blooming</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.peak}"></div> Full bloom (mankai)</div>
+      <div class="legend-row"><div class="legend-dot" style="background:${sakuraPhaseColor('past_peak')}"></div> Past peak (some petals left)</div>
+      <div class="legend-row"><div class="legend-dot" style="background:${sakuraPhaseColor('falling')}"></div> Falling petals</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.ended}"></div> Ended (green leaves)</div>
       <div class="legend-row"><div style="background:${C.peak};color:white;width:12px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px">★</div> Kawazu cherry (early)</div>`;
   } else if (type === 'koyo') {
@@ -1580,37 +1622,42 @@ async function searchTrip() {
       bounds.push([city.lat, city.lon]);
     }
 
-    // ── Sakura spots — predict state at trip dates, drop past-peak spots ──
+    // ── Sakura spots — predict state at trip dates, hide the fully post-peak tail ──
     // fullBloomForecast = date trees reach 100%. We keep spots only while the
     // trip still overlaps a useful viewing window, rather than showing green / falling dots.
     function tripSakuraState(spot) {
+      const DAY_MS = 86400000;
       const fullBloom = spot.fullBloomForecast && sakuraDateOk(spot.fullBloomForecast)
         ? new Date(spot.fullBloomForecast) : null;
       const bloomStart = spot.bloomForecast && sakuraDateOk(spot.bloomForecast)
         ? new Date(spot.bloomForecast)
-        : fullBloom ? new Date(fullBloom.getTime() - 10 * 86400000) : null;
-      const bestStart = fullBloom ? new Date(fullBloom.getTime() - 3 * 86400000) : null;
-      const bestEnd = fullBloom ? new Date(fullBloom.getTime() + 7 * 86400000) : null;
+        : fullBloom ? new Date(fullBloom.getTime() - 10 * DAY_MS) : null;
+      const peakStart = fullBloom ? new Date(fullBloom.getTime() - 3 * DAY_MS) : null;
+      const peakEnd = fullBloom ? new Date(fullBloom.getTime() + 3 * DAY_MS) : null;
+      const pastPeakEnd = fullBloom ? new Date(fullBloom.getTime() + 6 * DAY_MS) : null;
 
       // No usable forecast → fall back to current live data, but still drop
-      // obviously past-peak green spots from the planner.
+      // post-peak spots from the planner.
       if (!fullBloom) {
-        const color = sakuraColor(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-        const show = color !== C.ended && color !== C.falling;
-        return { show, color };
+        const phase = sakuraPhase(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+        const show = !isPostPeakSakuraPhase(phase);
+        return { show, phase };
       }
 
-      // Trip is entirely after the worthwhile viewing window → hide
-      if (startDate > bestEnd) return { show: false };
+      // Trip is entirely after the worthwhile post-peak window → hide
+      if (startDate > pastPeakEnd) return { show: false };
 
       // Trip is entirely before bloom starts → not yet open (bud)
-      if (endDate < bloomStart) return { show: true, color: C.budSwell };
+      if (endDate < bloomStart) return { show: true, phase: 'bud_swell' };
 
       // Trip is before peak but bloom should be underway
-      if (endDate < bestStart) return { show: true, color: C.blooming };
+      if (endDate < peakStart) return { show: true, phase: 'blooming' };
+
+      // Trip is after the best viewing window but still within the "some petals left" period
+      if (startDate > peakEnd) return { show: true, phase: 'past_peak' };
 
       // Otherwise the trip overlaps the best viewing window
-      return { show: true, color: C.peak };
+      return { show: true, phase: 'peak' };
     }
 
     const nearbySakura = [];
@@ -1620,7 +1667,7 @@ async function searchTrip() {
         const nc = nearCity(spot.lat, spot.lon);
         if (!nc) continue;
         const state = tripSakuraState(spot);
-        if (state.show) nearbySakura.push({ ...spot, ...nc, _tripColor: state.color });
+        if (state.show) nearbySakura.push({ ...spot, ...nc, _tripPhase: state.phase, _tripColor: sakuraPhaseColor(state.phase) });
       }
       nearbySakura.sort((a, b) => a.dist - b.dist);
     }
@@ -1649,8 +1696,13 @@ async function searchTrip() {
 
     // Sakura cluster — color reflects predicted state at trip dates
     if (nearbySakura.length) {
-      // Pick representative cluster color: peak pink if any at peak, else first spot's color
-      const clusterColor = nearbySakura.some(s => s._tripColor === C.peak) ? C.bloom : (nearbySakura[0]?._tripColor || C.bloom);
+      const clusterColor = nearbySakura.some(s => s._tripPhase === 'peak')
+        ? sakuraPhaseColor('peak')
+        : nearbySakura.some(s => s._tripPhase === 'past_peak')
+          ? sakuraPhaseColor('past_peak')
+          : nearbySakura.some(s => s._tripPhase === 'blooming')
+            ? sakuraPhaseColor('blooming')
+            : sakuraPhaseColor('bud_swell');
       clusterGroup = L.markerClusterGroup({ maxClusterRadius: 35, showCoverageOnHover: false,
         iconCreateFunction: cluster => {
           const n = cluster.getChildCount();
@@ -1698,14 +1750,16 @@ async function searchTrip() {
 
     // ── Sidebar (city-based) ──
     const cityLabel = resolved.map(c => c.name.charAt(0).toUpperCase()+c.name.slice(1)).join(', ');
-    const sakuraPeakCount = nearbySakura.filter(s => s._tripColor === C.peak).length;
-    const sakuraOpeningCount = nearbySakura.filter(s => s._tripColor === C.blooming).length;
-    const sakuraBudCount = nearbySakura.filter(s => s._tripColor === C.budSwell).length;
+    const sakuraPeakCount = nearbySakura.filter(s => s._tripPhase === 'peak').length;
+    const sakuraPastPeakCount = nearbySakura.filter(s => s._tripPhase === 'past_peak').length;
+    const sakuraOpeningCount = nearbySakura.filter(s => s._tripPhase === 'blooming').length;
+    const sakuraBudCount = nearbySakura.filter(s => s._tripPhase === 'bud_swell').length;
     const seasonItems = [];
     if (isSakuraSeason) {
       if (nearbySakura.length > 0) {
         const sakuraParts = [];
         if (sakuraPeakCount) sakuraParts.push(`${sakuraPeakCount} near peak`);
+        if (sakuraPastPeakCount) sakuraParts.push(`${sakuraPastPeakCount} just past peak`);
         if (sakuraOpeningCount) sakuraParts.push(`${sakuraOpeningCount} opening`);
         if (sakuraBudCount) sakuraParts.push(`${sakuraBudCount} coming soon`);
         seasonItems.push(`🌸 Cherry blossom: ${nearbySakura.length} spots match your dates${sakuraParts.length ? ` (${sakuraParts.join(', ')})` : ''}`);
@@ -1727,6 +1781,7 @@ async function searchTrip() {
       if (nearbySakura.length) {
         const stateParts = [];
         if (sakuraPeakCount) stateParts.push(`${sakuraPeakCount} near peak`);
+        if (sakuraPastPeakCount) stateParts.push(`${sakuraPastPeakCount} just past peak`);
         if (sakuraOpeningCount) stateParts.push(`${sakuraOpeningCount} opening`);
         if (sakuraBudCount) stateParts.push(`${sakuraBudCount} coming soon`);
         const stateNote = stateParts.join(', ') || 'matched to your dates';
@@ -1863,12 +1918,14 @@ async function findNearMe() {
 
 function spotPopupHtml(spot) {
   const displayName = spot.nameRomaji ? `${esc(spot.name)} <span style="color:#888">${esc(spot.nameRomaji)}</span>` : esc(spot.name);
+  const hasTimeline = hasSakuraTimelineData(spot.bloomRate, spot.fullRate, spot.bloomForecast, spot.fullBloomForecast);
+  const phase = hasTimeline ? sakuraPhase(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) : null;
   const liveStatus = spotLiveStatus(spot);
-  const isEnded = liveStatus.includes('Ended') || liveStatus.includes('Falling') || liveStatus.includes('Past peak') || liveStatus.includes('green');
+  const isPostPeak = phase ? isPostPeakSakuraPhase(phase) : false;
 
   // Full-width bar for popup (not the sidebar CSS class which is too narrow)
   let barsHtml = '';
-  if (!isEnded) {
+  if (!isPostPeak) {
     const rate = spot.fullRate > 0 ? spot.fullRate : spot.bloomRate;
     const label = spot.fullRate > 0 ? 'Flowering' : 'Growth';
     const grad = spot.fullRate > 0 ? `linear-gradient(90deg,${C.starting},${C.peak})` : `linear-gradient(90deg,${C.bud},${C.budOpen})`;
@@ -1888,7 +1945,7 @@ function spotPopupHtml(spot) {
     ? `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${jmaOffice}`
     : `https://www.jma.go.jp/bosai/map.html#5/${spot.lat?.toFixed(2)}/${spot.lon?.toFixed(2)}/&contents=forecast`;
 
-  const statusColor = isEnded ? C.ended : C.peak;
+  const statusColor = phase ? sakuraPhaseColor(phase) : C.gray;
   return `<div style="min-width:220px">
     <b>${displayName}</b>
     ${barsHtml}
@@ -1966,20 +2023,16 @@ async function loadAllSpotsOnMap() {
       showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
         const childMarkers = cluster.getAllChildMarkers();
-        // Count spots by actual status (using date-aware logic)
-        let ended = 0, peak = 0, blooming = 0, buds = 0, dormant = 0;
+        // Count spots by shared phase so cluster colors match dots and labels.
+        let ended = 0, falling = 0, pastPeak = 0, peak = 0, blooming = 0, buds = 0, dormant = 0;
         childMarkers.forEach(m => {
-          const br = m.options.bloomRate || 0;
-          const fr = m.options.fullRate || 0;
-          const fbf = m.options.fullBloomForecast;
-          if (fr >= 100 && fbf) {
-            const days = daysSince(fbf);
-            if (days > 6) { ended++; return; }
-            if (days >= 0) { peak++; return; }
-          }
-          if (fr >= 40) { blooming++; return; }
-          if (fr > 0 || br >= 100) { blooming++; return; }
-          if (br > 0) { buds++; return; }
+          const phase = sakuraPhase(m.options.bloomRate, m.options.fullRate, m.options.fullBloomForecast);
+          if (phase === 'ended') { ended++; return; }
+          if (phase === 'falling') { falling++; return; }
+          if (phase === 'past_peak') { pastPeak++; return; }
+          if (phase === 'peak') { peak++; return; }
+          if (phase === 'blooming' || phase === 'starting') { blooming++; return; }
+          if (phase === 'bud_open' || phase === 'bud_swell' || phase === 'buds') { buds++; return; }
           dormant++;
         });
 
@@ -1988,9 +2041,13 @@ async function loadAllSpotsOnMap() {
         let color, textColor;
         if (ended > n * 0.5) { color = C.ended; textColor = C.greenDark; }      // green — mostly ended
         else if (peak > n * 0.3) { color = C.peak; textColor = 'white'; }       // deep pink — peak
+        else if (falling + pastPeak > n * 0.3) {
+          color = falling >= pastPeak ? C.falling : sakuraPhaseColor('past_peak');
+          textColor = C.peak;
+        }
         else if (blooming > n * 0.3) { color = C.bloom; textColor = 'white'; }   // pink — blooming
         else if (buds > n * 0.3) { color = C.budOpen; textColor = 'white'; }       // orange — buds
-        else if (ended > 0 && blooming > 0) { color = C.starting; textColor = "#333"; } // mixed
+        else if (ended > 0 && (peak > 0 || pastPeak > 0 || blooming > 0)) { color = C.falling; textColor = C.peak; } // mixed late-season
         else { color = C.dormant; textColor = '#333'; }                             // dormant
 
         const size = Math.min(38 + n * 0.4, 58);
@@ -2022,8 +2079,8 @@ async function loadAllSpotsOnMap() {
       for (const spot of kawazu.spots || []) {
         if (!spot.lat || !spot.lon) continue;
         if (!matchesBloomFilter(bloomCategory(spot.bloomRate, spot.fullRate, spot.fullBloomForecast))) continue;
-        const kEnded = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast)?.includes('Ended');
-        const kawazuColor = kEnded ? C.ended : C.kawazu;
+        const kPhase = sakuraPhase(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
+        const kawazuColor = kPhase === 'ended' ? C.ended : C.kawazu;
         const m = L.marker([spot.lat, spot.lon], {
           icon: L.divIcon({
             html: `<div style="background:${kawazuColor};color:white;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)" title="Kawazu Cherry">★</div>`,
