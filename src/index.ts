@@ -19,6 +19,10 @@ import {
   findPrefCode,
   getAvailablePrefectures,
   formatDate,
+  SAKURA_BLOOM_RATE_SCALE_LINE,
+  SAKURA_FULL_BLOOM_RATE_SCALE_LINE,
+  SAKURA_FULL_BLOOM_MANKAI_MIN,
+  SAKURA_SPOT_MODEL_NOTE,
   type SakuraCity,
 } from "./lib/sakura-forecast.js";
 import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate } from "./lib/koyo.js";
@@ -149,14 +153,14 @@ Tool routing:
 - Use get_sakura_best_dates when the user gives travel dates and wants the best sakura cities in that window, then use get_sakura_spots for exact parks and temples.
 - Use get_kawazu_cherry_forecast for January-February cherry blossom requests or when the user mentions Kawazu-zakura, early blossoms, or Izu.
 - Use get_koyo_forecast for autumn leaves timing by city, and get_koyo_best_dates when travel dates are provided. Follow with get_koyo_spots for exact viewing locations.
-- Use get_flowers for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
-- Use get_festivals for recurring fireworks, matsuri, and winter events with official links.
+- Use get_seasonal_flowers for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
+- Use get_japan_festivals for recurring fireworks, matsuri, and winter events with official links.
 - Use get_fruit_seasons to answer which fruits are in season, and get_fruit_farms only when the user needs actual farms, GPS coordinates, or booking links.
 - Use get_weather_forecast after bloom tools when rain or temperature could change the recommendation, especially because rain can shorten sakura viewing.
 
 Important rules:
 - Sakura and koyo timing changes every year; prefer these tools over generic knowledge.
-- Sakura spot percentages use the official JMC bloom and full-bloom scales. A 90-100% full bloom rate means mankai.
+- Sakura spot percentages use the official JMC bloom and full-bloom scales. A ${SAKURA_FULL_BLOOM_MANKAI_MIN}-100% full-bloom rate means mankai.
 - Best sakura viewing is usually around full bloom. Best koyo viewing is usually around each spot's peak window.
 - All tools are read-only and require no authentication.`;
 
@@ -191,23 +195,23 @@ Use the japan-seasons-mcp tools based on the travel month:
 - get_sakura_forecast → big picture, 48 cities
 - get_sakura_best_dates → match travel dates to bloom cities
 - get_sakura_spots → 1,012 specific parks/temples with bloom % and GPS
-- get_flowers (type=wisteria) → wisteria season starts late Apr
+- get_seasonal_flowers (type=wisteria) → wisteria season starts late Apr
 
 **Apr-May** — Wisteria (fuji):
-- get_flowers with type=wisteria → 13 curated spots (Ashikaga, Kawachi, Kameido Tenjin, Byodoin, Kasuga Taisha...)
+- get_seasonal_flowers with type=wisteria → 13 curated spots (Ashikaga, Kawachi, Kameido Tenjin, Byodoin, Kasuga Taisha...)
 
 **Jun-Jul** — Hydrangea (ajisai):
-- get_flowers with type=hydrangea → 15 curated spots (Kamakura temples, Kyoto temples, Yatadera...)
+- get_seasonal_flowers with type=hydrangea → 15 curated spots (Kamakura temples, Kyoto temples, Yatadera...)
 
 **Jul-Aug** — Fireworks & summer matsuri:
-- get_festivals with type=fireworks → Sumida River, Nagaoka, Omagari, PL Osaka, Miyajima... (official URLs included)
-- get_festivals with type=matsuri → Gion Matsuri, Tenjin Matsuri, Nebuta, Awa Odori...
+- get_japan_festivals with type=fireworks → Sumida River, Nagaoka, Omagari, PL Osaka, Miyajima... (official URLs included)
+- get_japan_festivals with type=matsuri → Gion Matsuri, Tenjin Matsuri, Nebuta, Awa Odori...
 
 **May, Sep-Nov** — Traditional matsuri:
-- get_festivals → Sanja, Aoi, Hakata Dontaku (May), Kishiwada Danjiri (Sep), Jidai, Kurama Fire, Takayama (Oct-Nov)
+- get_japan_festivals → Sanja, Aoi, Hakata Dontaku (May), Kishiwada Danjiri (Sep), Jidai, Kurama Fire, Takayama (Oct-Nov)
 
 **Jan-Feb** — Winter events:
-- get_festivals with type=winter → Sapporo Snow Festival, Yokote Kamakura, Shirakawa-go illumination...
+- get_japan_festivals with type=winter → Sapporo Snow Festival, Yokote Kamakura, Shirakawa-go illumination...
 
 **Year-round** — Fruit picking:
 - get_fruit_seasons → which fruits are in season for the travel month
@@ -218,9 +222,9 @@ Use the japan-seasons-mcp tools based on the travel month:
 - get_koyo_best_dates → match travel dates to colour cities (same as get_sakura_best_dates but for koyo)
 - get_koyo_spots → 687 viewing spots with peak windows
 
-## Bloom scale (sakura, official JMA)
-- Bloom rate: 0-59% bud → 60-84% swelling → 85-99% opening → 100% first bloom
-- Full rate: 0-19% just opened → 20-69% partial → 70-89% 70% → 90-100% mankai (満開)
+## Bloom scale (sakura, official JMC/JMA presentation)
+- ${SAKURA_BLOOM_RATE_SCALE_LINE}
+- ${SAKURA_FULL_BLOOM_RATE_SCALE_LINE}
 
 ## Key facts
 - Somei-Yoshino (standard cherry) blooms Mar-May, moving north Okinawa → Hokkaido
@@ -314,7 +318,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           const jma = result.jmaStation;
           output += `## JMA Station: ${jma.name}\n`;
           output += `_The one official government reference tree for this prefecture. A human observer checks it once per day._\n`;
-          output += `- Bloom: **${jma.bloomRate}%** | Full bloom: **${jma.fullRate}%**\n`;
+          output += `- Bloom rate: **${jma.bloomRate}%** | Full-bloom rate: **${jma.fullRate}%**\n`;
           if (jma.bloomObservation) {
             output += `- Bloom: ${formatSakuraDate(jma.bloomObservation, outputConfig)} ✓ confirmed (avg ${jma.bloomNormal ?? "N/A"})\n`;
           } else {
@@ -326,11 +330,12 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += `- Full bloom: ${formatSakuraDate(jma.fullForecast, outputConfig)} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
           }
         }
+        output += `_${SAKURA_SPOT_MODEL_NOTE}_\n\n`;
         output += `## Viewing spots\n\n`;
         for (const spot of result.spots) {
           output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
           output += `- **${spot.status}**\n`;
-          output += `- Bloom: **${spot.bloomRate}%** | Full bloom: **${spot.fullRate}%**\n`;
+          output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
           if (spot.bloomForecast || spot.fullBloomForecast) {
             output += `- Bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
           }
@@ -628,10 +633,10 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  // ── Tool: get_flowers ──
+  // ── Tool: get_seasonal_flowers ──
 
   server.registerTool(
-    "get_flowers",
+    "get_seasonal_flowers",
     {
       title: "Seasonal Flower Spots",
       description: "Use this for non-sakura flower trips such as plum, wisteria, hydrangea, lavender, sunflower, or cosmos. Returns curated flower spots with peak windows, official URLs, notes, and GPS coordinates. Do not use this for cherry blossom or autumn leaves timing; use the sakura or koyo tools for those live forecasts.",
@@ -774,10 +779,10 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  // ── Tool: get_festivals ──
+  // ── Tool: get_japan_festivals ──
 
   server.registerTool(
-    "get_festivals",
+    "get_japan_festivals",
     {
       title: "Japan Seasonal Festivals",
       description: "Use this when the user wants recurring Japan events to plan around, such as fireworks, matsuri, or winter festivals. Returns curated events with typical dates, attendance, official URLs, notes, and GPS coordinates. Do not use this for bloom timing, one-off concerts, or weather forecasts.",

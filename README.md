@@ -204,7 +204,7 @@ Each spot has a peak window (start, peak, end), leaf type, popularity rating, an
 
 ### Flowers
 
-**`get_flowers`** — 80 curated spots, 8 flower types, Jan through Oct
+**`get_seasonal_flowers`** — 80 curated spots, 8 flower types, Jan through Oct
 
 | Type | Season | Notable spots |
 |------|---------|--------------|
@@ -223,7 +223,7 @@ Filter by `type`, `prefecture`, or `month`. Each spot has an official URL and ve
 
 ### Festivals and events
 
-**`get_festivals`** — 52 major recurring events with official URLs and attendance figures
+**`get_japan_festivals`** — 52 major recurring events with official URLs and attendance figures
 
 ```
 "Best fireworks festivals in Japan?"
@@ -288,7 +288,7 @@ Ask your MCP client for a goal, not a tool name. A few good examples:
 Typical workflow:
 
 1. Ask for timing first with `get_sakura_best_dates`, `get_koyo_best_dates`, `get_sakura_forecast`, or `get_koyo_forecast`.
-2. Drill into exact parks, temples, farms, or events with `get_sakura_spots`, `get_koyo_spots`, `get_fruit_farms`, `get_flowers`, or `get_festivals`.
+2. Drill into exact parks, temples, farms, or events with `get_sakura_spots`, `get_koyo_spots`, `get_fruit_farms`, `get_seasonal_flowers`, or `get_japan_festivals`.
 3. Check `get_weather_forecast` if rain or temperature could change the recommendation.
 4. Set optional connection preferences if you want ISO dates, Fahrenheit weather, Japanese map links, or outputs without GPS coordinates.
 
