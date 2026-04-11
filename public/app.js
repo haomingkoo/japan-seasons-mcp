@@ -169,7 +169,7 @@ function initMap() {
 
       weatherCache.set(key, { html, ts: Date.now() });
       el.innerHTML = html;
-    } catch { el.innerHTML = ''; }
+    } catch { el.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:4px 0">Weather unavailable</div>'; }
   });
 }
 
@@ -1116,7 +1116,7 @@ async function loadKoyoSpots(prefCode, name) {
 async function findBestDates() {
   const start = $('date-start')?.value;
   const end = $('date-end')?.value;
-  if (!start || !end) { alert('Pick both dates'); return; }
+  if (!start || !end) { $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Pick both a start and end date.</div>'; return; }
 
   $('sidebar-header').innerHTML = `<h2>Best for ${start} to ${end}</h2><p>Searching...</p>`;
   $('sidebar-content').innerHTML = '<div class="loading">Finding blooms...</div>';
@@ -1512,9 +1512,9 @@ function loadTripPlanner() {
 async function searchTrip() {
   const startVal = $('trip-start')?.value;
   const endVal = $('trip-end')?.value;
-  if (!startVal || !endVal) { alert('Pick travel dates'); return; }
+  if (!startVal || !endVal) { $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Pick both travel dates.</div>'; return; }
   const startDate = new Date(startVal), endDate = new Date(endVal);
-  if (isNaN(startDate) || isNaN(endDate)) { alert('Invalid dates'); return; }
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) { $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Invalid dates — use the date picker.</div>'; return; }
 
   const midMs = (startDate.getTime() + endDate.getTime()) / 2;
   const m = new Date(midMs).getMonth() + 1;
@@ -1895,7 +1895,7 @@ async function searchTrip() {
 // ── Find Near Me (geolocation) ──
 async function findNearMe() {
   if (!navigator.geolocation) {
-    alert('Geolocation is not supported by your browser');
+    $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Location access is not supported by this browser.</div>';
     return;
   }
 
@@ -1962,7 +1962,7 @@ async function findNearMe() {
     }
   }, (err) => {
     $('btn-nearme').textContent = 'Near Me';
-    alert('Could not get your location. Make sure location access is enabled.');
+    $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Could not get your location. Check that location access is enabled for this site.</div>';
   }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
@@ -2031,14 +2031,14 @@ async function loadWeatherCard(cityName) {
       const maxC = temp?.max?.celsius;
       const rain = day.chanceOfRain;
       const rainHigh = Math.max(
-        parseInt(rain?.T06_12) || 0,
-        parseInt(rain?.T12_18) || 0,
-        parseInt(rain?.T18_24) || 0
+        parseInt(rain?.T06_12, 10) || 0,
+        parseInt(rain?.T12_18, 10) || 0,
+        parseInt(rain?.T18_24, 10) || 0
       );
       const rainIcon = rainHigh >= 50 ? '🌧' : rainHigh >= 20 ? '🌦' : '☀️';
       whtml += `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.82rem">
         <span>${rainIcon} ${day.dateLabel} ${day.date?.slice(5)}</span>
-        <span>${day.telop} ${maxC ? maxC+'°C' : ''} ${rainHigh > 0 ? '<span style="color:#0369a1">'+rainHigh+'%</span>' : ''}</span>
+        <span>${esc(day.telop || '')} ${maxC ? maxC+'°C' : ''} ${rainHigh > 0 ? '<span style="color:#0369a1">'+rainHigh+'%</span>' : ''}</span>
       </div>`;
     }
     weatherDiv.innerHTML = whtml;
@@ -2049,7 +2049,7 @@ async function loadWeatherCard(cityName) {
     } else {
       $('sidebar-content').appendChild(weatherDiv);
     }
-  } catch {} // Weather is optional — don't break the page
+  } catch {} // Weather is optional — failure is silent by design (weather card doesn't mount on error)
 }
 
 // ── Load all 1,012 spots on map ──

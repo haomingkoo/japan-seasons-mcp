@@ -41,11 +41,11 @@ You ask Claude, ChatGPT, or Gemini: *"When should I visit Kyoto for cherry bloss
 
 You get "late March to early April" — the same answer every year, based on training data that has no idea what this winter was like.
 
-The actual bloom date shifts by 2–3 weeks depending on temperatures. Tokyo peaked March 29 in 2024, March 22 in 2023, March 28 in 2022. Your AI is guessing. This MCP server stops the guessing.
+The actual bloom date shifts by 2–3 weeks depending on temperatures. Tokyo peaked March 29 in 2024, March 22 in 2023, March 28 in 2022 — a 7-day spread in just two years. Your AI is guessing. This MCP server stops the guessing.
 
 ## The fix
 
-It connects Claude (or any MCP client) to live forecast data from the Japan Meteorological Corporation, the same source behind SAKURA NAVI, Japan's most-used cherry blossom app. Data updates daily at 9AM JST.
+It connects Claude (or any MCP client) to live forecast data from the Japan Meteorological Corporation — the same data that powers SAKURA NAVI and Japan's major cherry blossom forecast sites. Bloom meters update daily at 9 AM JST; spot observations update when JMC reporters file.
 
 ```
 You:    "I'm in Japan April 8–14. Where should I see cherry blossoms?"

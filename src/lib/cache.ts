@@ -84,11 +84,9 @@ function scheduleDailyFlush() {
   setTimeout(() => {
     logger.info("9 AM JST — flushing cache for fresh bloom data");
     cache.flush();
-    // Schedule again for tomorrow
-    setInterval(() => {
-      logger.info("9 AM JST — flushing cache for fresh bloom data");
-      cache.flush();
-    }, 24 * 60 * 60 * 1000).unref();
+    // Reschedule rather than using setInterval so each flush recalculates
+    // the next exact 9 AM JST, preventing drift over days.
+    scheduleDailyFlush();
   }, ms).unref();
 }
 
