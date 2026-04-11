@@ -23,15 +23,15 @@
 
 | Cherry blossom map | Spot detail & weather |
 |---|---|
-| ![Sakura map](screenshots/08-sakura-zoomed.png) | ![Sakura popup](screenshots/02-sakura-popup.png) |
+| <img src="screenshots/08-sakura-zoomed.png" width="420"> | <img src="screenshots/02-sakura-popup.png" width="420"> |
 
 | Fruit picking | What's On in Japan |
 |---|---|
-| ![Fruit picking](screenshots/03-fruit-picking.png) | ![What's On](screenshots/05-whatson.png) |
+| <img src="screenshots/03-fruit-picking.png" width="420"> | <img src="screenshots/05-whatson.png" width="420"> |
 
 | Flowers in season | Mobile |
 |---|---|
-| ![Flowers](screenshots/04-flowers.png) | ![Mobile](screenshots/07-mobile.png) |
+| <img src="screenshots/04-flowers.png" width="420"> | <img src="screenshots/07-mobile.png" width="420"> |
 
 ---
 

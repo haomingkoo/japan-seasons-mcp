@@ -893,6 +893,10 @@ async function loadPrefSpots(prefCode, prefName) {
 }
 
 function flyToSpot(lat, lon, name, bloomRate, fullRate, status) {
+  if (window.innerWidth <= 768) {
+    document.querySelector('.sidebar').scrollTop = 0;
+    mapInstance.invalidateSize();
+  }
   mapInstance.flyTo([lat, lon], 14, { duration: 0.8 });
   const isEnded = status.includes('Ended') || status.includes('Falling') || status.includes('green');
   const statusColor = isEnded ? C.ended : C.peak;
@@ -1041,9 +1045,9 @@ function clearMarkers() {
 
 function updateLegend(type) {
   const el = $('legend');
+  let body = '';
   if (type === 'sakura') {
-    el.style.display = '';
-    el.innerHTML = `
+    body = `
       <div style="font-weight:600;margin-bottom:4px">Bloom Lifecycle</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.dormant}"></div> Dormant</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.bud}"></div> Bud stage</div>
@@ -1055,22 +1059,19 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:${C.ended}"></div> Ended (green leaves)</div>
       <div class="legend-row"><div style="background:${C.peak};color:white;width:12px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px">★</div> Kawazu cherry (early)</div>`;
   } else if (type === 'koyo') {
-    el.style.display = '';
-    el.innerHTML = `
+    body = `
       <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.koyoPeak}"></div> Peak colors</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.koyoTurn}"></div> Turning</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.dormant}"></div> Not yet / ended</div>`;
   } else if (type === 'flowers') {
-    el.style.display = '';
-    el.innerHTML = `
+    body = `
       <div style="font-weight:600;margin-bottom:4px">Seasonal Flowers</div>
       <div class="legend-row"><span style="font-size:16px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
       <div class="legend-row"><span style="font-size:16px">💜</span> Wisteria (Apr–May)</div>
       <div class="legend-row"><span style="font-size:16px">💙</span> Hydrangea (Jun–Jul)</div>`;
   } else if (type === 'whatson') {
-    el.style.display = '';
-    el.innerHTML = `
+    body = `
       <div style="font-weight:600;margin-bottom:4px">What's On</div>
       <div class="legend-row"><span style="font-size:14px">🎆</span> Fireworks</div>
       <div class="legend-row"><span style="font-size:14px">🏮</span> Matsuri</div>
@@ -1081,7 +1082,11 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:${C.green}"></div> Fruit farm</div>`;
   } else {
     el.style.display = 'none';
+    return;
   }
+  el.style.display = '';
+  el.className = 'legend';
+  el.innerHTML = `<button class="legend-toggle-btn" onclick="this.closest('.legend').classList.toggle('expanded')">Legend ▾</button><div class="legend-body">${body}</div>`;
 }
 
 // ── FLOWERS ──

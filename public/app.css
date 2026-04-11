@@ -95,6 +95,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
 }
 .legend-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+.legend-toggle-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  font-size: 0.75rem; font-weight: 600; color: var(--gray-800); padding: 0;
+}
 
 /* ── Loading ── */
 .loading { padding: 40px; text-align: center; color: var(--gray-400); }
@@ -128,8 +132,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
 @media (max-width: 768px) {
   .main { flex-direction: column; }
   .map-container { height: 50vh; }
-  .sidebar { width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--gray-200); }
+  .sidebar { width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--gray-200); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
   .top-bar h1 { font-size: 1rem; }
+  .legend { bottom: 10px; left: 10px; padding: 6px 10px; }
+  .legend-toggle-btn { display: flex; align-items: center; gap: 4px; }
+  .legend .legend-body { display: none; }
+  .legend.expanded .legend-body { display: block; margin-top: 6px; }
 }
 @media (max-width: 1100px) and (min-width: 769px) {
   .sidebar { width: 320px; }
