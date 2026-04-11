@@ -330,14 +330,27 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += `- Full bloom: ${formatSakuraDate(jma.fullForecast, outputConfig)} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
           }
         }
-        output += `_${SAKURA_SPOT_MODEL_NOTE}_\n\n`;
+        const hasAnyObservation = result.spots.some(s => s.observationState !== null);
+        if (hasAnyObservation) {
+          output += `_${result.spots.filter(s => s.observationState !== null).length}/${result.spots.length} spots have current observation data from JMC. Remaining spots show forecast model estimates._\n\n`;
+        } else {
+          output += `_${SAKURA_SPOT_MODEL_NOTE}_\n\n`;
+        }
         output += `## Viewing spots\n\n`;
         for (const spot of result.spots) {
           output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-          output += `- **${spot.status}**\n`;
-          output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
+          if (spot.observationStatus) {
+            // Lead with real observation when available
+            const obsDate = spot.observationUpdated ? ` (observed ${formatSakuraDate(spot.observationUpdated, outputConfig)})` : "";
+            output += `- **${spot.observationStatus}**${obsDate}\n`;
+            output += `- _Forecast model: ${spot.status} — bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%_\n`;
+          } else {
+            // Fall back to forecast model estimate
+            output += `- **${spot.status}** _(forecast estimate)_\n`;
+            output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
+          }
           if (spot.bloomForecast || spot.fullBloomForecast) {
-            output += `- Bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
+            output += `- Forecast dates: bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
           }
           output += coordinateLine(spot.lat, spot.lon, outputConfig);
         }
@@ -997,7 +1010,7 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.3.9" }, {
+const server = new McpServer({ name: "japan-seasons-mcp", version: "0.4.0" }, {
   instructions: SERVER_INSTRUCTIONS,
 });
 registerAllTools(server, getOutputConfigFromEnv());
@@ -1093,7 +1106,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.3.9",
+        version: "0.4.0",
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -1173,7 +1186,7 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.3.9" }, {
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.4.0" }, {
         instructions: SERVER_INSTRUCTIONS,
       });
       registerAllTools(sessionServer, outputConfig);

@@ -52,7 +52,11 @@ export interface SakuraSpot {
   fullBloomForecast: string | null;
   bloomRate: number;      // 0-100 (% progress toward first bloom)
   fullRate: number;       // 0-100 (% progress from first bloom to full bloom)
-  status: string;         // human-readable model status
+  status: string;         // human-readable model status (from jr_data)
+  // Spot-level observation from JMC's current-status layer (more real-time than jr_data)
+  observationState: number | null;   // 0=pre-bloom,1=first bloom,2=30%,3=70%,4=full bloom,5=petals falling
+  observationStatus: string | null;  // human-readable label for observation state
+  observationUpdated: string | null; // ISO date when observation was recorded
 }
 
 export interface SakuraSpotResult {
@@ -161,6 +165,53 @@ const PREF_CODE_TO_NAME_EN: Record<string, string> = Object.fromEntries(
 const NKISHOU_SAKURA_API = "https://other-api-prod.n-kishou.co.jp/get-sakura-hw";
 const NKISHOU_SPOTS_API = "https://other-api-prod.n-kishou.co.jp/list-jr-points";
 
+// ─── Spot observation layer ───────────────────────────────────────────────────
+// JMC publishes a separate current-status feed for each spot, updated when
+// reporters (spot managers, JMC partners) submit actual observations.
+// This is more real-time than jr_data (model estimate) but only covers spots
+// that have been recently reported. We merge it as a supplement, never a
+// replacement — jr_data is always available as fallback.
+
+export const OBS_STATE_LABELS: Record<number, string> = {
+  0: "Pre-bloom (buds visible)",
+  1: "First bloom (a few flowers open)",
+  2: "30% bloom (sanbu-zaki)",
+  3: "70% bloom (nanabu-zaki)",
+  4: "Full bloom (mankai)",
+  5: "Petals starting to fall",
+};
+
+// Observation filter_codes 0-5 correspond to the state values returned.
+// filter_code=6 returns 400 (not used). Fetch all 6 in parallel.
+async function fetchPrefObservations(prefCode: string): Promise<Map<string, { state: number; updated: string }>> {
+  const map = new Map<string, { state: number; updated: string }>();
+  try {
+    const results = await Promise.allSettled(
+      [0, 1, 2, 3, 4, 5].map(async (fc) => {
+        const url = `${NKISHOU_SPOTS_API}?type=sakura&filter_mode=observation&filter_code=${fc}&area_mode=pref&area_code=${prefCode}`;
+        const res = await safeFetch(url);
+        const data = await res.json();
+        const rl = data?.result_list;
+        const updated: string = rl?.update_datetime ?? "";
+        for (const spot of rl?.data ?? []) {
+          if (spot.code) {
+            map.set(String(spot.code), { state: parseInt(String(spot.state), 10), updated });
+          }
+        }
+      })
+    );
+    // Log any failures silently (observation fetch is best-effort)
+    for (const r of results) {
+      if (r.status === "rejected") {
+        logger.info(`Spot observation fetch failed (non-critical): ${r.reason}`);
+      }
+    }
+  } catch {
+    // Observation layer is enhancement-only; forecast data is always the base
+  }
+  return map;
+}
+
 export async function getSakuraForecast(): Promise<SakuraForecastResult> {
   const cacheKey = "sakura-forecast:nkishou";
   return cache.getOrFetch(cacheKey, TTL.FORECAST, async () => {
@@ -240,13 +291,17 @@ export async function getSakuraSpots(prefCode: string): Promise<SakuraSpotResult
   return cache.getOrFetch(cacheKey, TTL.SPOTS, async () => {
     logger.info(`Fetching sakura spots for prefecture ${prefCode}`);
     const url = `${NKISHOU_SPOTS_API}?type=sakura&filter_mode=forecast&area_mode=pref&area_code=${prefCode}&sort_code=0`;
-    const res = await safeFetch(url);
+    // Fetch forecast and observations in parallel — observations are best-effort
+    const [res, observations] = await Promise.all([
+      safeFetch(url),
+      fetchPrefObservations(prefCode),
+    ]);
     const data = await res.json();
-    return parseSpotsResponse(data, prefCode);
+    return parseSpotsResponse(data, prefCode, observations);
   });
 }
 
-function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
+function parseSpotsResponse(data: any, prefCode: string, observations: Map<string, { state: number; updated: string }> = new Map()): SakuraSpotResult {
   const result = data?.result_list;
   if (result?.error) {
     throw new Error(`Spots API returned error: ${result.message}`);
@@ -270,12 +325,14 @@ function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
     };
   }
 
-  // Parse individual spots
+  // Parse individual spots, merging observation layer when available
   const spots: SakuraSpot[] = (result?.jr_data ?? []).map((s: any) => {
     const bloomRate = s.bloom_rate ?? 0;
     const fullRate = s.full_rate ?? 0;
+    const code = String(s.code ?? "");
+    const obs = observations.get(code) ?? null;
     return {
-      code: s.code ?? "",
+      code,
       name: s.name ?? "",
       nameReading: s.kana ?? "",
       nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
@@ -287,6 +344,9 @@ function parseSpotsResponse(data: any, prefCode: string): SakuraSpotResult {
       bloomRate,
       fullRate,
       status: computeSpotStatus(bloomRate, fullRate),
+      observationState: obs ? obs.state : null,
+      observationStatus: obs ? (OBS_STATE_LABELS[obs.state] ?? null) : null,
+      observationUpdated: obs ? obs.updated : null,
     };
   });
 
