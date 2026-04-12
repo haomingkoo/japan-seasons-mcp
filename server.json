@@ -6,7 +6,7 @@
     "url": "https://github.com/haomingkoo/japan-seasons-mcp",
     "source": "github"
   },
-  "version": "0.4.7",
+  "version": "0.4.8",
   "remotes": [
     {
       "type": "streamable-http",
@@ -14,12 +14,18 @@
       "variables": {
         "dateStyle": {
           "description": "How dates are rendered in tool output.",
-          "choices": ["friendly", "iso"],
+          "choices": [
+            "friendly",
+            "iso"
+          ],
           "default": "friendly"
         },
         "temperatureUnit": {
           "description": "Preferred temperature unit for weather output.",
-          "choices": ["celsius", "fahrenheit"],
+          "choices": [
+            "celsius",
+            "fahrenheit"
+          ],
           "default": "celsius"
         },
         "includeCoordinates": {
@@ -29,7 +35,10 @@
         },
         "mapLanguage": {
           "description": "Preferred language for forecast map links when both English and Japanese versions exist.",
-          "choices": ["english", "japanese"],
+          "choices": [
+            "english",
+            "japanese"
+          ],
           "default": "english"
         }
       }
@@ -39,7 +48,7 @@
     {
       "registryType": "npm",
       "identifier": "japan-seasons-mcp",
-      "version": "0.4.7",
+      "version": "0.4.8",
       "environmentVariables": [
         {
           "name": "JAPAN_SEASONS_DATE_STYLE",
@@ -69,7 +78,7 @@
     {
       "registryType": "npm",
       "identifier": "japan-seasons-mcp",
-      "version": "0.4.7",
+      "version": "0.4.8",
       "environmentVariables": [
         {
           "name": "PORT",
