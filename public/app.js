@@ -1660,9 +1660,9 @@ async function searchTrip() {
         });
         for (const spot of allSpotsData.spots) {
           if (!spot.lat || !spot.lon) continue;
-          // Hide ended/fallen spots in trip planner — they add clutter with no travel value
-          const phase = spot.phase || sakuraPhase(spot.bloomRate, spot.fullRate, spot.fullBloomForecast);
-          if (phase === 'ended' || phase === 'falling') continue;
+          // Use date-aware filtering: hide spots past their viewing window for the trip dates
+          const state = tripSakuraState(spot);
+          if (!state.show) continue;
           const col = sakuraColor(spot);
           const mk = L.circleMarker([spot.lat, spot.lon], { radius: 6, fillColor: col, color: 'white', weight: 1, fillOpacity: 0.85 });
           mk.bindPopup(spotPopupHtml(spot));
