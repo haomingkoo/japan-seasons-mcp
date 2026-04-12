@@ -173,9 +173,9 @@ Tool routing:
 - Use get_sakura_best_dates when the user gives travel dates and wants the best sakura cities in that window, then use get_sakura_spots for exact parks and temples.
 - Use get_kawazu_cherry_forecast for January-February cherry blossom requests or when the user mentions Kawazu-zakura, early blossoms, or Izu.
 - Use get_koyo_forecast for autumn leaves timing by city, and get_koyo_best_dates when travel dates are provided. Follow with get_koyo_spots for exact viewing locations.
-- Use get_seasonal_flowers for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
+- Use get_flower_spots for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
 - Use get_japan_festivals for recurring fireworks, matsuri, and winter events with official links.
-- Use get_fruit_seasons to answer which fruits are in season, and get_fruit_farms only when the user needs actual farms, GPS coordinates, or booking links.
+- Use get_fruit_season_calendar to answer which fruits are in season, and get_fruit_picking_farms only when the user needs actual farms, GPS coordinates, or booking links.
 - Use get_weather_forecast after bloom tools when rain or temperature could change the recommendation, especially because rain can shorten sakura viewing.
 
 Important rules:
@@ -215,13 +215,13 @@ Use the japan-seasons-mcp tools based on the travel month:
 - get_sakura_forecast → big picture, 48 cities
 - get_sakura_best_dates → match travel dates to bloom cities
 - get_sakura_spots → 1,012 specific parks/temples with bloom % and GPS
-- get_seasonal_flowers (type=wisteria) → wisteria season starts late Apr
+- get_flower_spots (type=wisteria) → wisteria season starts late Apr
 
 **Apr-May** — Wisteria (fuji):
-- get_seasonal_flowers with type=wisteria → 13 curated spots (Ashikaga, Kawachi, Kameido Tenjin, Byodoin, Kasuga Taisha...)
+- get_flower_spots with type=wisteria → 13 curated spots (Ashikaga, Kawachi, Kameido Tenjin, Byodoin, Kasuga Taisha...)
 
 **Jun-Jul** — Hydrangea (ajisai):
-- get_seasonal_flowers with type=hydrangea → 15 curated spots (Kamakura temples, Kyoto temples, Yatadera...)
+- get_flower_spots with type=hydrangea → 15 curated spots (Kamakura temples, Kyoto temples, Yatadera...)
 
 **Jul-Aug** — Fireworks & summer matsuri:
 - get_japan_festivals with type=fireworks → Sumida River, Nagaoka, Omagari, PL Osaka, Miyajima... (official URLs included)
@@ -234,8 +234,8 @@ Use the japan-seasons-mcp tools based on the travel month:
 - get_japan_festivals with type=winter → Sapporo Snow Festival, Yokote Kamakura, Shirakawa-go illumination...
 
 **Year-round** — Fruit picking:
-- get_fruit_seasons → which fruits are in season for the travel month
-- get_fruit_farms → 350+ farms with GPS; pass month= to auto-filter by in-season fruits
+- get_fruit_season_calendar → which fruits are in season for the travel month
+- get_fruit_picking_farms → 350+ farms with GPS; pass month= to auto-filter by in-season fruits
 
 **Oct-Dec** — Autumn leaves (koyo):
 - get_koyo_forecast → maple & ginkgo timing, 50+ cities
@@ -672,10 +672,10 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  // ── Tool: get_seasonal_flowers ──
+  // ── Tool: get_flower_spots ──
 
   server.registerTool(
-    "get_seasonal_flowers",
+    "get_flower_spots",
     {
       title: "Seasonal Flower Spots",
       description: "Use this for non-sakura flower trips such as plum, wisteria, hydrangea, lavender, sunflower, or cosmos. Returns curated flower spots with peak windows, official URLs, notes, and GPS coordinates. Do not use this for cherry blossom or autumn leaves timing; use the sakura or koyo tools for those live forecasts.",
@@ -750,13 +750,13 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  // ── Tool: get_fruit_seasons ──
+  // ── Tool: get_fruit_season_calendar ──
 
   server.registerTool(
-    "get_fruit_seasons",
+    "get_fruit_season_calendar",
     {
       title: "Fruit Picking Season Calendar",
-      description: "Use this when the user asks what fruit is in season in a given month or which month is best for strawberries, grapes, peaches, apples, and similar picking trips. Returns the fruit season calendar, peak months, best regions, and notes for 14 fruits. Call get_fruit_farms next if the user needs actual farm listings, map coordinates, or booking links.",
+      description: "Use this when the user asks what fruit is in season in a given month or which month is best for strawberries, grapes, peaches, apples, and similar picking trips. Returns the fruit season calendar, peak months, best regions, and notes for 14 fruits. Call get_fruit_picking_farms next if the user needs actual farm listings, map coordinates, or booking links.",
       inputSchema: {
         month: z.number().int().min(1).max(12).optional()
           .describe("Optional month number from 1 to 12. Returns fruits in season during that month plus fruits starting the following month. Omit to return the full year calendar.")
@@ -793,7 +793,7 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += comingSoon.map(f => `- ${f.emoji} ${f.name}`).join("\n") + "\n\n";
           }
 
-          output += `Use get_fruit_farms to find specific farms with GPS coordinates.`;
+          output += `Use get_fruit_picking_farms to find specific farms with GPS coordinates.`;
           return { content: [{ type: "text", text: output }] };
         }
 
@@ -814,7 +814,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           if (f.note) output += `- **Note:** ${f.note}\n`;
           output += "\n";
         }
-        output += `Use get_fruit_farms to find specific farms with GPS coordinates.`;
+        output += `Use get_fruit_picking_farms to find specific farms with GPS coordinates.`;
         return { content: [{ type: "text", text: output }] };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
@@ -890,13 +890,13 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  // ── Tool: get_fruit_farms ──
+  // ── Tool: get_fruit_picking_farms ──
 
   server.registerTool(
-    "get_fruit_farms",
+    "get_fruit_picking_farms",
     {
       title: "Fruit Picking Farms",
-      description: "Use this when the user needs actual fruit-picking farms, booking links, and map coordinates. Returns farms from the local dataset, and month filtering automatically narrows results to fruits that are in season. If the user only asks which fruit is in season, call get_fruit_seasons first.",
+      description: "Use this when the user needs actual fruit-picking farms, booking links, and map coordinates. Returns farms from the local dataset, and month filtering automatically narrows results to fruits that are in season. If the user only asks which fruit is in season, call get_fruit_season_calendar first.",
       inputSchema: {
         month: z.number().int().min(1).max(12).optional()
           .describe("Optional travel month from 1 to 12. Filters to farms with at least one fruit in season during that month, for example 5 for May strawberry farms.")
@@ -948,7 +948,7 @@ Use the japan-seasons-mcp tools based on the travel month:
         output += `Filters: ${monthLabel}fruit=${fruit || "any"}, region=${region || "any"} → ${farms.length} matches (${withCoords} with GPS)\n\n`;
 
         if (shown.length === 0) {
-          return { content: [{ type: "text", text: `No farms found. Try get_fruit_seasons to see what's in season, then filter by a specific fruit.` }] };
+          return { content: [{ type: "text", text: `No farms found. Try get_fruit_season_calendar to see what's in season, then filter by a specific fruit.` }] };
         }
 
         for (const f of shown) {
@@ -1036,7 +1036,7 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.4.1" }, {
+const server = new McpServer({ name: "japan-seasons-mcp", version: "0.4.2" }, {
   instructions: SERVER_INSTRUCTIONS,
 });
 registerAllTools(server, getOutputConfigFromEnv());
@@ -1132,7 +1132,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.4.1",
+        version: "0.4.2",
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -1212,7 +1212,7 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.4.1" }, {
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.4.2" }, {
         instructions: SERVER_INSTRUCTIONS,
       });
       registerAllTools(sessionServer, outputConfig);
