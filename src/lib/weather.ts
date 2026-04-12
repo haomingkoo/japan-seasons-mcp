@@ -100,14 +100,3 @@ export async function getWeatherForecast(city: string): Promise<WeatherForecast>
   });
 }
 
-/** Fetch weather directly from JMA API (more detailed, Japanese only) */
-export async function getJmaForecast(areaCode: string): Promise<any> {
-  const cacheKey = `jma-forecast:${areaCode}`;
-  return cache.getOrFetch(cacheKey, TTL.WEATHER, async () => {
-    const url = `https://www.jma.go.jp/bosai/forecast/data/forecast/${areaCode}.json`;
-    logger.info(`Fetching JMA forecast for area ${areaCode}`);
-
-    const res = await safeFetch(url);
-    return res.json();
-  });
-}

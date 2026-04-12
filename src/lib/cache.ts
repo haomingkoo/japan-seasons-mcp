@@ -97,11 +97,13 @@ function scheduleDailyFlush() {
 
 scheduleDailyFlush();
 
-// TTL constants
+// TTL constants (milliseconds, used for in-process cache)
+// CDN max-age values in api.ts are derived from these (divide by 1000)
 export const TTL = {
-  FORECAST: 1 * 60 * 60 * 1000,    // 1 hour
-  SPOTS: 3 * 60 * 60 * 1000,       // 3 hours
-  HISTORICAL: 24 * 60 * 60 * 1000, // 24 hours
-  WEATHER: 1 * 60 * 60 * 1000,     // 1 hour
-  AREAS: 7 * 24 * 60 * 60 * 1000,  // 7 days
+  FORECAST:    1 * 60 * 60 * 1000,    // 1 hour
+  SPOTS:       3 * 60 * 60 * 1000,    // 3 hours
+  WEATHER:     1 * 60 * 60 * 1000,    // 1 hour
+  WEATHER_CDN: 30 * 60 * 1000,        // 30 min — CDN edge cache on top of server cache
+  HISTORICAL:  24 * 60 * 60 * 1000,   // 24 hours
+  AREAS:       7 * 24 * 60 * 60 * 1000, // 7 days
 };

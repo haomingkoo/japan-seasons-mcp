@@ -1,4 +1,3 @@
-import * as cheerio from "cheerio";
 import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
@@ -546,75 +545,6 @@ function computeBloomStatus(city: SakuraCity): string {
   }
 
   return "No forecast available";
-}
-
-// ─── Weathermap.jp scraper (secondary source) ────────────────────────────────
-// NOTE: getSakuraForecastWeathermap returns a different schema (WeathermapEntry[]) from
-// getSakuraForecast (SakuraForecastResult), so it cannot be used as a transparent fallback.
-// Fallback removed — add monitoring alert if primary (n-kishou) fails.
-
-export interface WeathermapEntry {
-  city: string;
-  region: string;
-  firstBloomDate: string | null;
-  fullBloomDate: string | null;
-}
-
-export async function getSakuraForecastWeathermap(): Promise<WeathermapEntry[]> {
-  const cacheKey = "sakura-forecast:weathermap";
-  return cache.getOrFetch(cacheKey, TTL.FORECAST, async () => {
-    logger.info("Fetching sakura forecast from weathermap.jp");
-    const res = await safeFetch("https://sakura.weathermap.jp/en.php");
-    const html = await res.text();
-    return parseWeathermapHtml(html);
-  });
-}
-
-function parseWeathermapHtml(html: string): WeathermapEntry[] {
-  const $ = cheerio.load(html);
-  const entries: WeathermapEntry[] = [];
-  let currentRegion = "";
-
-  $("table tr").each((_i, row) => {
-    const cells = $(row).find("td, th");
-    const firstCell = $(cells[0]).text().trim();
-
-    if (cells.length <= 2 && isRegionHeader(firstCell)) {
-      currentRegion = firstCell;
-      return;
-    }
-
-    if (cells.length >= 3) {
-      const city = $(cells[0]).text().trim();
-      const first = $(cells[1]).text().trim();
-      const full = $(cells[2]).text().trim();
-
-      if (city && /\d{1,2}\/\d{1,2}/.test(first)) {
-        entries.push({
-          city,
-          region: currentRegion,
-          firstBloomDate: normalizeDate(first),
-          fullBloomDate: normalizeDate(full),
-        });
-      }
-    }
-  });
-
-  return entries;
-}
-
-function isRegionHeader(text: string): boolean {
-  const regions = [
-    "hokkaido", "tohoku", "kanto", "koshin", "tokai", "hokuriku",
-    "kinki", "chugoku", "shikoku", "kyushu", "okinawa", "amami",
-  ];
-  return regions.some((r) => text.toLowerCase().includes(r));
-}
-
-function normalizeDate(text: string): string | null {
-  if (!text || text === "---" || text === "-") return null;
-  const match = text.match(/(\d{1,2})\/(\d{1,2})/);
-  return match ? `${match[1]}/${match[2]}` : null;
 }
 
 // ─── Query helpers ───────────────────────────────────────────────────────────

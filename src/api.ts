@@ -14,6 +14,8 @@ import { getKoyoForecast, getKoyoSpots } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { pMapSettled } from "./lib/fetch.js";
 import { logger } from "./lib/logger.js";
+import { TTL } from "./lib/cache.js";
+import { JAPAN_BOUNDS, JAPAN_PREFECTURE_COUNT } from "./lib/constants.js";
 
 // ── Minimal shared spot type ──────────────────────────────────────────────────
 interface SpotRecord { lat?: number; lon?: number; name?: string; [key: string]: unknown; }
@@ -32,7 +34,7 @@ const STATIC = {
 
 // ── Server-side caches — shared across users, 1-hour TTL ──
 // All-spots: 47 upstream requests → cache aggressively so only first user pays the cost.
-const ALL_SPOTS_CACHE_TTL = 3_600_000; // 1 hour
+const ALL_SPOTS_CACHE_TTL = TTL.FORECAST;
 const allSpotsCache = new Map<string, { json: string; ts: number }>();
 
 const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
@@ -90,9 +92,9 @@ export async function handleApiRequest(
       const city = params.get("city");
       if (city) {
         const cities = findCities(forecast, city);
-        json(res, { cities }, 200, 3600);
+        json(res, { cities }, 200, TTL.FORECAST / 1000);
       } else {
-        json(res, forecast, 200, 3600);
+        json(res, forecast, 200, TTL.FORECAST / 1000);
       }
       return true;
     }
@@ -101,12 +103,11 @@ export async function handleApiRequest(
     if (pathname === "/api/sakura/spots") {
       const pref = params.get("pref");
       if (!pref) { error(res, "Missing ?pref= parameter"); return true; }
-      // Sanitize pref before echoing in error messages
-      const safePref = pref.replace(/[<>&"]/g, "");
-      const prefCode = findPrefCode(pref);
+      const safePref = pref.replace(/[<>&"]/g, "").trim();
+      const prefCode = findPrefCode(safePref);
       if (!prefCode) { error(res, `Prefecture "${safePref}" not found`); return true; }
       const spots = await getSakuraSpots(prefCode);
-      json(res, spots, 200, 10800); // 3 hours
+      json(res, spots, 200, TTL.SPOTS / 1000);
       return true;
     }
 
@@ -134,13 +135,13 @@ export async function handleApiRequest(
         res.writeHead(200, {
           "Content-Type": "application/json",
           "Vary": "Accept-Encoding",
-          "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+          "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
         });
         res.end(cached.json);
         return true;
       }
       const allSpots: unknown[] = [];
-      const prefCodes = Array.from({ length: 47 }, (_, i) => String(i + 1).padStart(2, "0"));
+      const prefCodes = Array.from({ length: JAPAN_PREFECTURE_COUNT }, (_, i) => String(i + 1).padStart(2, "0"));
       const results = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
       for (const r of results) {
         if (r.status === "fulfilled" && r.value.spots) {
@@ -153,7 +154,7 @@ export async function handleApiRequest(
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Vary": "Accept-Encoding",
-        "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+        "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
       });
       res.end(jsonStr);
       return true;
@@ -162,14 +163,14 @@ export async function handleApiRequest(
     // GET /api/kawazu
     if (pathname === "/api/kawazu") {
       const data = await getKawazuForecast();
-      json(res, data, 200, 3600);
+      json(res, data, 200, TTL.FORECAST / 1000);
       return true;
     }
 
     // GET /api/koyo/forecast
     if (pathname === "/api/koyo/forecast") {
       const data = await getKoyoForecast();
-      json(res, data, 200, 3600);
+      json(res, data, 200, TTL.FORECAST / 1000);
       return true;
     }
 
@@ -177,11 +178,11 @@ export async function handleApiRequest(
     if (pathname === "/api/koyo/spots") {
       const pref = params.get("pref");
       if (!pref) { error(res, "Missing ?pref= parameter"); return true; }
-      const safePref = pref.replace(/[<>&"]/g, "");
-      const prefCode = findPrefCode(pref);
+      const safePref = pref.replace(/[<>&"]/g, "").trim();
+      const prefCode = findPrefCode(safePref);
       if (!prefCode) { error(res, `Prefecture "${safePref}" not found`); return true; }
       const spots = await getKoyoSpots(prefCode);
-      json(res, spots, 200, 10800); // 3 hours
+      json(res, spots, 200, TTL.SPOTS / 1000);
       return true;
     }
 
@@ -192,13 +193,13 @@ export async function handleApiRequest(
         res.writeHead(200, {
           "Content-Type": "application/json",
           "Vary": "Accept-Encoding",
-          "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+          "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
         });
         res.end(cached.json);
         return true;
       }
       const allSpots: unknown[] = [];
-      const prefCodes = Array.from({ length: 47 }, (_, i) => String(i + 1).padStart(2, "0"));
+      const prefCodes = Array.from({ length: JAPAN_PREFECTURE_COUNT }, (_, i) => String(i + 1).padStart(2, "0"));
       const results = await pMapSettled(prefCodes, (code) => getKoyoSpots(code), 5);
       for (const r of results) {
         if (r.status === "fulfilled" && r.value.spots) allSpots.push(...r.value.spots);
@@ -210,7 +211,7 @@ export async function handleApiRequest(
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Vary": "Accept-Encoding",
-        "Cache-Control": "public, max-age=3600, stale-while-revalidate=60",
+        "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
       });
       res.end(jsonStr);
       return true;
@@ -218,21 +219,21 @@ export async function handleApiRequest(
 
     // GET /api/fruit/farms — in-memory static data
     if (pathname === "/api/fruit/farms") {
-      if (STATIC.farms) json(res, STATIC.farms, 200, 86400, true); // curated, immutable until deploy
+      if (STATIC.farms) json(res, STATIC.farms, 200, TTL.HISTORICAL / 1000, true); // curated, immutable until deploy
       else json(res, { spots: [], scraped_at: null, total: 0, error: "Farm data not yet available." }, 200);
       return true;
     }
 
     // GET /api/flowers — in-memory static data, 24-hour CDN cache
     if (pathname === "/api/flowers") {
-      if (STATIC.flowers) json(res, STATIC.flowers, 200, 86400, true); // curated, immutable until deploy
+      if (STATIC.flowers) json(res, STATIC.flowers, 200, TTL.HISTORICAL / 1000, true); // curated, immutable until deploy
       else json(res, { spots: [], total: 0, error: "Flowers data not available." }, 200);
       return true;
     }
 
     // GET /api/festivals — in-memory static data, 24-hour CDN cache
     if (pathname === "/api/festivals") {
-      if (STATIC.festivals) json(res, STATIC.festivals, 200, 86400, true); // curated, immutable until deploy
+      if (STATIC.festivals) json(res, STATIC.festivals, 200, TTL.HISTORICAL / 1000, true); // curated, immutable until deploy
       else json(res, { spots: [], total: 0, error: "Festivals data not available." }, 200);
       return true;
     }
@@ -245,11 +246,11 @@ export async function handleApiRequest(
       if (latStr && lonStr) {
         const latF = parseFloat(latStr);
         const lonF = parseFloat(lonStr);
-        if (isNaN(latF) || isNaN(lonF) || latF < 20 || latF > 46 || lonF < 122 || lonF > 154) { error(res, "Invalid coordinates"); return true; }
+        if (isNaN(latF) || isNaN(lonF) || latF < JAPAN_BOUNDS.lat.min || latF > JAPAN_BOUNDS.lat.max || lonF < JAPAN_BOUNDS.lon.min || lonF > JAPAN_BOUNDS.lon.max) { error(res, "Invalid coordinates"); return true; }
         const key = `${latF.toFixed(3)},${lonF.toFixed(3)}`;
         const cached = spotWeatherCache.get(key);
-        if (cached && Date.now() - cached.ts < 3_600_000) {
-          json(res, cached.data, 200, 1800); // 30-min CDN cache on top of server cache
+        if (cached && Date.now() - cached.ts < TTL.WEATHER) {
+          json(res, cached.data, 200, TTL.WEATHER_CDN / 1000);
           return true;
         }
         try {
@@ -258,7 +259,7 @@ export async function handleApiRequest(
           if (!r.ok) throw new Error(`open-meteo ${r.status}`);
           const data = await r.json();
           spotWeatherCache.set(key, { data, ts: Date.now() });
-          json(res, data, 200, 1800);
+          json(res, data, 200, TTL.WEATHER_CDN / 1000);
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
           logger.error(`Weather fetch error [${pathname}]: ${msg}`);

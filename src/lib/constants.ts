@@ -32,6 +32,12 @@ export const FESTIVAL_TYPE_META: Record<string, { emoji: string; name: string }>
 
 export const MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] as const;
 
+// Geographic bounds for Japan — used to validate user-supplied coordinates
+export const JAPAN_BOUNDS = { lat: { min: 20, max: 46 }, lon: { min: 122, max: 154 } } as const;
+
+// Total number of Japanese prefectures (fixed by law since 1972)
+export const JAPAN_PREFECTURE_COUNT = 47;
+
 export const FRUITS = [
   { name: "Strawberry",      ja: "いちご",   emoji: "🍓", months: [12,1,2,3,4,5],  peak: [2,3,4],    regions: ["Tochigi","Nagano","Chiba","Ibaraki","Hokkaido"], note: "Kyushu (Fukuoka) season ends ~April; May is Kanto & northern only" },
   { name: "Cherry",          ja: "さくらんぼ", emoji: "🍒", months: [5,6,7],         peak: [6],        regions: ["Yamagata","Hokkaido","Nagano","Aomori"],         note: "Yamagata produces 70% of Japan's cherries" },

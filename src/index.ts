@@ -402,6 +402,8 @@ Use the japan-seasons-mcp tools based on the travel month:
           if (spot.bloomForecast || spot.fullBloomForecast) {
             output += `- Forecast dates: bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
           }
+          const peakNote = postPeakNote(spot.fullBloomForecast);
+          if (peakNote) output += `- _${peakNote}_\n`;
           output += coordinateLine(spot.lat, spot.lon, outputConfig);
         }
         return { content: [{ type: "text", text: output }] };
