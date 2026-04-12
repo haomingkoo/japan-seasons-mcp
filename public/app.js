@@ -1076,9 +1076,9 @@ function flyToSpot(spot) {
 
 // ── KOYO ──
 async function loadKoyo() {
-  $(‘sidebar-header’).innerHTML = ‘<h2>Autumn Leaves Forecast</h2><p>687 spots across Japan · Click a city to zoom in</p>’;
-  $(‘sidebar-content’).innerHTML = skeletonHtml();
-  updateLegend(‘koyo’);
+  $('sidebar-header').innerHTML = '<h2>Autumn Leaves Forecast</h2><p>687 spots across Japan · Click a city to zoom in</p>';
+  $('sidebar-content').innerHTML = skeletonHtml();
+  updateLegend('koyo');
   clearMarkers();
   setMapPlaceholder(null);
   loadAllKoyoSpotsOnMap();
@@ -1092,7 +1092,7 @@ async function loadKoyo() {
         JMA releases forecasts in August — dates shown below are from last season and may not reflect 2026 conditions.
         Check back in August for updated forecasts.
       </div>`
-    : ‘’;
+    : '';
 
   try {
     const data = await api('/api/koyo/forecast');
