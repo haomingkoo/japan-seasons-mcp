@@ -15,6 +15,7 @@
     "start": "node dist/index.js",
     "start:http": "node dist/index.js --http",
     "test": "vitest",
+    "version": "node scripts/sync-version.mjs && git add server.json",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

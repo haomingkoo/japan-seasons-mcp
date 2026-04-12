@@ -8,6 +8,8 @@ import { gzipSync } from "zlib";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
+const SERVER_VERSION: string = (JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../package.json"), "utf-8")) as { version: string }).version;
+
 import { logger } from "./lib/logger.js";
 import { handleApiRequest, warmSpotsCache } from "./api.js";
 import {
@@ -1040,7 +1042,7 @@ setInterval(() => {
 const isHttpMode = process.argv.includes("--http") || !!process.env.PORT;
 
 // Register tools on the module-level server (for stdio mode)
-const server = new McpServer({ name: "japan-seasons-mcp", version: "0.4.7" }, {
+const server = new McpServer({ name: "japan-seasons-mcp", version: SERVER_VERSION }, {
   instructions: SERVER_INSTRUCTIONS,
 });
 registerAllTools(server, getOutputConfigFromEnv());
@@ -1136,7 +1138,7 @@ async function startHttpServer() {
       res.end(JSON.stringify({
         status: "ok",
         server: "japan-seasons-mcp",
-        version: "0.4.7",
+        version: SERVER_VERSION,
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
@@ -1216,7 +1218,7 @@ async function startHttpServer() {
         };
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: "0.4.7" }, {
+      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: SERVER_VERSION }, {
         instructions: SERVER_INSTRUCTIONS,
       });
       registerAllTools(sessionServer, outputConfig);
