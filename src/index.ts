@@ -101,11 +101,11 @@ function mapsUrl(lat: unknown, lon: unknown): string {
 }
 
 function coordinateLine(lat: unknown, lon: unknown, outputConfig: OutputConfig): string {
-  return outputConfig.includeCoordinates ? `- 📍 ${lat}, ${lon} · [Google Maps](${mapsUrl(lat, lon)})\n` : "";
+  return outputConfig.includeCoordinates ? `- 📍 ${lat}, ${lon} · ${mapsUrl(lat, lon)}\n` : "";
 }
 
 function gpsLine(lat: unknown, lon: unknown, outputConfig: OutputConfig): string {
-  return outputConfig.includeCoordinates ? `- **GPS:** ${lat}, ${lon} · [Google Maps](${mapsUrl(lat, lon)})\n` : "";
+  return outputConfig.includeCoordinates ? `- **GPS:** ${lat}, ${lon} · ${mapsUrl(lat, lon)}\n` : "";
 }
 
 // Returns how many days ago full bloom was forecast/observed, or null if not yet reached.
