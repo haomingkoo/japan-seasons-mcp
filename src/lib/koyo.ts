@@ -2,6 +2,7 @@ import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
 import { romanizeName } from "./romaji.js";
+import { tokyoDatumToWGS84 } from "./areas.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -226,8 +227,7 @@ export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
       name: s.name ?? "",
       nameReading: s.kana ?? "",
       nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
-      lat: s.lat ?? 0,
-      lon: s.lon ?? 0,
+      ...tokyoDatumToWGS84(s.lat ?? 0, s.lon ?? 0),
       leafType: s.leaf_type === "1" ? "Maple (momiji)" : s.leaf_type === "2" ? "Ginkgo (ichou)" : "Mixed",
       popularity: parseInt(s.access_star ?? "0"),
       bestStart: s.best_start_datetime ?? null,

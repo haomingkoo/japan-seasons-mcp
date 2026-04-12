@@ -3,6 +3,7 @@ import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
 import { romanizeName } from "./romaji.js";
+import { tokyoDatumToWGS84 } from "./areas.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -434,8 +435,7 @@ function parseSpotsResponse(data: any, prefCode: string, observations: Map<strin
       name: s.name ?? "",
       nameReading: s.kana ?? "",
       nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
-      lat: s.lat ?? 0,
-      lon: s.lon ?? 0,
+      ...tokyoDatumToWGS84(s.lat ?? 0, s.lon ?? 0),
       prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? result?.area ?? "",
       bloomForecast: s.bloom_forecast_datetime ?? null,
       fullBloomForecast: s.full_forecast_datetime ?? null,
@@ -738,8 +738,7 @@ export async function getKawazuForecast(): Promise<KawazuResult> {
         code: s.code ?? "",
         name: s.name ?? "",
         nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
-        lat: s.lat ?? 0,
-        lon: s.lon ?? 0,
+        ...tokyoDatumToWGS84(s.lat ?? 0, s.lon ?? 0),
         bloomForecast: s.bloom_forecast_datetime ?? null,
         fullBloomForecast: s.full_forecast_datetime ?? null,
         bloomRate,

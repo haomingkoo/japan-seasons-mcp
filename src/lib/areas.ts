@@ -157,3 +157,13 @@ export function findWeatherCityId(city: string): string | undefined {
   }
   return undefined;
 }
+
+// ─── Tokyo Datum → WGS84 coordinate conversion ─────────────────────────────
+// The JMC n-kishou API returns coordinates in Japanese Geodetic Datum (Tokyo Datum).
+// This formula (from GSI) converts them to WGS84 for use with Leaflet / Google Maps.
+// Typical offset: ~460m in the Tokyo area.
+export function tokyoDatumToWGS84(lat: number, lon: number): { lat: number; lon: number } {
+  const dLat = -lat * 0.00010695 + lon * 0.000017464 + 0.0046017;
+  const dLon = -lat * 0.000046038 - lon * 0.000083043 + 0.010040;
+  return { lat: lat + dLat, lon: lon + dLon };
+}
