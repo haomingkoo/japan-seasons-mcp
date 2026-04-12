@@ -21,9 +21,9 @@ const C = {
   // Kawazu cherry (early-blooming variant — distinct magenta)
   kawazu:      '#db2777',
   // Fruit picking — blue for map markers (distinct from all sakura lifecycle colors)
-  farmAmber:   '#2563eb',
-  farmAmberLight: '#eff6ff',
-  farmAmberBorder: '#93c5fd',
+  farmBlue:        '#2563eb',
+  farmBlueLight:   '#eff6ff',
+  farmBlueBorder:  '#93c5fd',
   // Nature greens (sidebar UI, badges, koyo early-stage) — = CSS --green
   green:       '#16a34a',
   greenDark:   '#166534',
@@ -1244,7 +1244,7 @@ function updateLegend(type) {
       <div class="legend-row"><span style="font-size:14px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
       <div class="legend-row"><span style="font-size:14px">💜</span> Wisteria</div>
       <div class="legend-row"><span style="font-size:14px">💙</span> Hydrangea</div>
-      <div class="legend-row"><div class="legend-dot" style="background:${C.farmAmber}"></div> Fruit farm</div>`;
+      <div class="legend-row"><div class="legend-dot" style="background:${C.farmBlue}"></div> Fruit farm</div>`;
   } else {
     el.style.display = 'none';
     return;
@@ -1412,6 +1412,7 @@ function renderFlowers() {
 
 // ── Major tourist cities for trip planner ──
 const TOURIST_CITIES = {
+  // Major tourist destinations
   "tokyo":[35.689,139.692],"osaka":[34.694,135.502],"kyoto":[35.012,135.768],
   "hiroshima":[34.397,132.46],"nara":[34.685,135.833],"kobe":[34.691,135.183],
   "yokohama":[35.448,139.642],"nagoya":[35.18,136.906],"sapporo":[43.062,141.354],
@@ -1428,18 +1429,33 @@ const TOURIST_CITIES = {
   "niigata":[37.916,139.036],"toyama":[36.695,137.211],"gifu":[35.423,136.761],
   "kofu":[35.664,138.568],"nagano":[36.651,138.181],"shizuoka":[34.977,138.383],
   "hamamatsu":[34.71,137.727],"utsunomiya":[36.555,139.883],"maebashi":[36.391,139.061],
+  // All koyo/sakura JMA observation cities not already covered above
+  "asahikawa":[43.771,142.364],"obihiro":[42.918,143.197],"kushiro":[42.975,144.375],
+  "muroran":[42.315,140.974],"yamagata":[38.240,140.363],"fukushima":[37.760,140.474],
+  "mito":[36.341,140.446],"kumagaya":[36.147,139.388],"choshi":[35.735,140.853],
+  "fukui":[36.065,136.219],"hikone":[35.274,136.255],"wakayama":[34.231,135.167],
+  "tottori":[35.501,134.237],"shimonoseki":[33.955,130.921],"tokushima":[34.066,134.559],
+  "kochi":[33.560,133.531],"saga":[33.249,130.299],"oita":[33.238,131.612],
+  "miyazaki":[31.911,131.423],"tsu":[34.730,136.508],
 };
 
-// City → prefecture code (for koyo lookup in trip planner)
+// City → prefecture code (for koyo/sakura spot lookup in trip planner)
 const CITY_PREF = {
   "tokyo":"13","yokohama":"14","kamakura":"14","hakone":"14","kawaguchiko":"19","fuji":"22","izu":"22",
   "osaka":"27","kyoto":"26","nara":"29","kobe":"28","uji":"26",
   "hiroshima":"34","miyajima":"34","okayama":"33","naoshima":"37",
-  "sapporo":"01","hakodate":"01","aomori":"02","akita":"05","morioka":"03",
-  "sendai":"04","nikko":"09","matsumoto":"20",
-  "fukuoka":"40","nagasaki":"42","kumamoto":"43","kagoshima":"46","beppu":"44",
-  "nagoya":"23","takayama":"21","shirakawago":"17","kanazawa":"17",
-  "takamatsu":"37","matsuyama":"38","matsue":"32","okinawa":"47","naha":"47",
+  "sapporo":"01","hakodate":"01","asahikawa":"01","obihiro":"01","kushiro":"01","muroran":"01",
+  "aomori":"02","morioka":"03","sendai":"04","akita":"05","yamagata":"06","fukushima":"07",
+  "mito":"08","utsunomiya":"09","nikko":"09","maebashi":"10","kumagaya":"11","choshi":"12",
+  "kofu":"19","nagano":"20","matsumoto":"20",
+  "niigata":"15","toyama":"16","kanazawa":"17","shirakawago":"17","fukui":"18",
+  "shizuoka":"22","gifu":"21","nagoya":"23","takayama":"21","tsu":"24",
+  "hikone":"25","matsue":"32","tottori":"31","wakayama":"30",
+  "okayama":"33","hiroshima":"34","shimonoseki":"35",
+  "takamatsu":"37","matsuyama":"38","tokushima":"36","kochi":"39",
+  "fukuoka":"40","saga":"41","nagasaki":"42","kumamoto":"43","oita":"44","beppu":"44",
+  "miyazaki":"45","kagoshima":"46","okinawa":"47","naha":"47",
+  "hamamatsu":"22","uji":"26","izu":"22","miyajima":"34","naoshima":"37",
 };
 
 // Popular cities for quick-pick chips
@@ -1678,14 +1694,14 @@ async function searchTrip() {
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
             const sz = Math.min(32 + n * 0.2, 48);
-            return L.divIcon({ html: `<div style="background:${C.farmAmber};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+            return L.divIcon({ html: `<div style="background:${C.farmBlue};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
         for (const farm of seasonFarms) {
           const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
           const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
           const mk = L.marker([farm.lat, farm.lon], {
-            icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmAmber};border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] })
+            icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] })
           });
           mk.bindPopup(farmPopupHtml(farm, m));
           clusterGroup.addLayer(mk);
@@ -1896,7 +1912,7 @@ async function searchTrip() {
       const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
       const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmAmber};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
+        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
       });
       mk.bindPopup(farmPopupHtml(farm, m));
       mk.addTo(mapInstance);
@@ -2454,13 +2470,13 @@ function renderWhatsOn(m) {
       iconCreateFunction: cluster => {
         const n = cluster.getChildCount();
         const sz = Math.min(30 + n * 0.3, 46);
-        return L.divIcon({ html: `<div style="background:${C.farmAmber};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+        return L.divIcon({ html: `<div style="background:${C.farmBlue};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
       }
     });
     for (const farm of farms) {
       const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmAmber};border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">${emoji}</div>`, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
+        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">${emoji}</div>`, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
       });
       mk.bindPopup(farmPopupHtml(farm, m));
       clusterGroup.addLayer(mk);
