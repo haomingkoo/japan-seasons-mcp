@@ -8,6 +8,7 @@ import {
   findCities,
   findBestRegions,
   findPrefCode,
+  type SakuraSpot,
 } from "./lib/sakura-forecast.js";
 import { getKoyoForecast, getKoyoSpots } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
@@ -56,7 +57,7 @@ function error(res: ServerResponse, msg: string, status = 400) {
 }
 
 // Strip fields not needed for map rendering — reduces all-spots payload by ~30%
-function slimSakuraSpot(s: Record<string, unknown>) {
+function slimSakuraSpot(s: SakuraSpot) {
   return {
     lat: s.lat, lon: s.lon,
     name: s.name, nameRomaji: s.nameRomaji,
@@ -143,7 +144,7 @@ export async function handleApiRequest(
       const results = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
       for (const r of results) {
         if (r.status === "fulfilled" && r.value.spots) {
-          allSpots.push(...(r.value.spots as unknown as Record<string, unknown>[]).map(slimSakuraSpot));
+          allSpots.push(...r.value.spots.map(slimSakuraSpot));
         } else if (r.status === "rejected") logger.warn(`all-spots sakura: ${r.reason}`);
       }
       const data = { totalSpots: allSpots.length, spots: allSpots };
@@ -289,7 +290,7 @@ export async function warmSpotsCache(): Promise<void> {
   const sakuraSpots: unknown[] = [];
   for (const r of sakuraResults) {
     if (r.status === "fulfilled" && r.value.spots) {
-      sakuraSpots.push(...(r.value.spots as unknown as Record<string, unknown>[]).map(slimSakuraSpot));
+      sakuraSpots.push(...r.value.spots.map(slimSakuraSpot));
     }
   }
   const sakuraData = { totalSpots: sakuraSpots.length, spots: sakuraSpots };

@@ -578,14 +578,46 @@ Use the japan-seasons-mcp tools based on the travel month:
     "koyo.spots",
     {
       title: "Autumn Leaves Viewing Spots",
-      description: "Use this when the user already knows the prefecture and needs exact autumn leaves viewing spots. Returns Japan Meteorological Corporation koyo spots for one prefecture with best start, peak, and end dates, leaf type, popularity rating, and GPS coordinates. Do not use this for cross-city date matching; use koyo.forecast or koyo.best_dates first.",
+      description: "Use this when the user already knows the prefecture and needs exact autumn leaves viewing spots. Returns Japan Meteorological Corporation koyo spots for one prefecture with best start, peak, and end dates, leaf type, popularity rating, and GPS coordinates. Omit prefecture to get a top-destinations guide. Do not use this for cross-city date matching; use koyo.forecast or koyo.best_dates first.",
       inputSchema: {
-        prefecture: z.string().describe("Required prefecture filter. Accepts English prefecture name or numeric prefecture code such as 'Kyoto', 'Tokyo', 'Hokkaido', or '26'. This tool returns one prefecture at a time.").meta({ title: "Prefecture Name or Code" }),
+        prefecture: z.string().optional().describe("Prefecture filter. Accepts English name or numeric code such as 'Kyoto', 'Tokyo', 'Hokkaido', or '26'. Omit to receive a curated list of top koyo destinations across Japan.").meta({ title: "Prefecture Name or Code (optional)" }),
       },
       annotations: READONLY,
     },
     async ({ prefecture }) => {
       try {
+        // No-city mode: curated top koyo destinations
+        if (!prefecture) {
+          const TOP_KOYO_PREFS = [
+            { code: "09", label: "Nikko (Tochigi)" },
+            { code: "26", label: "Kyoto" },
+            { code: "29", label: "Nara" },
+            { code: "01", label: "Hokkaido" },
+            { code: "06", label: "Yamagata" },
+          ];
+          const results = await Promise.allSettled(
+            TOP_KOYO_PREFS.map(p => getKoyoSpots(p.code))
+          );
+          let output = `# Top Autumn Leaves Destinations in Japan\n\nShowing top-rated spots from 5 prime koyo prefectures. For nationwide timing, use koyo.forecast. For trip-date matching, use koyo.best_dates.\n\n`;
+          for (let i = 0; i < results.length; i++) {
+            const r = results[i];
+            if (r.status === "rejected") continue;
+            const result = r.value;
+            // Show top 3 spots per prefecture by popularity
+            const topSpots = [...result.spots].sort((a, b) => b.popularity - a.popularity).slice(0, 3);
+            if (topSpots.length === 0) continue;
+            output += `## ${TOP_KOYO_PREFS[i].label}\n`;
+            for (const spot of topSpots) {
+              output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
+              output += `- **${spot.status}**\n`;
+              output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
+              output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
+              output += coordinateLine(spot.lat, spot.lon, outputConfig);
+            }
+          }
+          return { content: [{ type: "text", text: output }] };
+        }
+
         const prefCode = findPrefCode(prefecture);
         if (!prefCode) {
           return { content: [{ type: "text", text: `Prefecture "${prefecture}" not found.` }], isError: true };
@@ -1165,12 +1197,6 @@ async function startHttpServer() {
       return;
     }
 
-    if (url.pathname === "/stats") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(stats.toJSON(), null, 2));
-      return;
-    }
-
     if (url.pathname === "/mcp") {
       const sessionId = req.headers["mcp-session-id"] as string | undefined;
 
@@ -1305,7 +1331,7 @@ async function startHttpServer() {
       await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()]);
       logger.info("Forecasts ready — warming all-spots (background)…");
       // All-spots in background: 47 upstream requests each, takes ~30s on first deploy
-      warmSpotsCache().catch((e: any) => logger.warn(`all-spots warm-up error: ${e.message}`));
+      warmSpotsCache().catch((e: any) => logger.error(`all-spots warm-up failed: ${e.message}`));
     } catch (e: any) {
       logger.warn(`Cache warm-up error (non-fatal): ${e.message}`);
     }

@@ -15,7 +15,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2100069/",
       "lat": 35.13074,
-      "lon": 138.944923
+      "lon": 138.944923,
+      "region": "Shizuoka"
     },
     {
       "id": "02308-f00541",
@@ -29,7 +30,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00541/",
       "lat": 36.318171,
-      "lon": 139.743628
+      "lon": 139.743628,
+      "region": "Tochigi"
     },
     {
       "id": "02301-2100057",
@@ -40,7 +42,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2100057/",
       "lat": 35.056534,
-      "lon": 138.924538
+      "lon": 138.924538,
+      "region": "Shizuoka"
     },
     {
       "id": "02308-f00090",
@@ -56,7 +59,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00090/",
       "lat": 36.660474,
-      "lon": 139.07739
+      "lon": 139.07739,
+      "region": "Gunma"
     },
     {
       "id": "02301-2300038",
@@ -65,7 +69,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2300038/",
       "lat": 35.129961,
-      "lon": 137.086975
+      "lon": 137.086975,
+      "region": "Aichi"
     },
     {
       "id": "02308-f00195",
@@ -77,7 +82,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00195/",
       "lat": 35.209012,
-      "lon": 139.659477
+      "lon": 139.659477,
+      "region": "Kanagawa"
     },
     {
       "id": "02301-3000342",
@@ -88,7 +94,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000342/",
       "lat": 34.99064,
-      "lon": 139.883432
+      "lon": 139.883432,
+      "region": "Chiba"
     },
     {
       "id": "02301-1903250",
@@ -97,7 +104,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903250/",
       "lat": 34.458071,
-      "lon": 135.608471
+      "lon": 135.608471,
+      "region": "Osaka"
     },
     {
       "id": "02301-2800045",
@@ -106,7 +114,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2800045/",
       "lat": 33.592458,
-      "lon": 133.639527
+      "lon": 133.639527,
+      "region": "Kochi"
     },
     {
       "id": "02301-14402539",
@@ -115,7 +124,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402539/",
       "lat": 36.616385,
-      "lon": 139.85005
+      "lon": 139.85005,
+      "region": "Tochigi"
     },
     {
       "id": "02301-4200064",
@@ -124,7 +134,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200064/",
       "lat": 36.741189,
-      "lon": 138.325193
+      "lon": 138.325193,
+      "region": "Nagano"
     },
     {
       "id": "02308-f00341",
@@ -138,7 +149,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00341/",
       "lat": 36.309313,
-      "lon": 139.634081
+      "lon": 139.634081,
+      "region": "Tochigi"
     },
     {
       "id": "02308-f00048",
@@ -150,7 +162,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00048/",
       "lat": 34.929244,
-      "lon": 134.114388
+      "lon": 134.114388,
+      "region": "Okayama"
     },
     {
       "id": "02301-2900440",
@@ -161,7 +174,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2900440/",
       "lat": 36.734981,
-      "lon": 139.717163
+      "lon": 139.717163,
+      "region": "Tochigi"
     },
     {
       "id": "02301-3700271",
@@ -172,7 +186,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700271/",
       "lat": 36.937458,
-      "lon": 138.823095
+      "lon": 138.823095,
+      "region": "Niigata"
     },
     {
       "id": "02308-f00269",
@@ -185,7 +200,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00269/",
       "lat": 35.242215,
-      "lon": 139.885281
+      "lon": 139.885281,
+      "region": "Chiba"
     },
     {
       "id": "02308-f00530",
@@ -194,7 +210,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00530/",
       "lat": 35.858597,
-      "lon": 139.447484
+      "lon": 139.447484,
+      "region": "Saitama"
     },
     {
       "id": "02308-f00214",
@@ -206,7 +223,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00214/",
       "lat": 35.014287,
-      "lon": 139.070295
+      "lon": 139.070295,
+      "region": "Shizuoka"
     },
     {
       "id": "02308-f00212",
@@ -215,7 +233,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00212/",
       "lat": 40.632285,
-      "lon": 141.390981
+      "lon": 141.390981,
+      "region": "Aomori"
     },
     {
       "id": "02308-f00013",
@@ -228,7 +247,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00013/",
       "lat": 34.800864,
-      "lon": 136.879754
+      "lon": 136.879754,
+      "region": "Aichi"
     },
     {
       "id": "02308-f00083",
@@ -239,7 +259,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00083/",
       "lat": 32.227808,
-      "lon": 130.418081
+      "lon": 130.418081,
+      "region": "Kumamoto"
     },
     {
       "id": "02301-4300072n",
@@ -251,7 +272,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4300072n/",
       "lat": 35.605113,
-      "lon": 138.549004
+      "lon": 138.549004,
+      "region": "Yamanashi"
     },
     {
       "id": "02308-f00510",
@@ -262,7 +284,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00510/",
       "lat": 35.644992,
-      "lon": 138.490132
+      "lon": 138.490132,
+      "region": "Yamanashi"
     },
     {
       "id": "02308-f00534",
@@ -276,7 +299,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00534/",
       "lat": 38.401776,
-      "lon": 140.431151
+      "lon": 140.431151,
+      "region": "Yamagata"
     },
     {
       "id": "02301-14401892n",
@@ -285,7 +309,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14401892n/",
       "lat": 35.20371,
-      "lon": 139.12197
+      "lon": 139.12197,
+      "region": "Kanagawa"
     },
     {
       "id": "02308-f00219",
@@ -296,7 +321,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00219/",
       "lat": 34.75138,
-      "lon": 138.051417
+      "lon": 138.051417,
+      "region": "Shizuoka"
     },
     {
       "id": "02301-14402888",
@@ -307,7 +333,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402888/",
       "lat": 43.484489,
-      "lon": 142.189675
+      "lon": 142.189675,
+      "region": "Hokkaido"
     },
     {
       "id": "02308-f00019",
@@ -318,7 +345,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00019/",
       "lat": 34.624386,
-      "lon": 137.07792
+      "lon": 137.07792,
+      "region": "Aichi"
     },
     {
       "id": "02301-14416696",
@@ -329,7 +357,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14416696/",
       "lat": 35.703645,
-      "lon": 138.677262
+      "lon": 138.677262,
+      "region": "Yamanashi"
     },
     {
       "id": "02301-12500155",
@@ -338,7 +367,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12500155/",
       "lat": 36.397622,
-      "lon": 138.980605
+      "lon": 138.980605,
+      "region": "Gunma"
     },
     {
       "id": "02308-f00128",
@@ -347,7 +377,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00128/",
       "lat": 36.031429,
-      "lon": 139.074354
+      "lon": 139.074354,
+      "region": "Saitama"
     },
     {
       "id": "02301-pn0002371",
@@ -358,7 +389,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-pn0002371/",
       "lat": 35.611845,
-      "lon": 140.426175
+      "lon": 140.426175,
+      "region": "Chiba"
     },
     {
       "id": "02301-13000544",
@@ -367,7 +399,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-13000544/",
       "lat": 34.561011,
-      "lon": 134.97498
+      "lon": 134.97498,
+      "region": "Hyogo"
     },
     {
       "id": "02301-14400863",
@@ -376,7 +409,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400863/",
       "lat": 36.045475,
-      "lon": 139.10298
+      "lon": 139.10298,
+      "region": "Saitama"
     },
     {
       "id": "02301-14400973",
@@ -385,7 +419,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400973/",
       "lat": 35.755398,
-      "lon": 140.248672
+      "lon": 140.248672,
+      "region": "Chiba"
     },
     {
       "id": "02301-12900087n",
@@ -396,7 +431,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12900087n/",
       "lat": 35.90004,
-      "lon": 139.823247
+      "lon": 139.823247,
+      "region": "Saitama"
     },
     {
       "id": "02308-f00105",
@@ -407,7 +443,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00105/",
       "lat": 34.469634,
-      "lon": 134.233133
+      "lon": 134.233133,
+      "region": "Kagawa"
     },
     {
       "id": "02308-f00081",
@@ -422,7 +459,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00081/",
       "lat": 32.875922,
-      "lon": 130.661183
+      "lon": 130.661183,
+      "region": "Kumamoto"
     },
     {
       "id": "02301-13000212",
@@ -431,7 +469,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-13000212/",
       "lat": 34.946908,
-      "lon": 135.14833
+      "lon": 135.14833,
+      "region": "Hyogo"
     },
     {
       "id": "02308-f00514",
@@ -442,7 +481,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00514/",
       "lat": 34.771171,
-      "lon": 139.034444
+      "lon": 139.034444,
+      "region": "Shizuoka"
     },
     {
       "id": "02301-12800329n",
@@ -453,7 +493,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12800329n/",
       "lat": 35.604051,
-      "lon": 140.385218
+      "lon": 140.385218,
+      "region": "Chiba"
     },
     {
       "id": "02301-3700164n",
@@ -464,7 +505,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700164n/",
       "lat": 37.832385,
-      "lon": 139.038252
+      "lon": 139.038252,
+      "region": "Niigata"
     },
     {
       "id": "02308-f00544",
@@ -478,7 +520,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00544/",
       "lat": 34.854652,
-      "lon": 137.24086
+      "lon": 137.24086,
+      "region": "Aichi"
     },
     {
       "id": "02308-f00349",
@@ -490,7 +533,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00349/",
       "lat": 36.923769,
-      "lon": 139.933347
+      "lon": 139.933347,
+      "region": "Tochigi"
     },
     {
       "id": "02301-4200700",
@@ -499,7 +543,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200700/",
       "lat": 35.509257,
-      "lon": 137.780931
+      "lon": 137.780931,
+      "region": "Nagano"
     },
     {
       "id": "02301-3000352",
@@ -510,7 +555,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000352/",
       "lat": 35.834822,
-      "lon": 140.669978
+      "lon": 140.669978,
+      "region": "Chiba"
     },
     {
       "id": "02301-2400163",
@@ -519,7 +565,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2400163/",
       "lat": 33.831742,
-      "lon": 135.182084
+      "lon": 135.182084,
+      "region": "Wakayama"
     },
     {
       "id": "02308-f00176",
@@ -528,7 +575,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00176/",
       "lat": 35.069907,
-      "lon": 135.940056
+      "lon": 135.940056,
+      "region": "Shiga"
     },
     {
       "id": "02301-t8122",
@@ -539,7 +587,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-t8122/",
       "lat": 33.359081,
-      "lon": 130.588395
+      "lon": 130.588395,
+      "region": "Fukuoka"
     },
     {
       "id": "02301-14402720",
@@ -550,7 +599,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402720/",
       "lat": 33.462476,
-      "lon": 130.53187
+      "lon": 130.53187,
+      "region": "Fukuoka"
     },
     {
       "id": "02308-f00037",
@@ -561,7 +611,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00037/",
       "lat": 36.077844,
-      "lon": 139.987009
+      "lon": 139.987009,
+      "region": "Ibaraki"
     },
     {
       "id": "02301-14401509",
@@ -572,7 +623,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14401509/",
       "lat": 36.257524,
-      "lon": 139.115412
+      "lon": 139.115412,
+      "region": "Saitama"
     },
     {
       "id": "00004-11151200050",
@@ -583,7 +635,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/00004-11151200050/",
       "lat": 35.961049,
-      "lon": 139.335022
+      "lon": 139.335022,
+      "region": "Saitama"
     },
     {
       "id": "02301-14402079n",
@@ -594,7 +647,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402079n/",
       "lat": 34.908812,
-      "lon": 139.88931
+      "lon": 139.88931,
+      "region": "Chiba"
     },
     {
       "id": "02301-4300172",
@@ -606,7 +660,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4300172/",
       "lat": 35.661799,
-      "lon": 138.591448
+      "lon": 138.591448,
+      "region": "Yamanashi"
     },
     {
       "id": "02301-14421515",
@@ -617,7 +672,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14421515/",
       "lat": 36.259151,
-      "lon": 137.863222
+      "lon": 137.863222,
+      "region": "Nagano"
     },
     {
       "id": "02308-f00020",
@@ -626,7 +682,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00020/",
       "lat": 34.586576,
-      "lon": 137.065607
+      "lon": 137.065607,
+      "region": "Aichi"
     },
     {
       "id": "02308-f00550",
@@ -637,7 +694,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00550/",
       "lat": 35.634555,
-      "lon": 138.701165
+      "lon": 138.701165,
+      "region": "Yamanashi"
     },
     {
       "id": "02301-14427221n",
@@ -646,7 +704,8 @@
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14427221n/",
       "lat": 43.918652,
-      "lon": 144.256949
+      "lon": 144.256949,
+      "region": "Hokkaido"
     },
     {
       "id": "02308-f00247",
@@ -657,7 +716,8 @@
       ],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00247/",
       "lat": 35.58447,
-      "lon": 140.465086
+      "lon": 140.465086,
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000211503",
@@ -669,7 +729,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211503/",
       "lat": 38.428403,
       "lon": 140.364313,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000193493",
@@ -682,7 +743,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193493/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okayama"
     },
     {
       "id": "jalan_000000194927",
@@ -694,7 +756,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194927/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000194779",
@@ -706,7 +769,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194779/",
       "lat": 43.696126,
       "lon": 142.182895,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000200988",
@@ -718,7 +782,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000200988/",
       "lat": 33.323662,
       "lon": 130.708252,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000211488",
@@ -730,7 +795,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211488/",
       "lat": 37.810681,
       "lon": 140.414047,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000194430",
@@ -742,7 +808,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194430/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000193640",
@@ -754,7 +821,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193640/",
       "lat": 37.816817,
       "lon": 140.452983,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000194618",
@@ -766,7 +834,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194618/",
       "lat": 37.838181,
       "lon": 140.565832,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000191174",
@@ -780,7 +849,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191174/",
       "lat": 35.395614,
       "lon": 139.435331,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000194396",
@@ -792,7 +862,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194396/",
       "lat": 36.209096,
       "lon": 140.060297,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000194992",
@@ -804,7 +875,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194992/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000195059",
@@ -816,7 +888,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195059/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000195244",
@@ -828,7 +901,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195244/",
       "lat": 31.659929,
       "lon": 131.376387,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000193449",
@@ -838,7 +912,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193449/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000194263",
@@ -850,7 +925,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194263/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000194865",
@@ -862,7 +938,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194865/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000200501",
@@ -874,7 +951,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000200501/",
       "lat": 36.167302,
       "lon": 140.199226,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211402",
@@ -886,7 +964,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211402/",
       "lat": 36.69516,
       "lon": 139.110621,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000211535",
@@ -898,7 +977,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211535/",
       "lat": 36.667777,
       "lon": 139.041596,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000211557",
@@ -910,7 +990,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211557/",
       "lat": 35.990093,
       "lon": 139.728346,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000211751",
@@ -923,7 +1004,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211751/",
       "lat": 38.645692,
       "lon": 141.249145,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000211765",
@@ -935,7 +1017,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211765/",
       "lat": 36.619703,
       "lon": 140.390172,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211022",
@@ -947,7 +1030,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211022/",
       "lat": 31.420921,
       "lon": 130.389965,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000211131",
@@ -959,7 +1043,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211131/",
       "lat": 35.842177,
       "lon": 139.876959,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000211243",
@@ -971,7 +1056,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211243/",
       "lat": 38.425657,
       "lon": 140.409822,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211329",
@@ -981,7 +1067,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211329/",
       "lat": 36.226705,
       "lon": 140.147365,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211380",
@@ -993,7 +1080,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211380/",
       "lat": 32.007681,
       "lon": 130.955333,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000211389",
@@ -1005,7 +1093,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211389/",
       "lat": 31.554399,
       "lon": 130.633902,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000211448",
@@ -1017,7 +1106,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211448/",
       "lat": 38.544055,
       "lon": 140.342201,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211494",
@@ -1029,7 +1119,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211494/",
       "lat": 37.807732,
       "lon": 140.413129,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211552",
@@ -1041,7 +1132,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211552/",
       "lat": 38.032907,
       "lon": 140.158098,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211729",
@@ -1053,7 +1145,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211729/",
       "lat": 35.627451,
       "lon": 139.638993,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tokyo"
     },
     {
       "id": "jalan_000000201907",
@@ -1065,7 +1158,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000201907/",
       "lat": 35.999509,
       "lon": 139.716575,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000194331",
@@ -1077,7 +1171,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194331/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000194656",
@@ -1089,7 +1184,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194656/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211465",
@@ -1101,7 +1197,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211465/",
       "lat": 38.312946,
       "lon": 140.412962,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000194991",
@@ -1111,7 +1208,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194991/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000193466",
@@ -1121,7 +1219,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193466/",
       "lat": 36.273358,
       "lon": 140.25227,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000195293",
@@ -1133,7 +1232,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195293/",
       "lat": 36.25777,
       "lon": 140.157895,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000199591",
@@ -1145,7 +1245,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199591/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okayama"
     },
     {
       "id": "jalan_000000210931",
@@ -1157,7 +1258,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210931/",
       "lat": 35.998431,
       "lon": 139.713935,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000210961",
@@ -1169,7 +1271,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210961/",
       "lat": 36.650757,
       "lon": 139.068365,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000211116",
@@ -1181,7 +1284,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211116/",
       "lat": 37.798971,
       "lon": 140.455038,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211240",
@@ -1191,7 +1295,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211240/",
       "lat": 36.218335,
       "lon": 140.135179,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211440",
@@ -1204,7 +1309,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211440/",
       "lat": 35.856515,
       "lon": 138.412838,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000211506",
@@ -1216,7 +1322,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211506/",
       "lat": 40.393105,
       "lon": 141.331124,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aomori"
     },
     {
       "id": "jalan_000000211562",
@@ -1228,7 +1335,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211562/",
       "lat": 40.718061,
       "lon": 140.340702,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aomori"
     },
     {
       "id": "jalan_000000211584",
@@ -1240,7 +1348,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211584/",
       "lat": 37.810983,
       "lon": 140.415495,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211707",
@@ -1250,7 +1359,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211707/",
       "lat": 36.219982,
       "lon": 140.141267,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000210992",
@@ -1262,7 +1372,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210992/",
       "lat": 36.155256,
       "lon": 140.211037,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211231",
@@ -1274,7 +1385,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211231/",
       "lat": 37.816683,
       "lon": 140.438259,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211278",
@@ -1286,7 +1398,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211278/",
       "lat": 37.753419,
       "lon": 140.411387,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211298",
@@ -1298,7 +1411,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211298/",
       "lat": 38.063538,
       "lon": 140.152732,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211320",
@@ -1310,7 +1424,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211320/",
       "lat": 38.314259,
       "lon": 140.40639,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211368",
@@ -1323,7 +1438,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211368/",
       "lat": 35.701416,
       "lon": 138.740435,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000211456",
@@ -1335,7 +1451,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211456/",
       "lat": 34.545108,
       "lon": 135.853053,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nara"
     },
     {
       "id": "jalan_000000211546",
@@ -1347,7 +1464,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211546/",
       "lat": 38.40383,
       "lon": 140.448532,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211614",
@@ -1359,7 +1477,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211614/",
       "lat": 38.108663,
       "lon": 140.282086,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211629",
@@ -1371,7 +1490,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211629/",
       "lat": 36.228112,
       "lon": 140.149537,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000211678",
@@ -1381,7 +1501,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211678/",
       "lat": 36.217301,
       "lon": 140.139773,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000200352",
@@ -1393,7 +1514,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000200352/",
       "lat": 31.9803,
       "lon": 130.922091,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000211399",
@@ -1405,7 +1527,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211399/",
       "lat": 33.326003,
       "lon": 130.679417,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000211429",
@@ -1417,7 +1540,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211429/",
       "lat": 37.788609,
       "lon": 140.397819,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211490",
@@ -1429,7 +1553,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211490/",
       "lat": 37.731044,
       "lon": 140.408886,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211228",
@@ -1441,7 +1566,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211228/",
       "lat": 42.562584,
       "lon": 140.907137,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000211268",
@@ -1451,7 +1577,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211268/",
       "lat": 34.765637,
       "lon": 132.857092,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hiroshima"
     },
     {
       "id": "jalan_000000211283",
@@ -1463,7 +1590,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211283/",
       "lat": 38.408889,
       "lon": 140.413228,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211455",
@@ -1475,7 +1603,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211455/",
       "lat": 37.704384,
       "lon": 140.360234,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211626",
@@ -1487,7 +1616,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211626/",
       "lat": 37.739549,
       "lon": 140.37252,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000211662",
@@ -1499,7 +1629,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211662/",
       "lat": 37.790475,
       "lon": 140.399174,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000207118",
@@ -1512,7 +1643,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000207118/",
       "lat": 33.893859,
       "lon": 133.091976,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ehime"
     },
     {
       "id": "jalan_000000210905",
@@ -1524,7 +1656,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210905/",
       "lat": 43.687355,
       "lon": 142.083786,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000193551",
@@ -1536,7 +1669,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193551/",
       "lat": 38.409065,
       "lon": 140.40239,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000211484",
@@ -1549,7 +1683,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211484/",
       "lat": 35.662297,
       "lon": 138.728857,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000211627",
@@ -1562,7 +1697,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211627/",
       "lat": 38.409291,
       "lon": 140.379915,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000184766",
@@ -1577,7 +1713,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184766/",
       "lat": 35.645017,
       "lon": 138.490127,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000185434",
@@ -1592,7 +1729,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000185434/",
       "lat": 35.850976,
       "lon": 138.422506,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000218929",
@@ -1604,7 +1742,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218929/",
       "lat": 38.007157,
       "lon": 140.850554,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000182018",
@@ -1620,7 +1759,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000182018/",
       "lat": 37.821821,
       "lon": 140.431482,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000229162",
@@ -1632,7 +1772,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000229162/",
       "lat": 34.734533,
       "lon": 133.77933,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okayama"
     },
     {
       "id": "jalan_000000180176",
@@ -1646,7 +1787,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180176/",
       "lat": 36.613795,
       "lon": 140.077854,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tochigi"
     },
     {
       "id": "jalan_000000194405",
@@ -1661,7 +1803,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194405/",
       "lat": 37.757184,
       "lon": 140.370919,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000190188",
@@ -1673,7 +1816,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000190188/",
       "lat": 36.164006,
       "lon": 140.247644,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000184893",
@@ -1685,7 +1829,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184893/",
       "lat": 34.407246,
       "lon": 135.392042,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Osaka"
     },
     {
       "id": "jalan_000000185667",
@@ -1697,7 +1842,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000185667/",
       "lat": 33.323286,
       "lon": 130.678088,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000218338",
@@ -1710,7 +1856,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218338/",
       "lat": 33.371366,
       "lon": 130.782118,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000184684",
@@ -1724,7 +1871,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184684/",
       "lat": 43.151097,
       "lon": 141.964639,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000180399",
@@ -1739,7 +1887,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180399/",
       "lat": 38.401826,
       "lon": 140.431174,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000191482",
@@ -1753,7 +1902,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191482/",
       "lat": 37.813149,
       "lon": 140.423536,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000177549",
@@ -1769,7 +1919,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000177549/",
       "lat": 37.812083,
       "lon": 140.419658,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000210613",
@@ -1781,7 +1932,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210613/",
       "lat": 36.778656,
       "lon": 140.44379,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000199781",
@@ -1794,7 +1946,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199781/",
       "lat": 35.696994,
       "lon": 139.457422,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tokyo"
     },
     {
       "id": "jalan_000000217720",
@@ -1806,7 +1959,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217720/",
       "lat": 36.386241,
       "lon": 138.90648,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000191619",
@@ -1819,7 +1973,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191619/",
       "lat": 33.395552,
       "lon": 130.734717,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000110019",
@@ -1832,7 +1987,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000110019/",
       "lat": 36.247933,
       "lon": 140.549222,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000201759",
@@ -1844,7 +2000,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000201759/",
       "lat": 33.371514,
       "lon": 130.778357,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000206813",
@@ -1856,7 +2013,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206813/",
       "lat": 36.162535,
       "lon": 140.237946,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000209575",
@@ -1869,7 +2027,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209575/",
       "lat": 35.043044,
       "lon": 136.135604,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shiga"
     },
     {
       "id": "jalan_000000188771",
@@ -1884,7 +2043,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188771/",
       "lat": 37.813683,
       "lon": 140.427886,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000210427",
@@ -1896,7 +2056,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210427/",
       "lat": 35.993775,
       "lon": 139.714614,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000209831",
@@ -1910,7 +2071,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209831/",
       "lat": 36.151103,
       "lon": 140.212515,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000202352",
@@ -1922,7 +2084,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000202352/",
       "lat": 33.269565,
       "lon": 130.546246,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000200349",
@@ -1936,7 +2099,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000200349/",
       "lat": 37.817315,
       "lon": 140.437398,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000190689",
@@ -1948,7 +2112,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000190689/",
       "lat": 38.108301,
       "lon": 140.635612,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000209669",
@@ -1962,7 +2127,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209669/",
       "lat": 37.463116,
       "lon": 139.8744,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000189099",
@@ -1974,7 +2140,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189099/",
       "lat": 37.776078,
       "lon": 140.387347,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000195043",
@@ -1986,7 +2153,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195043/",
       "lat": 38.408499,
       "lon": 140.397369,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000203758",
@@ -1998,7 +2166,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000203758/",
       "lat": 36.35516,
       "lon": 138.921175,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000206691",
@@ -2011,7 +2180,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206691/",
       "lat": 36.814092,
       "lon": 137.407306,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Toyama"
     },
     {
       "id": "jalan_000000228093",
@@ -2023,7 +2193,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000228093/",
       "lat": 40.25755,
       "lon": 141.270751,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Iwate"
     },
     {
       "id": "jalan_000000220349",
@@ -2035,7 +2206,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000220349/",
       "lat": 43.718952,
       "lon": 142.18537,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000223422",
@@ -2047,7 +2219,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000223422/",
       "lat": 35.011912,
       "lon": 136.911531,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aichi"
     },
     {
       "id": "jalan_000000211343",
@@ -2059,7 +2232,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211343/",
       "lat": 35.763338,
       "lon": 137.989799,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000217652",
@@ -2071,7 +2245,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217652/",
       "lat": 35.875448,
       "lon": 139.560623,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000185397",
@@ -2083,7 +2258,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000185397/",
       "lat": 33.002022,
       "lon": 130.149015,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saga"
     },
     {
       "id": "jalan_000000217188",
@@ -2096,7 +2272,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217188/",
       "lat": 38.396899,
       "lon": 140.394101,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000194087",
@@ -2111,7 +2288,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194087/",
       "lat": 33.644149,
       "lon": 130.905986,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000217716",
@@ -2123,7 +2301,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217716/",
       "lat": 38.315721,
       "lon": 140.41037,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000189421",
@@ -2138,7 +2317,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189421/",
       "lat": 37.821457,
       "lon": 140.443229,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000192170",
@@ -2150,7 +2330,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000192170/",
       "lat": 33.539553,
       "lon": 133.307164,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kochi"
     },
     {
       "id": "jalan_000000195968",
@@ -2165,7 +2346,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195968/",
       "lat": 42.560286,
       "lon": 140.899918,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000194398",
@@ -2178,7 +2360,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194398/",
       "lat": 38.003475,
       "lon": 140.227021,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000178533",
@@ -2190,7 +2373,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000178533/",
       "lat": 42.962338,
       "lon": 141.235393,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000208964",
@@ -2202,7 +2386,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000208964/",
       "lat": 38.314046,
       "lon": 140.408735,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000205597",
@@ -2214,7 +2399,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000205597/",
       "lat": 38.03786,
       "lon": 140.142525,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000190287",
@@ -2226,7 +2412,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000190287/",
       "lat": 38.117513,
       "lon": 140.281408,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000201413",
@@ -2238,7 +2425,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000201413/",
       "lat": 36.218639,
       "lon": 140.136744,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000189239",
@@ -2250,7 +2438,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189239/",
       "lat": 38.101882,
       "lon": 140.286453,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000188758",
@@ -2262,7 +2451,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188758/",
       "lat": 36.100523,
       "lon": 137.166746,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gifu"
     },
     {
       "id": "jalan_000000181298",
@@ -2277,7 +2467,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181298/",
       "lat": 43.167366,
       "lon": 140.816269,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000214458",
@@ -2289,7 +2480,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000214458/",
       "lat": 36.633241,
       "lon": 139.028042,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000218026",
@@ -2301,7 +2493,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218026/",
       "lat": 33.585285,
       "lon": 131.241449,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Oita"
     },
     {
       "id": "jalan_000000194344",
@@ -2311,7 +2504,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194344/",
       "lat": 35.768664,
       "lon": 139.965301,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000194371",
@@ -2323,7 +2517,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194371/",
       "lat": 33.325767,
       "lon": 130.700623,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000211782",
@@ -2336,7 +2531,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211782/",
       "lat": 36.539931,
       "lon": 140.539863,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000216000",
@@ -2348,7 +2544,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216000/",
       "lat": 32.631425,
       "lon": 130.604133,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kumamoto"
     },
     {
       "id": "jalan_000000216606",
@@ -2360,7 +2557,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216606/",
       "lat": 36.172244,
       "lon": 139.156334,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000217756",
@@ -2372,7 +2570,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217756/",
       "lat": 36.221965,
       "lon": 138.924356,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000218473",
@@ -2382,7 +2581,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218473/",
       "lat": 33.311841,
       "lon": 129.936911,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saga"
     },
     {
       "id": "jalan_000000218799",
@@ -2395,7 +2595,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218799/",
       "lat": 37.922528,
       "lon": 140.873237,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000179872",
@@ -2405,7 +2606,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000179872/",
       "lat": 24.73635,
       "lon": 125.268948,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okinawa"
     },
     {
       "id": "jalan_000000182618",
@@ -2417,7 +2619,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000182618/",
       "lat": 43.844395,
       "lon": 141.521012,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000189905",
@@ -2429,7 +2632,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189905/",
       "lat": 38.042085,
       "lon": 140.20573,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000181654",
@@ -2444,7 +2648,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181654/",
       "lat": 37.755243,
       "lon": 140.360393,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000188476",
@@ -2458,7 +2663,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188476/",
       "lat": 42.561383,
       "lon": 140.906425,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000189585",
@@ -2470,7 +2676,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189585/",
       "lat": 43.843084,
       "lon": 141.524048,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000211749",
@@ -2483,7 +2690,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211749/",
       "lat": 35.698866,
       "lon": 138.744295,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000189420",
@@ -2496,7 +2704,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189420/",
       "lat": 39.499115,
       "lon": 140.441178,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Akita"
     },
     {
       "id": "jalan_000000219770",
@@ -2508,7 +2717,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000219770/",
       "lat": 33.537371,
       "lon": 133.896271,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kochi"
     },
     {
       "id": "jalan_000000190309",
@@ -2520,7 +2730,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000190309/",
       "lat": 38.314029,
       "lon": 140.412886,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000199891",
@@ -2532,7 +2743,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199891/",
       "lat": 33.331472,
       "lon": 130.832864,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000228901",
@@ -2542,7 +2754,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000228901/",
       "lat": 42.961526,
       "lon": 141.247918,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000191118",
@@ -2555,7 +2768,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191118/",
       "lat": 37.818554,
       "lon": 140.435624,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000194446",
@@ -2565,7 +2779,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194446/",
       "lat": 33.327424,
       "lon": 130.712466,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000194944",
@@ -2577,7 +2792,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194944/",
       "lat": 38.322247,
       "lon": 140.984823,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000197864",
@@ -2589,7 +2805,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000197864/",
       "lat": 36.679351,
       "lon": 138.359175,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000198255",
@@ -2601,7 +2818,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000198255/",
       "lat": 40.298248,
       "lon": 140.033753,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Akita"
     },
     {
       "id": "jalan_000000207364",
@@ -2613,7 +2831,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000207364/",
       "lat": 26.177362,
       "lon": 127.729079,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okinawa"
     },
     {
       "id": "jalan_000000210495",
@@ -2625,7 +2844,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210495/",
       "lat": 32.045385,
       "lon": 130.984341,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000209373",
@@ -2637,7 +2857,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209373/",
       "lat": 37.482776,
       "lon": 139.887081,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000210764",
@@ -2649,7 +2870,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210764/",
       "lat": 37.680116,
       "lon": 138.994863,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Niigata"
     },
     {
       "id": "jalan_000000216056",
@@ -2661,7 +2883,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216056/",
       "lat": 32.623571,
       "lon": 130.551027,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kumamoto"
     },
     {
       "id": "jalan_000000216255",
@@ -2673,7 +2896,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216255/",
       "lat": 32.631967,
       "lon": 130.603442,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kumamoto"
     },
     {
       "id": "jalan_000000218116",
@@ -2685,7 +2909,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218116/",
       "lat": 34.552429,
       "lon": 131.638009,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamaguchi"
     },
     {
       "id": "jalan_000000222304",
@@ -2697,7 +2922,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000222304/",
       "lat": 34.077626,
       "lon": 133.700077,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagawa"
     },
     {
       "id": "jalan_000000224150",
@@ -2709,7 +2935,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000224150/",
       "lat": 33.891343,
       "lon": 133.04709,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ehime"
     },
     {
       "id": "jalan_000000221188",
@@ -2721,7 +2948,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221188/",
       "lat": 38.313211,
       "lon": 140.411109,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000222280",
@@ -2733,7 +2961,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000222280/",
       "lat": 32.99389,
       "lon": 130.824465,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kumamoto"
     },
     {
       "id": "jalan_000000195180",
@@ -2747,7 +2976,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195180/",
       "lat": 38.415737,
       "lon": 140.458124,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000183272",
@@ -2761,7 +2991,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000183272/",
       "lat": 35.36672,
       "lon": 139.499857,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000199359",
@@ -2773,7 +3004,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199359/",
       "lat": 38.314686,
       "lon": 140.411121,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000213848",
@@ -2786,7 +3018,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000213848/",
       "lat": 43.721653,
       "lon": 142.179244,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000209659",
@@ -2799,7 +3032,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209659/",
       "lat": 35.04298,
       "lon": 136.146355,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shiga"
     },
     {
       "id": "jalan_000000181745",
@@ -2812,7 +3046,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181745/",
       "lat": 38.312066,
       "lon": 140.335826,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000191714",
@@ -2824,7 +3059,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191714/",
       "lat": 36.676227,
       "lon": 139.116248,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000209080",
@@ -2836,7 +3072,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209080/",
       "lat": 38.416216,
       "lon": 140.45811,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000210277",
@@ -2848,7 +3085,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210277/",
       "lat": 33.320356,
       "lon": 130.676802,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000218946",
@@ -2862,7 +3100,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218946/",
       "lat": 42.557174,
       "lon": 140.905945,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000195900",
@@ -2874,7 +3113,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195900/",
       "lat": 36.604263,
       "lon": 140.392957,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000189599",
@@ -2886,7 +3126,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189599/",
       "lat": 35.983254,
       "lon": 139.137462,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000188818",
@@ -2898,7 +3139,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188818/",
       "lat": 38.398794,
       "lon": 140.242396,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000193190",
@@ -2911,7 +3153,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193190/",
       "lat": 33.330742,
       "lon": 130.705788,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000209420",
@@ -2926,7 +3169,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209420/",
       "lat": 35.042329,
       "lon": 136.146876,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shiga"
     },
     {
       "id": "jalan_000000192492",
@@ -2936,7 +3180,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000192492/",
       "lat": 28.270538,
       "lon": 129.323495,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000180423",
@@ -2950,7 +3195,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180423/",
       "lat": 35.6963,
       "lon": 138.661432,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000207010",
@@ -2960,7 +3206,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000207010/",
       "lat": 35.976899,
       "lon": 139.136884,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000192802",
@@ -2970,7 +3217,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000192802/",
       "lat": 34.156369,
       "lon": 135.213008,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Wakayama"
     },
     {
       "id": "jalan_000000216818",
@@ -2988,7 +3236,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216818/",
       "lat": 35.545781,
       "lon": 137.853636,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000179940",
@@ -3002,7 +3251,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000179940/",
       "lat": 35.676241,
       "lon": 138.732649,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000181322",
@@ -3015,7 +3265,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181322/",
       "lat": 42.561929,
       "lon": 140.907997,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000187635",
@@ -3029,7 +3280,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000187635/",
       "lat": 35.149215,
       "lon": 135.215317,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hyogo"
     },
     {
       "id": "jalan_000000170299",
@@ -3043,7 +3295,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000170299/",
       "lat": 35.680165,
       "lon": 135.06594,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kyoto"
     },
     {
       "id": "jalan_000000180963",
@@ -3056,7 +3309,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180963/",
       "lat": 38.179037,
       "lon": 140.306421,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000188008",
@@ -3071,7 +3325,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188008/",
       "lat": 38.428446,
       "lon": 140.381069,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000204579",
@@ -3083,7 +3338,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000204579/",
       "lat": 36.687054,
       "lon": 139.107331,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000215701",
@@ -3095,7 +3351,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000215701/",
       "lat": 36.461778,
       "lon": 138.973818,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000210696",
@@ -3108,7 +3365,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210696/",
       "lat": 33.337978,
       "lon": 130.834822,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000190977",
@@ -3120,7 +3378,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000190977/",
       "lat": 36.666583,
       "lon": 139.064441,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000166299",
@@ -3130,7 +3389,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000166299/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shizuoka"
     },
     {
       "id": "jalan_000000209180",
@@ -3143,7 +3403,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209180/",
       "lat": 37.556367,
       "lon": 140.060277,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000226693",
@@ -3155,7 +3416,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000226693/",
       "lat": 37.54015,
       "lon": 140.570489,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000179465",
@@ -3170,7 +3432,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000179465/",
       "lat": 38.237339,
       "lon": 140.966993,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyagi"
     },
     {
       "id": "jalan_000000185019",
@@ -3180,7 +3443,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000185019/",
       "lat": 24.724173,
       "lon": 125.244124,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okinawa"
     },
     {
       "id": "jalan_000000164583",
@@ -3190,7 +3454,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000164583/",
       "lat": 32.577162,
       "lon": 130.420378,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kumamoto"
     },
     {
       "id": "jalan_000000210276",
@@ -3203,7 +3468,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000210276/",
       "lat": 32.00995,
       "lon": 130.959563,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000194882",
@@ -3215,7 +3481,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194882/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hiroshima"
     },
     {
       "id": "jalan_000000167194",
@@ -3231,7 +3498,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000167194/",
       "lat": 37.500015,
       "lon": 139.870956,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000185284",
@@ -3241,7 +3509,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000185284/",
       "lat": 43.542764,
       "lon": 142.438892,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000198313",
@@ -3256,7 +3525,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000198313/",
       "lat": 33.174724,
       "lon": 132.759765,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kochi"
     },
     {
       "id": "jalan_000000217010",
@@ -3268,7 +3538,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217010/",
       "lat": 35.336549,
       "lon": 139.175609,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000195296",
@@ -3280,7 +3551,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195296/",
       "lat": 36.81041,
       "lon": 140.372588,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000180994",
@@ -3292,7 +3564,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180994/",
       "lat": 43.163961,
       "lon": 140.813978,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000189101",
@@ -3304,7 +3577,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189101/",
       "lat": 37.465405,
       "lon": 139.897461,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000214683",
@@ -3316,7 +3590,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000214683/",
       "lat": 33.034587,
       "lon": 130.166889,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saga"
     },
     {
       "id": "jalan_000000221845",
@@ -3328,7 +3603,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221845/",
       "lat": 33.844239,
       "lon": 130.535845,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000206507",
@@ -3341,7 +3617,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206507/",
       "lat": 35.871282,
       "lon": 138.414429,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000206492",
@@ -3353,7 +3630,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206492/",
       "lat": 36.351596,
       "lon": 139.684,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tochigi"
     },
     {
       "id": "jalan_000000181903",
@@ -3365,7 +3643,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181903/",
       "lat": 37.133631,
       "lon": 140.375708,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000209376",
@@ -3377,7 +3656,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209376/",
       "lat": 31.789273,
       "lon": 130.787876,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000175569",
@@ -3391,7 +3671,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000175569/",
       "lat": 31.964411,
       "lon": 131.081756,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Miyazaki"
     },
     {
       "id": "jalan_000000189882",
@@ -3405,7 +3686,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189882/",
       "lat": 35.619752,
       "lon": 138.67913,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000164064",
@@ -3415,7 +3697,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000164064/",
       "lat": 25.947928,
       "lon": 131.303528,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okinawa"
     },
     {
       "id": "jalan_000000161235",
@@ -3431,7 +3714,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000161235/",
       "lat": 36.660149,
       "lon": 139.077931,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000202829",
@@ -3444,7 +3728,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000202829/",
       "lat": 36.685704,
       "lon": 138.938042,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000188711",
@@ -3457,7 +3742,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188711/",
       "lat": 33.339528,
       "lon": 130.828929,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000180588",
@@ -3469,7 +3755,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180588/",
       "lat": 38.114847,
       "lon": 140.263283,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000182817",
@@ -3479,7 +3766,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000182817/",
       "lat": 32.594339,
       "lon": 129.803826,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagasaki"
     },
     {
       "id": "jalan_000000224425",
@@ -3489,7 +3777,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000224425/",
       "lat": 35.421895,
       "lon": 137.009538,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gifu"
     },
     {
       "id": "jalan_000000215987",
@@ -3501,7 +3790,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000215987/",
       "lat": 35.695351,
       "lon": 138.651496,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000206079",
@@ -3513,7 +3803,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206079/",
       "lat": 35.539822,
       "lon": 134.243059,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tottori"
     },
     {
       "id": "jalan_000000187893",
@@ -3525,7 +3816,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000187893/",
       "lat": 34.28359,
       "lon": 135.362487,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Wakayama"
     },
     {
       "id": "jalan_000000221628",
@@ -3537,7 +3829,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221628/",
       "lat": 35.435224,
       "lon": 139.422537,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000196596",
@@ -3550,7 +3843,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000196596/",
       "lat": 40.396327,
       "lon": 141.272562,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aomori"
     },
     {
       "id": "jalan_000000169939",
@@ -3560,7 +3854,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000169939/",
       "lat": 33.879639,
       "lon": 130.572419,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000183304",
@@ -3575,7 +3870,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000183304/",
       "lat": 36.151911,
       "lon": 140.211709,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000167868",
@@ -3588,7 +3884,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000167868/",
       "lat": 35.441703,
       "lon": 132.690172,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shimane"
     },
     {
       "id": "jalan_000000181666",
@@ -3602,7 +3899,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181666/",
       "lat": 37.743834,
       "lon": 140.382158,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000230038",
@@ -3614,7 +3912,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000230038/",
       "lat": 34.426201,
       "lon": 135.511055,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Osaka"
     },
     {
       "id": "jalan_000000198042",
@@ -3628,7 +3927,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000198042/",
       "lat": 35.641253,
       "lon": 138.651166,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000180427",
@@ -3644,7 +3944,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180427/",
       "lat": 35.63455,
       "lon": 138.701225,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000184858",
@@ -3656,7 +3957,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184858/",
       "lat": 35.778769,
       "lon": 139.975811,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000221021",
@@ -3668,7 +3970,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221021/",
       "lat": 35.72957,
       "lon": 140.323992,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000194705",
@@ -3682,7 +3985,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194705/",
       "lat": 35.749747,
       "lon": 138.697088,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000209678",
@@ -3694,7 +3998,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209678/",
       "lat": 35.058124,
       "lon": 137.063491,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aichi"
     },
     {
       "id": "jalan_000000209089",
@@ -3707,7 +4012,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209089/",
       "lat": 34.585647,
       "lon": 135.649278,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Osaka"
     },
     {
       "id": "jalan_000000218304",
@@ -3719,7 +4025,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218304/",
       "lat": 33.358349,
       "lon": 130.79786,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000205996",
@@ -3731,7 +4038,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000205996/",
       "lat": 36.094628,
       "lon": 139.185407,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Saitama"
     },
     {
       "id": "jalan_000000180996",
@@ -3741,7 +4049,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180996/",
       "lat": 43.028064,
       "lon": 141.34232,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000221227",
@@ -3753,7 +4062,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221227/",
       "lat": 36.130891,
       "lon": 140.099888,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000209686",
@@ -3765,7 +4075,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209686/",
       "lat": 36.67116,
       "lon": 139.05951,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Gunma"
     },
     {
       "id": "jalan_000000194769",
@@ -3778,7 +4089,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194769/",
       "lat": 35.085438,
       "lon": 136.257781,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Shiga"
     },
     {
       "id": "jalan_000000191030",
@@ -3790,7 +4102,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191030/",
       "lat": 35.464827,
       "lon": 133.513821,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Tottori"
     },
     {
       "id": "jalan_000000209784",
@@ -3804,7 +4117,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209784/",
       "lat": 35.147613,
       "lon": 137.152891,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aichi"
     },
     {
       "id": "jalan_000000206037",
@@ -3818,7 +4132,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000206037/",
       "lat": 35.677912,
       "lon": 138.732526,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000189172",
@@ -3832,7 +4147,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000189172/",
       "lat": 35.650194,
       "lon": 138.721509,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000193960",
@@ -3846,7 +4162,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000193960/",
       "lat": 42.934204,
       "lon": 141.147667,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000194470",
@@ -3858,7 +4175,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000194470/",
       "lat": 36.179259,
       "lon": 140.260226,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Ibaraki"
     },
     {
       "id": "jalan_000000180083",
@@ -3868,7 +4186,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000180083/",
       "lat": 37.359678,
       "lon": 140.44562,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000184378",
@@ -3880,7 +4199,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184378/",
       "lat": 38.423757,
       "lon": 140.408359,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000187883",
@@ -3890,7 +4210,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000187883/",
       "lat": 34.259619,
       "lon": 135.31267,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Wakayama"
     },
     {
       "id": "jalan_000000209566",
@@ -3904,7 +4225,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209566/",
       "lat": 35.868893,
       "lon": 138.407828,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000226583",
@@ -3916,7 +4238,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000226583/",
       "lat": 35.51833,
       "lon": 140.120856,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000199117",
@@ -3932,7 +4255,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199117/",
       "lat": 35.694793,
       "lon": 138.739557,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000202959",
@@ -3944,7 +4268,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000202959/",
       "lat": 35.374718,
       "lon": 137.779895,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000221848",
@@ -3956,7 +4281,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000221848/",
       "lat": 35.557734,
       "lon": 137.846242,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000184978",
@@ -3968,7 +4294,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000184978/",
       "lat": 35.229618,
       "lon": 139.726331,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kanagawa"
     },
     {
       "id": "jalan_000000229149",
@@ -3981,7 +4308,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000229149/",
       "lat": 34.581712,
       "lon": 133.641786,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Okayama"
     },
     {
       "id": "jalan_000000178256",
@@ -3993,7 +4321,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000178256/",
       "lat": null,
       "lon": null,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000217612",
@@ -4006,7 +4335,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217612/",
       "lat": 42.947264,
       "lon": 141.235837,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000181741",
@@ -4018,7 +4348,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181741/",
       "lat": 38.211008,
       "lon": 140.263191,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamagata"
     },
     {
       "id": "jalan_000000191334",
@@ -4030,7 +4361,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191334/",
       "lat": 41.189406,
       "lon": 141.059154,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aomori"
     },
     {
       "id": "jalan_000000188616",
@@ -4043,7 +4375,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188616/",
       "lat": 35.638715,
       "lon": 138.488721,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000229179",
@@ -4055,7 +4388,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000229179/",
       "lat": 43.700378,
       "lon": 142.182322,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000209682",
@@ -4070,7 +4404,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209682/",
       "lat": 35.090074,
       "lon": 137.099453,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Aichi"
     },
     {
       "id": "jalan_000000207101",
@@ -4080,7 +4415,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000207101/",
       "lat": 33.503233,
       "lon": 133.902197,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kochi"
     },
     {
       "id": "jalan_000000225479",
@@ -4090,7 +4426,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000225479/",
       "lat": 36.826115,
       "lon": 136.893893,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Toyama"
     },
     {
       "id": "jalan_000000227713",
@@ -4103,7 +4440,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000227713/",
       "lat": 37.398711,
       "lon": 140.966547,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukushima"
     },
     {
       "id": "jalan_000000188111",
@@ -4117,7 +4455,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188111/",
       "lat": 32.044354,
       "lon": 130.227925,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Kagoshima"
     },
     {
       "id": "jalan_000000208766",
@@ -4130,7 +4469,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000208766/",
       "lat": 36.343015,
       "lon": 138.44635,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Nagano"
     },
     {
       "id": "jalan_000000208170",
@@ -4143,7 +4483,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000208170/",
       "lat": 42.601715,
       "lon": 140.659407,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hokkaido"
     },
     {
       "id": "jalan_000000181964",
@@ -4155,7 +4496,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000181964/",
       "lat": 34.353008,
       "lon": 134.883268,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Hyogo"
     },
     {
       "id": "jalan_000000211565",
@@ -4168,7 +4510,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211565/",
       "lat": 35.667804,
       "lon": 138.673747,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     },
     {
       "id": "jalan_000000228851",
@@ -4180,7 +4523,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000228851/",
       "lat": 33.328829,
       "lon": 130.836635,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Fukuoka"
     },
     {
       "id": "jalan_000000228819",
@@ -4192,7 +4536,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000228819/",
       "lat": 35.837167,
       "lon": 140.522423,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Chiba"
     },
     {
       "id": "jalan_000000217928",
@@ -4204,7 +4549,8 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000217928/",
       "lat": 35.604088,
       "lon": 138.616131,
-      "source": "jalan"
+      "source": "jalan",
+      "region": "Yamanashi"
     }
   ]
 }

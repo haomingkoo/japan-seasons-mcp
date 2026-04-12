@@ -22,8 +22,13 @@ export class Cache {
 
   set<T>(key: string, data: T, ttlMs: number): void {
     if (this.store.size >= MAX_CACHE_SIZE) {
-      const oldest = this.store.keys().next().value;
-      if (oldest !== undefined) this.store.delete(oldest);
+      // Evict the entry closest to expiry (true LRU-by-TTL), not just insertion order
+      let evictKey: string | undefined;
+      let minExpires = Infinity;
+      for (const [k, v] of this.store) {
+        if (v.expires < minExpires) { minExpires = v.expires; evictKey = k; }
+      }
+      if (evictKey !== undefined) this.store.delete(evictKey);
     }
     this.store.set(key, { data, expires: Date.now() + ttlMs });
   }
