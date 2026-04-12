@@ -176,6 +176,21 @@ function initMap() {
 // ── Helpers ──
 const $ = id => document.getElementById(id);
 
+function setMapPlaceholder(state = null) {
+  const el = $('map-placeholder');
+  if (!el) return;
+  if (!state) {
+    el.className = 'map-placeholder hidden';
+    el.innerHTML = '';
+    return;
+  }
+  el.className = 'map-placeholder';
+  el.innerHTML = `
+    <h3>${esc(state.title || '')}</h3>
+    <p>${esc(state.body || '')}</p>
+  `;
+}
+
 // Returns n skeleton placeholder rows for use while content is loading.
 function skeletonHtml(n = 5) {
   return Array.from({ length: n }, () =>
@@ -611,6 +626,7 @@ const MODE_TITLES = {
 function setMode(m) {
   mode = m;
   document.title = MODE_TITLES[m] || 'Japan in Seasons';
+  setMapPlaceholder(null);
   ['sakura','koyo','fruit','flowers','whatson','trip'].forEach(k => { const b = $(`btn-${k}`); if (b) b.classList.toggle('active', k === m); });
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
   if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.style.display = 'none'; }
@@ -1070,6 +1086,12 @@ async function loadKoyo() {
         Check back in August for updated forecasts.
       </div>`
     : '';
+  setMapPlaceholder({
+    title: 'Choose a city to see autumn leaves spots',
+    body: isKoyoSeason
+      ? 'This overview shows timing by city. Click any city in the sidebar to place the exact viewing spots on the map.'
+      : 'This overview shows last season’s timing by city. Click any city in the sidebar to place the exact viewing spots on the map.'
+  });
 
   try {
     const data = await api('/api/koyo/forecast');
@@ -1088,6 +1110,10 @@ async function loadKoyo() {
     }
     $('sidebar-content').innerHTML = html;
   } catch (e) {
+    setMapPlaceholder({
+      title: 'Autumn leaves map unavailable',
+      body: 'We could not load the national koyo overview just now. Please try again in a moment.'
+    });
     $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
 }
@@ -1095,6 +1121,7 @@ async function loadKoyo() {
 async function loadKoyoSpots(prefCode, name) {
   pushUrlState({ mode: 'koyo', pref: prefCode });
   $('sidebar-header').innerHTML = `<h2>${esc(name)} Spots</h2><p>Autumn leaves viewing spots</p>`;
+  setMapPlaceholder(null);
   try {
     const data = await api(`/api/koyo/spots?pref=${prefCode}`);
     clearMarkers();
