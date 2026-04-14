@@ -301,6 +301,66 @@ Use the japan-seasons-mcp tools based on the travel month:
     })
   );
 
+  // ── Resources: static datasets ──
+  // Registering resources enables the MCP resources capability (resources/list + resources/read).
+
+  if (STATIC_MCP.flowers) {
+    server.registerResource(
+      "flowers",
+      "japan-seasons://flowers",
+      {
+        title: "Seasonal Flower Spots",
+        description: "Complete list of curated seasonal flower viewing spots in Japan — wisteria, hydrangea, plum, lavender, sunflower, cosmos, and more. Static dataset with spot names, GPS coordinates, best visiting months, and map URLs.",
+        mimeType: "application/json",
+      },
+      async (_uri) => ({
+        contents: [{
+          uri: "japan-seasons://flowers",
+          mimeType: "application/json",
+          text: JSON.stringify(STATIC_MCP.flowers, null, 2),
+        }],
+      })
+    );
+  }
+
+  if (STATIC_MCP.festivals) {
+    server.registerResource(
+      "festivals",
+      "japan-seasons://festivals",
+      {
+        title: "Festivals & Events",
+        description: "Complete list of recurring Japan festivals and events — fireworks (hanabi), matsuri, and winter events. Includes official event URLs, dates, and location data.",
+        mimeType: "application/json",
+      },
+      async (_uri) => ({
+        contents: [{
+          uri: "japan-seasons://festivals",
+          mimeType: "application/json",
+          text: JSON.stringify(STATIC_MCP.festivals, null, 2),
+        }],
+      })
+    );
+  }
+
+  if (STATIC_MCP.farms) {
+    server.registerResource(
+      "fruit-farms",
+      "japan-seasons://fruit-farms",
+      {
+        title: "Fruit Picking Farms",
+        description: "Complete list of 350+ fruit picking farms across Japan with GPS coordinates, available fruits, seasons, booking links, and access directions.",
+        mimeType: "application/json",
+      },
+      async (_uri) => ({
+        contents: [{
+          uri: "japan-seasons://fruit-farms",
+          mimeType: "application/json",
+          text: JSON.stringify(STATIC_MCP.farms, null, 2),
+        }],
+      })
+    );
+  }
+
   // ── Tool: sakura_forecast ──
 
   server.registerTool(
