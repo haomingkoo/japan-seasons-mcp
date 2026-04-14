@@ -133,7 +133,7 @@ PORT=3000 npx -y japan-seasons-mcp --http
 
 ### Cherry blossom
 
-**`get_sakura_forecast`** — the big picture
+**`sakura_forecast`** — the big picture
 
 All 48 JMA observation cities in one call: this year's forecast, actual dates when observed, and how each city compares to the historical average. Good starting point before you drill into specific spots.
 
@@ -142,7 +142,7 @@ All 48 JMA observation cities in one call: this year's forecast, actual dates wh
 → 48 cities by region, bloom status, forecast dates, days vs average
 ```
 
-**`get_sakura_spots`** — specific parks and temples
+**`sakura_spots`** — specific parks and temples
 
 1,012 spots across Japan with current status, bloom percentages, and GPS coordinates. When JMC spot reporters have filed a recent update (within 48 hours), the tool uses that observed status as the primary reading. Otherwise it falls back to the JMC bloom-meter forecast. Stale observations are shown as context, not hidden.
 
@@ -151,7 +151,7 @@ All 48 JMA observation cities in one call: this year's forecast, actual dates wh
 → 51 spots: Kiyomizu-dera (Full bloom, observed Apr 9), Maruyama Park (91% full-bloom)...
 ```
 
-**`get_sakura_best_dates`** — match travel dates to bloom
+**`sakura_best_dates`** — match travel dates to bloom
 
 Give it your start and end dates, get back the cities where full bloom overlaps your window.
 
@@ -160,7 +160,7 @@ Give it your start and end dates, get back the cities where full bloom overlaps 
 → Cities with bloom in that window, ranked by timing, avg comparison
 ```
 
-**`get_kawazu_cherry_forecast`** — early-season deep-pink variety
+**`kawazu_forecast`** — early-season deep-pink variety
 
 Kawazu cherry blooms January–February in Izu Peninsula, months before standard sakura opens anywhere.
 
@@ -173,7 +173,7 @@ Kawazu cherry blooms January–February in Izu Peninsula, months before standard
 
 ### Autumn leaves
 
-**`get_koyo_forecast`** — maple and ginkgo timing by city
+**`koyo_forecast`** — maple and ginkgo timing by city
 
 50+ cities with this year's colour-change dates and how they compare to the historical normal. Maple and ginkgo peak at different times; both are included.
 
@@ -182,7 +182,7 @@ Kawazu cherry blooms January–February in Izu Peninsula, months before standard
 → City-by-city maple/ginkgo dates, days early or late vs average
 ```
 
-**`get_koyo_best_dates`** — same idea as sakura best dates, for autumn
+**`koyo_best_dates`** — same idea as sakura best dates, for autumn
 
 Match your travel window to cities in peak colour.
 
@@ -191,7 +191,7 @@ Match your travel window to cities in peak colour.
 → Cities in peak colour during your dates, maple vs ginkgo timing
 ```
 
-**`get_koyo_spots`** — 687 viewing spots by prefecture
+**`koyo_spots`** — 687 viewing spots by prefecture
 
 Each spot has a peak window (start, peak, end), leaf type, popularity rating, and GPS.
 
@@ -204,7 +204,7 @@ Each spot has a peak window (start, peak, end), leaf type, popularity rating, an
 
 ### Flowers
 
-**`get_flower_spots`** — 80 curated spots, 8 flower types, Jan through Oct
+**`flowers_spots`** — 80 curated spots, 8 flower types, Jan through Oct
 
 | Type | Season | Notable spots |
 |------|---------|--------------|
@@ -223,7 +223,7 @@ Filter by `type`, `prefecture`, or `month`. Each spot has an official URL and ve
 
 ### Festivals and events
 
-**`get_japan_festivals`** — 52 major recurring events with official URLs and attendance figures
+**`festivals_list`** — 52 major recurring events with official URLs and attendance figures
 
 ```
 "Best fireworks festivals in Japan?"
@@ -239,7 +239,7 @@ Filter by `type` (fireworks / matsuri / winter), `month`, and `prefecture`.
 
 ### Fruit picking
 
-**`get_fruit_season_calendar`** — full-year calendar for 14 fruits
+**`fruit_seasons`** — full-year calendar for 14 fruits
 
 Which fruits are in season and at peak for any given month, with best regions and notes.
 
@@ -248,7 +248,7 @@ Which fruits are in season and at peak for any given month, with best regions an
 → Grape at peak (Yamanashi, Nagano), Pear at peak, Peach ending, Apple starting
 ```
 
-**`get_fruit_picking_farms`** — 350+ farms with GPS and booking links
+**`fruit_farms`** — 350+ farms with GPS and booking links
 
 Pass `month=` and it auto-filters to farms with something in season. Add `region=` to narrow further.
 
@@ -261,7 +261,7 @@ Pass `month=` and it auto-filters to farms with something in season. Add `region
 
 ### Weather
 
-**`get_weather_forecast`** — 3-day JMA forecast for 51 cities
+**`weather_forecast`** — 3-day JMA forecast for 51 cities
 
 Temperature, rain probability by 6-hour window, and conditions. Worth checking because rain speeds up petal fall.
 
@@ -287,9 +287,9 @@ Ask your MCP client for a goal, not a tool name. A few good examples:
 
 Typical workflow:
 
-1. Ask for timing first with `get_sakura_best_dates`, `get_koyo_best_dates`, `get_sakura_forecast`, or `get_koyo_forecast`.
-2. Drill into exact parks, temples, farms, or events with `get_sakura_spots`, `get_koyo_spots`, `get_fruit_picking_farms`, `get_flower_spots`, or `get_japan_festivals`.
-3. Check `get_weather_forecast` if rain or temperature could change the recommendation.
+1. Ask for timing first with `sakura_best_dates`, `koyo_best_dates`, `sakura_forecast`, or `koyo_forecast`.
+2. Drill into exact parks, temples, farms, or events with `sakura_spots`, `koyo_spots`, `fruit_farms`, `flowers_spots`, or `festivals_list`.
+3. Check `weather_forecast` if rain or temperature could change the recommendation.
 4. Set optional connection preferences if you want ISO dates, Fahrenheit weather, Japanese map links, or outputs without GPS coordinates.
 
 ---
