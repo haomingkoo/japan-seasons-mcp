@@ -6,12 +6,13 @@
 
 *1,700+ spots. 12 tools. Live data from Japan Meteorological Corporation.*
 
-[![npm version](https://img.shields.io/npm/v/japan-seasons-mcp?color=ec4899&label=npm)](https://www.npmjs.com/package/japan-seasons-mcp)
-[![npm downloads](https://img.shields.io/npm/dm/japan-seasons-mcp?color=f97316&label=downloads)](https://www.npmjs.com/package/japan-seasons-mcp)
-[![license](https://img.shields.io/badge/license-MIT-16a34a)](LICENSE)
-[![MCP](https://img.shields.io/badge/MCP-compatible-7c3aed)](https://modelcontextprotocol.io)
-[![Live demo](https://img.shields.io/badge/live_demo-seasons.kooexperience.com-0ea5e9)](https://seasons.kooexperience.com)
-[![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/servers/haomingkoo/japan-seasons-mcp)
+[![npm version](https://img.shields.io/npm/v/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet.svg)](#installation)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://seasons.kooexperience.com)
+[![japan-seasons-mcp MCP server](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp/badges/score.svg)](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp)
+[![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/server/haomingkoo/japan-seasons-mcp)
 
 [**Live map**](https://seasons.kooexperience.com) · [**Hosted MCP endpoint**](https://seasons.kooexperience.com/mcp) · [**npm**](https://www.npmjs.com/package/japan-seasons-mcp)
 
