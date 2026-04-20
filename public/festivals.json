@@ -1,6 +1,6 @@
 {
-  "updated": "2026-04-10",
-  "total": 47,
+  "updated": "2026-04-20",
+  "total": 46,
   "spots": [
     {
       "id": "fw_sumida",
@@ -83,7 +83,7 @@
         8
       ],
       "typicalDate": "August 1",
-      "url": "https://www.tondabayashi-kankou.jp/",
+      "url": "https://www.perfect-liberty.or.jp/",
       "note": "100,000 fireworks in a single night — one of Japan's largest displays. Visible from 10km away. Organized by Perfect Liberty Kyodan.",
       "attendance": 200000
     },
@@ -100,7 +100,7 @@
         8
       ],
       "typicalDate": "Mid-August",
-      "url": "https://www.visit-miyajima-japan.com/",
+      "url": "https://www.miyajima.or.jp/",
       "note": "Fireworks launched from the sea in front of Itsukushima Shrine's floating torii gate. One of Japan's most photogenic hanabi backdrops.",
       "attendance": 50000
     },
@@ -151,7 +151,7 @@
         8
       ],
       "typicalDate": "First Saturday of August",
-      "url": "https://yodogawa-hanabi.com/",
+      "url": "https://www.yodohanabi.com/",
       "note": "Osaka's premier summer fireworks over the Yodo River. Famous for the 'Niagara' waterfall fireworks effect.",
       "attendance": 520000
     },
@@ -230,7 +230,7 @@
         7
       ],
       "typicalDate": "July 1–31 (Yamaboko Junko procession: Jul 17 & 24)",
-      "url": "https://www.gion-matsuri.or.jp/en/",
+      "url": "https://www.gionmatsuri.jp/",
       "note": "One of Japan's three greatest festivals. Giant decorated floats (yamaboko) parade through Kyoto. The evening Yoiyama stalls are equally unmissable.",
       "attendance": 1000000
     },
@@ -247,7 +247,7 @@
         7
       ],
       "typicalDate": "July 24–25",
-      "url": "https://www.tenjinsan.com/",
+      "url": "https://www.osakatemmangu.or.jp/",
       "note": "One of Japan's three great festivals. A river procession of 100+ boats, torchlight, and fireworks on the Okawa River. Starts at Osaka Tenmangu Shrine.",
       "attendance": 1300000
     },
@@ -264,7 +264,7 @@
         8
       ],
       "typicalDate": "August 2–7",
-      "url": "https://www.nebuta.jp/en/",
+      "url": "https://www.nebuta.jp/",
       "note": "Towering illuminated floats depicting warriors and mythological figures parade through Aomori city at night. One of Tohoku's most spectacular summer festivals.",
       "attendance": 3000000
     },
@@ -298,7 +298,7 @@
         8
       ],
       "typicalDate": "August 12–15",
-      "url": "https://www.awacity.or.jp/kanko/awa_odori/english/",
+      "url": "https://www.awaodori-kaikan.jp/",
       "note": "Japan's largest dance festival — 100,000 dancers and 1.3M spectators. The famous chant: 'Dancing fools and watching fools — both are fools, so why not dance!'",
       "attendance": 1300000
     },
@@ -384,7 +384,7 @@
         5
       ],
       "typicalDate": "May 15",
-      "url": "https://www.kyoto-np.co.jp/od/aoimatsuri/",
+      "url": "https://kamigamojinja.jp/",
       "note": "One of Kyoto's three great festivals. A slow procession of 500 Heian-era costumed participants from Kyoto Imperial Palace to Kamigamo Shrine.",
       "attendance": 80000
     },
@@ -452,7 +452,7 @@
         10
       ],
       "typicalDate": "October 22",
-      "url": "https://jidaimatsuri.jp/",
+      "url": "https://www.heianjingu.or.jp/",
       "note": "One of Kyoto's three great festivals. 2,000 participants in historical costumes spanning 1,200 years of history march from Kyoto Imperial Palace to Heian Shrine.",
       "attendance": 120000
     },
@@ -469,7 +469,7 @@
         10
       ],
       "typicalDate": "October 22",
-      "url": "https://www.kuramakibune.jp/",
+      "url": "https://www.yukijinjya.jp/",
       "note": "One of Kyoto's most dramatic festivals. Villagers carry torches through the mountain village of Kurama at night. Same date as Jidai Matsuri — do both.",
       "attendance": 20000
     },
@@ -503,7 +503,7 @@
         9
       ],
       "typicalDate": "September 14–15",
-      "url": "https://www.city.kishiwada.osaka.jp/",
+      "url": "https://www.city.kishiwada.lg.jp/",
       "note": "Wild and thrilling — teams pull heavy wooden floats (danjiri) at full speed through narrow streets. People ride on top performing acrobatics. Extremely intense.",
       "attendance": 600000
     },
@@ -551,7 +551,8 @@
       "prefecture": "Nationwide",
       "region": "All Japan",
       "months": [
-        7
+        7,
+        8
       ],
       "typicalDate": "July 7 (traditional); Sendai celebrates Aug 6-8",
       "url": "https://www.jnto.go.jp/",
@@ -707,7 +708,7 @@
         2
       ],
       "typicalDate": "Mid-February (10 days)",
-      "url": "https://www.yukiakari.org/english/",
+      "url": "https://otaru.gr.jp/",
       "note": "Thousands of snow lanterns and floating candles line the Otaru Canal and historic streets. More intimate than Sapporo — a romantic winter escape.",
       "attendance": 400000
     },
@@ -800,24 +801,7 @@
       "typicalDate": "November 15 (celebrated throughout Nov)",
       "url": "https://www.jnto.go.jp/",
       "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children."
-    },
-    {
-      "id": "win_nozawa_fire",
-      "type": "winter",
-      "name": "Nozawa Onsen Hot Spring Festival",
-      "nameJa": "野沢温泉まつり",
-      "lat": 36.9131,
-      "lon": 138.4447,
-      "prefecture": "Nagano",
-      "region": "Chubu",
-      "months": [
-        1
-      ],
-      "typicalDate": "January 15 (Dosojin fire festival)",
-      "url": "https://nozawakanko.jp/",
-      "note": "The Nozawa Dosojin Fire Festival on January 15 is one of Japan's three great fire festivals — a dramatic ritual where villagers battle with torches. Nozawa Onsen is also a top ski resort all winter.",
-      "attendance": 100000
     }
   ],
-  "verified": "2026-04-10"
+  "verified": "2026-04-20"
 }

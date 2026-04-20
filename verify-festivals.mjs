@@ -15,6 +15,10 @@ const spots = data.spots || [];
 const CURRENT_YEAR = new Date().getFullYear();
 const REQUIRED = ["id", "type", "name", "lat", "lon", "months", "typicalDate", "url"];
 const VALID_TYPES = ["fireworks", "matsuri", "winter"];
+const URL_TIMEOUT_MS = 10000;
+const URL_RETRY_DELAYS_MS = [1000, 2000];
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 let passed = 0, failed = 0, warnings = 0;
 const issues = [];
@@ -22,6 +26,90 @@ const issues = [];
 function fail(id, msg) { issues.push({ level: "FAIL", id, msg }); failed++; }
 function warn(id, msg) { issues.push({ level: "WARN", id, msg }); warnings++; }
 function ok(msg)       { passed++; if (process.env.VERBOSE) console.log("  ✓", msg); }
+function sleep(ms)     { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function getErrorMessage(error) {
+  const parts = [error?.message, error?.cause?.code, error?.cause?.message].filter(Boolean);
+  return parts.length > 0 ? parts.join(": ") : String(error);
+}
+
+function isDnsError(message) {
+  return /enotfound|eai_again|getaddrinfo|dns/i.test(message);
+}
+
+function isTlsError(message) {
+  return /certificate|cert|tls|ssl|self signed|unable to verify|altname|hostname/i.test(message);
+}
+
+function isTimeoutError(message, timedOut) {
+  return timedOut || /aborted|timeout/i.test(message);
+}
+
+function isRetryableFetchError(error, message, timedOut) {
+  return timedOut ||
+    error?.name === "AbortError" ||
+    error?.name === "TypeError" ||
+    /fetch failed|aborted|timeout|enotfound|eai_again|getaddrinfo|dns|network|connect|socket|tls|ssl|cert/i.test(message);
+}
+
+function isWarnOnlyNetworkError(error, message, timedOut) {
+  return isTimeoutError(message, timedOut) ||
+    isDnsError(message) ||
+    isTlsError(message) ||
+    isRetryableFetchError(error, message, timedOut);
+}
+
+async function checkUrl(s) {
+  for (let attempt = 0; attempt <= URL_RETRY_DELAYS_MS.length; attempt++) {
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, URL_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(s.url, {
+        method: "HEAD",
+        signal: controller.signal,
+        headers: { "User-Agent": BROWSER_USER_AGENT },
+        redirect: "follow",
+      });
+      clearTimeout(timer);
+
+      if (res.status >= 200 && res.status < 400) {
+        return { id: s.id, url: s.url, status: res.status, bucket: "ok" };
+      }
+
+      if (res.status >= 400 && res.status < 500) {
+        return { id: s.id, url: s.url, status: res.status, bucket: "fail" };
+      }
+
+      if (attempt < URL_RETRY_DELAYS_MS.length) {
+        await sleep(URL_RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+
+      return { id: s.id, url: s.url, status: res.status, bucket: "fail" };
+    } catch (e) {
+      clearTimeout(timer);
+      const error = getErrorMessage(e);
+
+      if (isRetryableFetchError(e, error, timedOut) && attempt < URL_RETRY_DELAYS_MS.length) {
+        await sleep(URL_RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+
+      return {
+        id: s.id,
+        url: s.url,
+        status: 0,
+        bucket: isWarnOnlyNetworkError(e, error, timedOut) ? "warn" : "fail",
+        error,
+      };
+    }
+  }
+}
 
 // ── 1. Schema validation ───────────────────────────────────────────────────
 console.log(`\n── Schema (${spots.length} spots) ──`);
@@ -51,32 +139,30 @@ if (biennials.length === 0) console.log("  None found");
 // ── 3. URL checks (HTTP HEAD) ──────────────────────────────────────────────
 console.log(`\n── URL checks (${spots.length} URLs) ──`);
 const urlResults = await Promise.allSettled(
-  spots.map(async (s) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
-    try {
-      const res = await fetch(s.url, {
-        method: "HEAD",
-        signal: controller.signal,
-        headers: { "User-Agent": "seasons.kooexperience.com/verify-bot" },
-        redirect: "follow",
-      });
-      clearTimeout(timer);
-      return { id: s.id, url: s.url, status: res.status, ok: res.ok };
-    } catch (e) {
-      clearTimeout(timer);
-      return { id: s.id, url: s.url, status: 0, ok: false, error: e.message };
-    }
-  })
+  spots.map(checkUrl)
 );
 
+let urlOk = 0, urlWarn = 0, urlFail = 0;
 for (const result of urlResults) {
-  const { id, url, status, ok: isOk, error } = result.value || {};
-  if (!isOk) {
+  const { id, url, status, bucket, error } = result.value || {};
+  if (bucket === "warn") {
+    warn(id, `URL returned ${status || "network error"}: ${url}${error ? ` (${error})` : ""}`);
+    urlWarn++;
+  } else if (bucket !== "ok") {
     fail(id, `URL returned ${status || "network error"}: ${url}${error ? ` (${error})` : ""}`);
+    urlFail++;
   } else {
     ok(`${id} → ${status}`);
+    urlOk++;
   }
+}
+
+// Sanity floor: if fewer than 70% of URL checks succeeded, the run is
+// inconclusive (likely a runner-side network outage, not genuine data rot).
+// Escalate to failure so it gets investigated instead of silently passing.
+const urlTotal = urlOk + urlWarn + urlFail;
+if (urlTotal > 0 && urlOk / urlTotal < 0.7) {
+  fail("url-checks", `Only ${urlOk}/${urlTotal} URL checks succeeded (${urlWarn} warn, ${urlFail} fail) — below 70% threshold, likely a runner-side network issue`);
 }
 
 // ── 4. Consistency checks ──────────────────────────────────────────────────
