@@ -111,6 +111,18 @@ export interface SakuraSpotForPage {
   displayStatus?: string | null;
 }
 
+export interface KoyoSpotForPage {
+  name?: string;
+  nameRomaji?: string;
+  lat?: number;
+  lon?: number;
+  bestStart?: string | null;
+  bestPeak?: string | null;
+  bestEnd?: string | null;
+  status?: string | null;
+  popularity?: number;
+}
+
 // ─── HTML escape ────────────────────────────────────────────────────────────
 const ESC: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 function esc(s: string | number | null | undefined): string {
@@ -534,6 +546,248 @@ export function renderSakuraPrefecturePage(pref: Prefecture, spots: SakuraSpotFo
   });
 }
 
+// ─── Koyo (autumn leaves) prefecture page ──────────────────────────────────
+export function renderKoyoPrefecturePage(pref: Prefecture, spots: KoyoSpotForPage[]): string {
+  const canonical = `${SITE}/koyo/${pref.slug}`;
+  const title = `Autumn Leaves (Koyo) in ${pref.name}, Japan — Live Forecast & ${spots.length}+ Viewing Spots | Japan in Seasons`;
+  const description = `Live autumn leaves (koyo) forecast and ${spots.length}+ viewing spots in ${pref.name} prefecture, ${pref.region}, Japan. Peak dates and viewing windows from Japan Meteorological Corporation.`.slice(0, 280);
+
+  const sortedSpots = [...spots].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || (a.name ?? "").localeCompare(b.name ?? ""));
+  const topSpots = sortedSpots.slice(0, 30);
+
+  const itemListLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Autumn Leaves Viewing Spots in ${pref.name}, Japan`,
+    description,
+    numberOfItems: spots.length,
+    itemListElement: topSpots.map((s, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "TouristAttraction",
+        name: s.name ?? s.nameRomaji ?? "Koyo spot",
+        ...(s.lat && s.lon ? { geo: { "@type": "GeoCoordinates", latitude: s.lat, longitude: s.lon } } : {}),
+        address: { "@type": "PostalAddress", addressCountry: "JP", addressRegion: pref.name },
+      },
+    })),
+  };
+
+  const spotCardsHtml = topSpots
+    .map(s => {
+      const peakLine = s.bestPeak ? `Peak: ${s.bestPeak}` : s.bestStart ? `Window: ${s.bestStart} – ${s.bestEnd ?? "?"}` : "";
+      const mapsUrl = s.lat && s.lon ? `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}` : null;
+      return `<div class="spot-card">
+        <h3>${esc(s.name ?? s.nameRomaji ?? "Koyo spot")}</h3>
+        <div class="sub">${esc(peakLine)}${s.status ? ` · ${esc(s.status)}` : ""}</div>
+        ${mapsUrl ? `<div class="sub"><a href="${mapsUrl}" rel="noopener">📍 ${esc(s.lat)}, ${esc(s.lon)}</a></div>` : ""}
+      </div>`;
+    })
+    .join("");
+
+  const body = `
+    <h1>Autumn Leaves (Koyo) in ${esc(pref.name)}, Japan</h1>
+    <p class="subtitle">Live koyo forecast for ${esc(pref.name)} prefecture · ${esc(pref.region)} region · ${spots.length} tracked spots</p>
+
+    <div class="meta-grid">
+      <div><div class="label">Total viewing spots</div><div class="value">${spots.length}</div></div>
+      <div><div class="label">Region</div><div class="value">${esc(pref.region)}</div></div>
+      <div><div class="label">Typical peak</div><div class="value">${pref.region === "Hokkaido" ? "Mid-Oct" : pref.region === "Tohoku" ? "Late Oct – Mid-Nov" : pref.region === "Kyushu" ? "Late Nov – Early Dec" : "Mid – Late Nov"}</div></div>
+    </div>
+
+    <section>
+      <h2>About autumn leaves in ${esc(pref.name)}</h2>
+      <p>${esc(pref.name)} prefecture is in Japan's <strong>${esc(pref.region)}</strong> region. Koyo (autumn leaves) season in Japan progresses from north to south, starting in Hokkaido in mid-October and reaching southern Kyushu by early December. Kyoto and Nikko's famous maple spots typically peak in mid-to-late November. The best viewing window is the narrow peak, usually lasting 7 to 14 days before leaves fall.</p>
+      <p>This page lists ${spots.length} koyo viewing spots in ${esc(pref.name)} tracked by Japan in Seasons, sourced from <a href="https://n-kishou.com/" rel="noopener">Japan Meteorological Corporation</a>. Each spot's best-viewing window is forecast from weekly model updates.</p>
+    </section>
+
+    <section>
+      <h2>Top koyo viewing spots in ${esc(pref.name)}</h2>
+      <p>Showing the top ${topSpots.length} of ${spots.length} tracked spots, sorted by popularity.</p>
+      ${spotCardsHtml || `<p>Spot data is loading. Try the <a href="${SITE}/">interactive map</a> for the latest list.</p>`}
+    </section>
+
+    <section>
+      <h2>Frequently asked questions</h2>
+      <h3>When do autumn leaves peak in ${esc(pref.name)}?</h3>
+      <p>${pref.region === "Hokkaido" ? "Hokkaido koyo peaks earliest in Japan, typically mid-October. Daisetsuzan National Park colors first, followed by Sapporo and Hakodate into early November." : pref.region === "Tohoku" ? "Tohoku prefectures peak late October to mid-November, with famous spots like Oirase Gorge (Aomori) and Matsushima (Miyagi) drawing crowds." : pref.region === "Kyushu" ? "Kyushu koyo peaks latest in Japan, typically late November to early December." : pref.region === "Kanto" ? "Kanto koyo, including Tokyo and Nikko, peaks in mid-to-late November." : pref.region === "Kansai" ? "Kansai koyo, including Kyoto and Nara, peaks in mid-to-late November — the most famous koyo viewing window in Japan." : "Peak koyo in this region is typically mid-to-late November."}</p>
+      <h3>What's the difference between koyo and momijigari?</h3>
+      <p>Koyo (紅葉) literally means "red leaves" — the phenomenon of autumn colors. Momijigari (紅葉狩り) means "maple viewing" and refers to the practice of visiting spots specifically to enjoy the colors. The two are often used interchangeably.</p>
+      <h3>How accurate are koyo forecasts?</h3>
+      <p>Forecasts from Japan Meteorological Corporation are updated weekly from September through early December and are typically accurate to within 2 to 4 days of actual peak.</p>
+    </section>
+
+    <section>
+      <h2>Plan your trip</h2>
+      <ul>
+        <li><a href="${SITE}/">Open the live interactive map</a> for real-time koyo status across all prefectures</li>
+        <li>Use the <a href="${SITE}/#install">free MCP server</a> to ask Claude or ChatGPT for koyo recommendations</li>
+        <li>Source: <a href="https://n-kishou.com/" rel="noopener">Japan Meteorological Corporation</a></li>
+      </ul>
+    </section>
+  `;
+
+  return renderBaseHtml({
+    title,
+    description,
+    canonical,
+    jsonLd: [itemListLd],
+    breadcrumb: [
+      { name: "Home", url: `${SITE}/` },
+      { name: "Autumn leaves forecast", url: `${SITE}/#koyo` },
+      { name: pref.name },
+    ],
+    bodyHtml: body,
+    ogType: "website",
+  });
+}
+
+// ─── Index pages — list all festivals / all flowers ────────────────────────
+export function renderFestivalsIndexPage(festivals: FestivalSpot[]): string {
+  const canonical = `${SITE}/festivals`;
+  const title = `Japan Festivals 2026 — ${festivals.length} Matsuri, Fireworks & Winter Events | Japan in Seasons`;
+  const description = `Complete guide to ${festivals.length} recurring Japanese festivals: matsuri, fireworks (hanabi), illumination, and winter events. Official dates, locations, GPS, and attendance for each.`.slice(0, 280);
+
+  const byType = new Map<string, FestivalSpot[]>();
+  for (const f of festivals) {
+    const key = f.type;
+    if (!byType.has(key)) byType.set(key, []);
+    byType.get(key)!.push(f);
+  }
+  const typeOrder = ["matsuri", "fireworks", "winter", "illumination", "snow"];
+  const sortedTypes = [...byType.keys()].sort((a, b) => {
+    const ai = typeOrder.indexOf(a);
+    const bi = typeOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  const sectionsHtml = sortedTypes
+    .map(type => {
+      const items = byType.get(type)!.sort((a, b) => (b.attendance ?? 0) - (a.attendance ?? 0));
+      return `<section>
+        <h2>${esc(FESTIVAL_TYPE_LABEL[type] ?? type)} <span style="font-weight:400;color:#a3a3a3;font-size:0.85em">(${items.length})</span></h2>
+        ${items.map(f => `<div class="spot-card">
+          <h3><a href="${SITE}/festivals/${esc(f.id)}">${esc(f.name)}</a>${f.nameJa ? ` <span style="font-weight:400;color:#a3a3a3">(${esc(f.nameJa)})</span>` : ""}</h3>
+          <div class="sub">${esc(f.prefecture ?? "")}${f.region ? ` · ${esc(f.region)}` : ""}${f.typicalDate ? ` · ${esc(f.typicalDate)}` : ""}${f.attendance ? ` · ~${esc(f.attendance.toLocaleString())} visitors` : ""}</div>
+        </div>`).join("")}
+      </section>`;
+    })
+    .join("");
+
+  const listLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Japan Festivals Directory",
+    description,
+    numberOfItems: festivals.length,
+    itemListElement: festivals.slice(0, 50).map((f, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE}/festivals/${f.id}`,
+      name: f.name,
+    })),
+  };
+
+  const body = `
+    <h1>Japan Festivals Directory</h1>
+    <p class="subtitle">${festivals.length} curated matsuri, fireworks, and winter events across all 47 prefectures</p>
+
+    <section>
+      <h2>About Japanese festivals</h2>
+      <p>Japan's matsuri calendar runs year-round, with peaks during the summer fireworks (hanabi) season (July–August), spring cherry blossom festivals (late March–April), and winter illuminations (December–February). Each region has distinctive traditions: Tohoku's Nebuta Matsuri, Kyoto's Gion Matsuri, Tokyo's Sanja Matsuri, and many more.</p>
+      <p>All ${festivals.length} events listed here are recurring annual festivals with official sources. Book accommodation several months ahead for popular events.</p>
+    </section>
+
+    ${sectionsHtml}
+  `;
+
+  return renderBaseHtml({
+    title,
+    description,
+    canonical,
+    jsonLd: [listLd],
+    breadcrumb: [
+      { name: "Home", url: `${SITE}/` },
+      { name: "Festivals" },
+    ],
+    bodyHtml: body,
+    ogType: "website",
+  });
+}
+
+export function renderFlowersIndexPage(flowers: FlowerSpot[]): string {
+  const canonical = `${SITE}/flowers`;
+  const title = `Seasonal Flowers in Japan — ${flowers.length} Spots: Plum, Wisteria, Hydrangea, Lavender & More | Japan in Seasons`;
+  const description = `Complete directory of ${flowers.length} seasonal flower viewing spots in Japan: plum (ume), wisteria (fuji), hydrangea (ajisai), lavender, sunflower, cosmos. Peak dates, GPS, and official sites.`.slice(0, 280);
+
+  const byType = new Map<string, FlowerSpot[]>();
+  for (const f of flowers) {
+    const key = f.type;
+    if (!byType.has(key)) byType.set(key, []);
+    byType.get(key)!.push(f);
+  }
+  const typeOrder = ["plum", "wisteria", "hydrangea", "lavender", "sunflower", "cosmos", "tulip", "rose"];
+  const sortedTypes = [...byType.keys()].sort((a, b) => {
+    const ai = typeOrder.indexOf(a);
+    const bi = typeOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  const sectionsHtml = sortedTypes
+    .map(type => {
+      const items = byType.get(type)!.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      const label = FLOWER_TYPE_LABEL[type] ?? type;
+      return `<section>
+        <h2>${esc(label)} <span style="font-weight:400;color:#a3a3a3;font-size:0.85em">(${items.length})</span></h2>
+        ${items.map(f => `<div class="spot-card">
+          <h3><a href="${SITE}/flowers/${esc(f.id)}">${esc(f.name)}</a>${f.nameJa ? ` <span style="font-weight:400;color:#a3a3a3">(${esc(f.nameJa)})</span>` : ""}</h3>
+          <div class="sub">${esc(f.prefecture ?? "")}${f.region ? ` · ${esc(f.region)}` : ""}${f.peakStart ? ` · Peak ${esc(formatPeakDate(f.peakStart))} – ${esc(formatPeakDate(f.peakEnd))}` : ""}</div>
+        </div>`).join("")}
+      </section>`;
+    })
+    .join("");
+
+  const listLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Japan Seasonal Flowers Directory",
+    description,
+    numberOfItems: flowers.length,
+    itemListElement: flowers.slice(0, 50).map((f, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE}/flowers/${f.id}`,
+      name: f.name,
+    })),
+  };
+
+  const body = `
+    <h1>Seasonal Flowers in Japan</h1>
+    <p class="subtitle">${flowers.length} spots across 6+ flower types — from early plum (February) to late cosmos (October)</p>
+
+    <section>
+      <h2>The Japan flower calendar</h2>
+      <p>Beyond cherry blossoms, Japan has a rich year-round flower calendar. Plum (ume) blooms first in late January to early March, wisteria (fuji) in late April to early May, hydrangea (ajisai) during the June rainy season, lavender in July, sunflowers in late July to August, and cosmos in September to October.</p>
+      <p>All ${flowers.length} spots here have peak viewing windows sourced from official tourism boards and garden websites.</p>
+    </section>
+
+    ${sectionsHtml}
+  `;
+
+  return renderBaseHtml({
+    title,
+    description,
+    canonical,
+    jsonLd: [listLd],
+    breadcrumb: [
+      { name: "Home", url: `${SITE}/` },
+      { name: "Flowers" },
+    ],
+    bodyHtml: body,
+    ogType: "website",
+  });
+}
+
 // ─── Sitemap entries ────────────────────────────────────────────────────────
 export interface SitemapEntry {
   loc: string;
@@ -548,8 +802,13 @@ export function getProgrammaticSitemapEntries(
   today: string,
 ): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
+  // Index pages
+  entries.push({ loc: `${SITE}/festivals`, lastmod: today, changefreq: "weekly", priority: 0.8 });
+  entries.push({ loc: `${SITE}/flowers`, lastmod: today, changefreq: "weekly", priority: 0.8 });
+  // Sakura + Koyo per prefecture (47 each)
   for (const p of PREFECTURES) {
     entries.push({ loc: `${SITE}/sakura/${p.slug}`, lastmod: today, changefreq: "daily", priority: 0.8 });
+    entries.push({ loc: `${SITE}/koyo/${p.slug}`, lastmod: today, changefreq: "daily", priority: 0.8 });
   }
   for (const f of festivals) {
     entries.push({ loc: `${SITE}/festivals/${f.id}`, lastmod: today, changefreq: "monthly", priority: 0.7 });

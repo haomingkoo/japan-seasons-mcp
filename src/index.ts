@@ -37,10 +37,14 @@ import {
   renderFestivalPage,
   renderFlowerPage,
   renderSakuraPrefecturePage,
+  renderKoyoPrefecturePage,
+  renderFestivalsIndexPage,
+  renderFlowersIndexPage,
   getProgrammaticSitemapEntries,
   type FestivalSpot,
   type FlowerSpot,
   type SakuraSpotForPage,
+  type KoyoSpotForPage,
 } from "./lib/pages.js";
 
 // ─── Shared types ────────────────────────────────────────────────────────────
@@ -1414,6 +1418,22 @@ async function startHttpServer() {
       return;
     }
 
+    // Festivals index — list of all festivals grouped by type
+    if (url.pathname === "/festivals" || url.pathname === "/festivals/") {
+      const festivals = (((STATIC_MCP.festivals as { spots?: FestivalSpot[] } | null)?.spots) ?? []) as FestivalSpot[];
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+      res.end(renderFestivalsIndexPage(festivals));
+      return;
+    }
+
+    // Flowers index — list of all flower spots grouped by type
+    if (url.pathname === "/flowers" || url.pathname === "/flowers/") {
+      const flowers = (((STATIC_MCP.flowers as { spots?: FlowerSpot[] } | null)?.spots) ?? []) as FlowerSpot[];
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+      res.end(renderFlowersIndexPage(flowers));
+      return;
+    }
+
     // Per-festival landing page (SEO + GEO)
     if (url.pathname.startsWith("/festivals/")) {
       const id = url.pathname.slice("/festivals/".length).replace(/\/$/, "");
@@ -1452,6 +1472,24 @@ async function startHttpServer() {
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
           logger.error(`/sakura/${slug} failed: ${msg}`);
+        }
+      }
+    }
+
+    // Per-prefecture koyo landing page (live spots from cached forecast)
+    if (url.pathname.startsWith("/koyo/")) {
+      const slug = url.pathname.slice("/koyo/".length).replace(/\/$/, "");
+      const pref = findPrefectureBySlug(slug);
+      if (pref) {
+        try {
+          const result = await getKoyoSpots(pref.code);
+          const spots = (result.spots ?? []) as unknown as KoyoSpotForPage[];
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=1800" });
+          res.end(renderKoyoPrefecturePage(pref, spots));
+          return;
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          logger.error(`/koyo/${slug} failed: ${msg}`);
         }
       }
     }
