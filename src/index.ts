@@ -31,6 +31,17 @@ import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate } from "./l
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
+import {
+  PREFECTURES,
+  findPrefectureBySlug,
+  renderFestivalPage,
+  renderFlowerPage,
+  renderSakuraPrefecturePage,
+  getProgrammaticSitemapEntries,
+  type FestivalSpot,
+  type FlowerSpot,
+  type SakuraSpotForPage,
+} from "./lib/pages.js";
 
 // ─── Shared types ────────────────────────────────────────────────────────────
 type AnySpot = Record<string, unknown>;
@@ -195,18 +206,29 @@ const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 }
 
 // ─── Sitemap ────────────────────────────────────────────────────────────────
-// Expand here when per-season or per-prefecture landing pages ship.
 const SITE_BASE_URL = "https://seasons.kooexperience.com";
 function SITEMAP_XML(): string {
   const today = new Date().toISOString().slice(0, 10);
+  const festivals = (((STATIC_MCP.festivals as { spots?: FestivalSpot[] } | null)?.spots) ?? []) as FestivalSpot[];
+  const flowers = (((STATIC_MCP.flowers as { spots?: FlowerSpot[] } | null)?.spots) ?? []) as FlowerSpot[];
+  const entries = [
+    { loc: `${SITE_BASE_URL}/`, lastmod: today, changefreq: "daily" as const, priority: 1.0 },
+    ...getProgrammaticSitemapEntries(festivals, flowers, today),
+  ];
+  const urlsXml = entries
+    .map(u => {
+      const lines = [
+        `    <loc>${u.loc}</loc>`,
+        `    <lastmod>${u.lastmod}</lastmod>`,
+      ];
+      if (u.changefreq) lines.push(`    <changefreq>${u.changefreq}</changefreq>`);
+      if (u.priority != null) lines.push(`    <priority>${u.priority.toFixed(1)}</priority>`);
+      return `  <url>\n${lines.join("\n")}\n  </url>`;
+    })
+    .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${SITE_BASE_URL}/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
+${urlsXml}
 </urlset>
 `;
 }
@@ -1390,6 +1412,48 @@ async function startHttpServer() {
       });
       res.end(SITEMAP_XML());
       return;
+    }
+
+    // Per-festival landing page (SEO + GEO)
+    if (url.pathname.startsWith("/festivals/")) {
+      const id = url.pathname.slice("/festivals/".length).replace(/\/$/, "");
+      const festivals = (((STATIC_MCP.festivals as { spots?: FestivalSpot[] } | null)?.spots) ?? []) as FestivalSpot[];
+      const f = festivals.find(x => x.id === id);
+      if (f) {
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+        res.end(renderFestivalPage(f));
+        return;
+      }
+    }
+
+    // Per-flower-spot landing page
+    if (url.pathname.startsWith("/flowers/")) {
+      const id = url.pathname.slice("/flowers/".length).replace(/\/$/, "");
+      const flowers = (((STATIC_MCP.flowers as { spots?: FlowerSpot[] } | null)?.spots) ?? []) as FlowerSpot[];
+      const f = flowers.find(x => x.id === id);
+      if (f) {
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+        res.end(renderFlowerPage(f));
+        return;
+      }
+    }
+
+    // Per-prefecture sakura landing page (live spots from cached forecast)
+    if (url.pathname.startsWith("/sakura/")) {
+      const slug = url.pathname.slice("/sakura/".length).replace(/\/$/, "");
+      const pref = findPrefectureBySlug(slug);
+      if (pref) {
+        try {
+          const result = await getSakuraSpots(pref.code);
+          const spots = (result.spots ?? []) as unknown as SakuraSpotForPage[];
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=1800" });
+          res.end(renderSakuraPrefecturePage(pref, spots));
+          return;
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          logger.error(`/sakura/${slug} failed: ${msg}`);
+        }
+      }
     }
 
     // Serve frontend static files
