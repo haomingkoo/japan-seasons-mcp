@@ -176,11 +176,13 @@ function getOutputConfigFromEnv(env: NodeJS.ProcessEnv = process.env): OutputCon
 // ─── Pre-load static frontend files into memory at startup ──────────────────
 // Avoids per-request disk I/O and server-side gzip (Railway proxy handles compression).
 const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
-  "/":            { file: "index.html", mime: "text/html; charset=utf-8" },
-  "/app.css":     { file: "app.css",    mime: "text/css; charset=utf-8" },
-  "/app.js":      { file: "app.js",     mime: "application/javascript; charset=utf-8" },
-  "/robots.txt":  { file: "robots.txt", mime: "text/plain; charset=utf-8" },
-  "/llms.txt":    { file: "llms.txt",   mime: "text/plain; charset=utf-8" },
+  "/":              { file: "index.html",                    mime: "text/html; charset=utf-8" },
+  "/app.css":       { file: "app.css",                       mime: "text/css; charset=utf-8" },
+  "/app.js":        { file: "app.js",                        mime: "application/javascript; charset=utf-8" },
+  "/robots.txt":    { file: "robots.txt",                    mime: "text/plain; charset=utf-8" },
+  "/llms.txt":      { file: "llms.txt",                      mime: "text/plain; charset=utf-8" },
+  "/og-image.png":  { file: "og-image.png",                  mime: "image/png" },
+  "/googlec3efc6b89b4ed154.html": { file: "googlec3efc6b89b4ed154.html", mime: "text/html; charset=utf-8" },
 };
 const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 {
