@@ -42,9 +42,22 @@
     <a class="cta" href="/">Live Map</a>
   </p>
 
+  <h2>AI Search vs MCP Tool Use</h2>
+  <p>If ChatGPT or another AI search product finds this page on the web, it can read and cite the public forecast pages, but it cannot run MCP tools just because it found the endpoint. Tool calls work only after the endpoint is connected in an MCP-capable client, app, or connector.</p>
+  <p>For latest sakura dates without any MCP setup, use the crawlable text summary or JSON API:</p>
+  <pre><code>https://seasons.kooexperience.com/sakura-forecast.txt
+https://seasons.kooexperience.com/api/sakura/forecast</code></pre>
+
   <h2>Remote Endpoint</h2>
   <pre><code>https://seasons.kooexperience.com/mcp</code></pre>
   <p>This endpoint is public, HTTPS, read-only, and does not require an API key.</p>
+
+  <h2>ChatGPT App / Connector Setup</h2>
+  <p>Use this metadata when creating a ChatGPT app or connector for the remote MCP server:</p>
+  <pre><code>Name: Japan in Seasons
+Description: Use this for live Japan seasonal travel data: cherry blossom and sakura dates, autumn leaves, flowers, festivals, fruit picking, and weather. Best for current or date-specific Japan travel questions.
+Connector URL: https://seasons.kooexperience.com/mcp</code></pre>
+  <p>After the connection succeeds, the client should show the server tools. Before that, ChatGPT Search should cite the public forecast URLs instead of claiming it can run the MCP.</p>
 
   <h2>Best Tool Entry Points</h2>
   <div class="grid">

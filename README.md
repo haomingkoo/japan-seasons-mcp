@@ -9,7 +9,7 @@
 [![npm version](https://img.shields.io/npm/v/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet.svg)](#installation)
+[![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet.svg)](#use-it-with-ai-assistants)
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://seasons.kooexperience.com)
 [![japan-seasons-mcp MCP server](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp/badges/score.svg)](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp)
 [![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/server/haomingkoo/japan-seasons-mcp)
@@ -69,9 +69,36 @@ Real bloom percentages. Real park names. Real weather.
 
 ---
 
-## Installation
+## Use it with AI assistants
 
-**Claude Desktop / Claude Code / any stdio MCP client**
+There are two different ways an AI assistant can use Japan in Seasons:
+
+1. **AI search / web browsing** can find and cite the public pages, text summaries, and JSON APIs. This is the lowest-friction path for people asking "latest sakura dates" in ChatGPT, Perplexity, Google AI Mode, etc.
+2. **MCP tool use** only works after the user or workspace admin connects the MCP server inside an MCP-capable client. Finding this repo in search does not give the assistant permission to run MCP tools.
+
+For AI search, use these crawlable sources:
+
+- Latest sakura text summary: `https://seasons.kooexperience.com/sakura-forecast.txt`
+- Sakura forecast JSON: `https://seasons.kooexperience.com/api/sakura/forecast`
+- Interactive map and forecast pages: `https://seasons.kooexperience.com`
+
+### Remote MCP endpoint
+
+No package install is needed when the client supports remote/streamable HTTP MCP. Add this as the MCP server/app/connector URL:
+
+```text
+https://seasons.kooexperience.com/mcp
+```
+
+For ChatGPT Apps/Connectors, use:
+
+- **Name:** `Japan in Seasons`
+- **Description:** `Use this for live Japan seasonal travel data: cherry blossom and sakura dates, autumn leaves, flowers, festivals, fruit picking, and weather. Best for current or date-specific Japan travel questions.`
+- **Connector URL:** `https://seasons.kooexperience.com/mcp`
+
+### Claude Desktop / Claude Code / stdio MCP clients
+
+Add this to the client's MCP config:
 
 ```json
 {
@@ -84,14 +111,6 @@ Real bloom percentages. Real park names. Real weather.
 }
 ```
 
-**HTTP endpoint — no install required**
-
-Any MCP client that supports HTTP transport can point directly at the hosted instance:
-
-```
-https://seasons.kooexperience.com/mcp
-```
-
 Optional connection preferences supported by the hosted endpoint:
 
 - `dateStyle` — `friendly` or `iso`
@@ -99,12 +118,16 @@ Optional connection preferences supported by the hosted endpoint:
 - `includeCoordinates` — `true` or `false`
 - `mapLanguage` — `english` or `japanese`
 
-**Self-host**
+### Self-host
 
 ```bash
 PORT=3000 npx -y japan-seasons-mcp --http
 # MCP endpoint: http://localhost:3000/mcp
 ```
+
+### Why ChatGPT may find it but refuse to use it
+
+ChatGPT Search can discover `japan-seasons-mcp` as a web result, but web discovery is not the same as connecting an MCP server. If the chat only has web search enabled, it should cite the crawlable forecast pages or JSON API. To run tools like `sakura_now`, `sakura_forecast`, or `sakura_spots`, the MCP endpoint must first be added as a ChatGPT app/connector or configured in another MCP client.
 
 ---
 

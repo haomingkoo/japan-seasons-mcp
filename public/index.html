@@ -138,7 +138,7 @@
         "name": "How do I use Japan in Seasons with Claude, ChatGPT, or other AI assistants?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Japan in Seasons exposes a Model Context Protocol (MCP) server at seasons.kooexperience.com/mcp. AI assistants that support MCP — including Claude Desktop, Claude Code, and Cursor — can connect to it to query live sakura forecasts, koyo timing, festivals, flowers, fruit picking, and weather. Install via npm: npx japan-seasons-mcp, or point your MCP client at the remote endpoint."
+          "text": "Japan in Seasons exposes crawlable forecast pages and a Model Context Protocol (MCP) server. AI search can cite https://seasons.kooexperience.com/sakura-forecast.txt or the JSON APIs for latest dates. MCP tool use requires connecting https://seasons.kooexperience.com/mcp inside an MCP-capable client or ChatGPT app/connector; finding the page in search does not let the assistant run MCP tools automatically."
         }
       }
     ]
@@ -248,11 +248,22 @@
 
   <section class="content-section" id="install">
     <h2>Use it in Claude, ChatGPT, or any AI assistant</h2>
-    <p>Japan in Seasons ships a <strong>Model Context Protocol (MCP)</strong> server. Any AI assistant that speaks MCP — Claude Desktop, Claude Code, Cursor, and others — can query live sakura, koyo, festival, flower, and weather data directly.</p>
+    <p>Japan in Seasons supports both <strong>AI search</strong> and <strong>Model Context Protocol (MCP)</strong> tool use. AI search can find and cite the forecast pages. MCP tools only work after the endpoint is connected inside an MCP-capable client.</p>
+
+    <h3>For AI search and web browsing</h3>
+    <p>If ChatGPT, Perplexity, or another AI search product finds this site through web search, it should cite the crawlable forecast pages instead of trying to run MCP tools.</p>
+    <pre><code>https://seasons.kooexperience.com/sakura-forecast.txt
+https://seasons.kooexperience.com/api/sakura/forecast</code></pre>
 
     <h3>Remote MCP endpoint (zero install)</h3>
-    <p>Point your MCP client at:</p>
+    <p>Point your MCP client, app, or connector at:</p>
     <pre><code>https://seasons.kooexperience.com/mcp</code></pre>
+
+    <h3>ChatGPT app / connector metadata</h3>
+    <pre><code>Name: Japan in Seasons
+Description: Use this for live Japan seasonal travel data: cherry blossom and sakura dates, autumn leaves, flowers, festivals, fruit picking, and weather. Best for current or date-specific Japan travel questions.
+Connector URL: https://seasons.kooexperience.com/mcp</code></pre>
+    <p>If ChatGPT only found this page via search, it cannot call the MCP tools yet. Connect the endpoint first, then ask for current sakura dates, best blossom cities for travel dates, or exact parks by prefecture.</p>
 
     <h3>Local install via npm</h3>
     <pre><code>npx japan-seasons-mcp</code></pre>
@@ -273,7 +284,7 @@
     <h3>Specialist tools</h3>
     <p><code>sakura_forecast</code>, <code>sakura_best_dates</code>, <code>sakura_spots</code>, <code>kawazu_forecast</code>, <code>koyo_forecast</code>, <code>koyo_best_dates</code>, <code>koyo_spots</code>, <code>flowers_spots</code>, <code>festivals_list</code>, <code>fruit_seasons</code>, <code>fruit_farms</code>, <code>weather_forecast</code>.</p>
 
-    <p><a href="https://github.com/haomingkoo/japan-seasons-mcp#install" target="_blank" rel="noopener">Full install guide on GitHub →</a></p>
+    <p><a href="https://github.com/haomingkoo/japan-seasons-mcp#use-it-with-ai-assistants" target="_blank" rel="noopener">Full AI and MCP guide on GitHub →</a></p>
   </section>
 
   <section class="content-section" id="faq">

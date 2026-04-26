@@ -219,6 +219,7 @@ function SITEMAP_XML(): string {
   const urls = [
     { loc: `${SITE_BASE_URL}/`, priority: "1.0" },
     { loc: `${SITE_BASE_URL}/cherry-blossom-forecast`, priority: "0.95" },
+    { loc: `${SITE_BASE_URL}/sakura-forecast.txt`, priority: "0.9" },
     { loc: `${SITE_BASE_URL}/autumn-leaves-forecast`, priority: "0.95" },
     { loc: `${SITE_BASE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_BASE_URL}/llms.txt`, priority: "0.5" },
@@ -448,6 +449,30 @@ async function formatSakuraNowAnswer(options: {
   return output;
 }
 
+async function buildSakuraForecastMarkdown(outputConfig: OutputConfig = DEFAULT_OUTPUT_CONFIG): Promise<string> {
+  const forecast = await getSakuraForecast();
+  const today = todayJstIsoDate();
+  let output = await formatSakuraNowAnswer({ outputConfig });
+
+  output += `\n\n## All JMC observation cities\n`;
+  output += `This section is intentionally crawlable for AI search and web search. It lists the latest bloom and full-bloom dates available from Japan Meteorological Corporation for ${forecast.totalCities} observation cities. Today in Japan: ${today}.\n\n`;
+  for (const region of forecast.regions) {
+    output += `### ${region.nameEn || region.name}\n`;
+    for (const city of region.cities) {
+      output += `${formatSakuraCityLine(city, outputConfig)}\n`;
+    }
+    output += `\n`;
+  }
+
+  output += `## AI search and MCP use\n`;
+  output += `If an assistant found this page through web search, it can cite this text page or the JSON API for latest sakura dates. Finding the page does not mean the assistant can execute MCP tools.\n\n`;
+  output += `To call tools such as sakura_now, sakura_forecast, sakura_best_dates, and sakura_spots, first connect the MCP endpoint in an MCP-capable client or ChatGPT app/connector setup.\n\n`;
+  output += `- Crawlable text summary: ${SITE_URL}/sakura-forecast.txt\n`;
+  output += `- Forecast JSON API: ${SITE_URL}/api/sakura/forecast\n`;
+  output += `- Remote MCP endpoint: ${SITE_URL}/mcp\n`;
+  return output;
+}
+
 function formatKoyoCityLine(city: { nameEn?: string; name: string; prefNameEn?: string; prefName: string; maple?: any; ginkgo?: any }, outputConfig: OutputConfig): string {
   const name = city.nameEn || city.name;
   const pref = city.prefNameEn || city.prefName;
@@ -656,9 +681,9 @@ const SEARCH_DOCS = [
   {
     id: "sakura-now",
     title: "Current Japan Cherry Blossom Forecast",
-    url: `${SITE_URL}/cherry-blossom-forecast`,
+    url: `${SITE_URL}/sakura-forecast.txt`,
     keywords: "sakura cherry blossom hanami mankai bloom forecast japan kyoto tokyo osaka hokkaido tohoku jmc",
-    summary: "Live JMC sakura forecast for 48 observation cities, including bloom and full-bloom dates, actual observations, historical averages, and current status.",
+    summary: "Crawlable live JMC sakura forecast for 48 observation cities, including bloom and full-bloom dates, actual observations, historical averages, and current status.",
   },
   {
     id: "sakura-spots",
@@ -707,7 +732,7 @@ const SEARCH_DOCS = [
     title: "Japan in Seasons MCP Server",
     url: `${SITE_URL}/japan-seasonal-travel-mcp`,
     keywords: "mcp model context protocol chatgpt claude cursor japan travel ai assistant seasonal data",
-    summary: "Remote and npm MCP server for AI assistants to access live Japan seasonal travel data from Japan Meteorological Corporation and JMA.",
+    summary: "Remote and npm MCP server for live Japan seasonal travel data. AI search can cite public forecast pages, but MCP tools require connecting the endpoint in an MCP-capable client or ChatGPT app/connector first.",
   },
 ] as const;
 
@@ -729,8 +754,8 @@ async function fetchSearchDoc(id: string, outputConfig: OutputConfig) {
     return {
       id,
       title: "Current Japan Cherry Blossom Forecast",
-      url: `${SITE_URL}/cherry-blossom-forecast`,
-      text: await formatSakuraNowAnswer({ outputConfig }),
+      url: `${SITE_URL}/sakura-forecast.txt`,
+      text: await buildSakuraForecastMarkdown(outputConfig),
       metadata: { source: "Japan Meteorological Corporation", type: "live_forecast" },
     };
   }
@@ -2008,6 +2033,22 @@ async function startHttpServer() {
         activeSessions: transports.size,
         ...stats.toJSON(),
       }));
+      return;
+    }
+
+    if (url.pathname === "/sakura-forecast.txt") {
+      try {
+        const outputConfig = getOutputConfig(url.searchParams, req.headers);
+        const body = await buildSakuraForecastMarkdown(outputConfig);
+        res.writeHead(200, {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Cache-Control": "public, max-age=900",
+        });
+        res.end(body);
+      } catch (e: any) {
+        res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end(`Unable to load sakura forecast: ${e.message}`);
+      }
       return;
     }
 
