@@ -45,6 +45,11 @@ let allKoyoSpotsData = null;
 let mapInstance = null;
 let markers = [];
 let clusterGroup = null;
+let mapVersion = 0;
+
+function scheduleMapWork(fn) {
+  setTimeout(fn, 0);
+}
 
 // ── Spot click registry (prevents XSS via inline onclick strings) ──
 const _registry = new Map();
@@ -219,19 +224,29 @@ async function api(path) {
   return r.json();
 }
 
-// sessionStorage cache — survives page refresh, expires after 1 hour
+// Browser cache — survives refreshes and new tabs, expires after 1 hour.
 const SESSION_TTL = 3_600_000;
 function sessionGet(key) {
   try {
     const raw = sessionStorage.getItem(key);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > SESSION_TTL) { sessionStorage.removeItem(key); return null; }
+    const fallbackRaw = raw || localStorage.getItem(key);
+    if (!fallbackRaw) return null;
+    if (!raw) sessionStorage.setItem(key, fallbackRaw);
+    const { data, ts } = JSON.parse(fallbackRaw);
+    if (Date.now() - ts > SESSION_TTL) {
+      sessionStorage.removeItem(key);
+      localStorage.removeItem(key);
+      return null;
+    }
     return data;
   } catch { return null; }
 }
 function sessionSet(key, data) {
-  try { sessionStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+  try {
+    const raw = JSON.stringify({ data, ts: Date.now() });
+    sessionStorage.setItem(key, raw);
+    localStorage.setItem(key, raw);
+  } catch {}
 }
 
 // ── Farm popup — single source, used in trip/fruit/whatson modes ──
@@ -949,6 +964,24 @@ function avgDiffLabel(forecastIso, normalIso) {
 }
 
 // ── SAKURA ──
+function addSakuraCityMarkers() {
+  for (const region of (sakuraData?.regions || [])) {
+    for (const city of region.cities) {
+      const coords = CITY_COORDS[city.cityName];
+      if (!coords) continue;
+      if (!matchesBloomFilter(cityBloomCategory(city))) continue;
+      const color = statusToColor(city.status);
+      const radius = statusToRadius(city.status);
+      const marker = L.circleMarker(coords, {
+        radius, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
+      }).addTo(mapInstance);
+      marker.bindPopup(`<div style="min-width:180px"><b>${city.cityName}</b> (${city.prefName})<br><b>${city.status}</b><br><span style="font-size:11px;color:#888">Bloom: ${fmtDate(city.bloom?.forecast)} · Full: ${fmtDate(city.fullBloom?.forecast)}</span></div>`);
+      marker.on('click', () => loadPrefSpots(city.prefCode, city.prefName));
+      markers.push(marker);
+    }
+  }
+}
+
 async function loadSakura() {
   $('sidebar-header').innerHTML = '<h2>Cherry Blossom Forecast</h2><p>48 cities &middot; 1,012 spots &middot; Click a city to see spots</p>';
   $('sidebar-content').innerHTML = skeletonHtml();
@@ -962,9 +995,8 @@ async function loadSakura() {
   try {
     if (!sakuraData) sakuraData = await api('/api/sakura/forecast');
     clearMarkers();
-
-    // Load ALL 1,012 spots on map with clustering
-    loadAllSpotsOnMap();
+    const token = mapVersion;
+    addSakuraCityMarkers();
 
     // Render sidebar with regions
     let html = '';
@@ -983,6 +1015,10 @@ async function loadSakura() {
       }
     }
     $('sidebar-content').innerHTML = html;
+
+    // Upgrade from fast city markers to the full 1,012-spot cluster after the
+    // forecast list has had a chance to paint.
+    scheduleMapWork(() => loadAllSpotsOnMap({ token, replaceExisting: true, expectedMode: 'sakura' }));
   } catch (e) {
     $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
@@ -1082,8 +1118,9 @@ async function loadKoyo() {
   $('sidebar-content').innerHTML = skeletonHtml();
   updateLegend('koyo');
   clearMarkers();
+  const token = mapVersion;
   setMapPlaceholder(null);
-  loadAllKoyoSpotsOnMap();
+  scheduleMapWork(() => loadAllKoyoSpotsOnMap({ token, expectedMode: 'koyo' }));
 
   // Off-season banner (koyo season = roughly Sep–Nov, forecasts released ~Aug)
   const month = new Date().getMonth() + 1; // 1–12
@@ -1199,7 +1236,8 @@ function syncTripDates(changed) {
 }
 
 // ── Map helpers ──
-function clearMarkers() {
+function clearMarkers(options = {}) {
+  if (!options.keepVersion) mapVersion++;
   markers.forEach(m => mapInstance.removeLayer(m));
   markers = [];
   if (clusterGroup) { mapInstance.removeLayer(clusterGroup); clusterGroup = null; }
@@ -2193,7 +2231,9 @@ async function loadWeatherCard(cityName) {
 }
 
 // ── Load all 1,012 spots on map ──
-async function loadAllSpotsOnMap() {
+async function loadAllSpotsOnMap(options = {}) {
+  const expectedMode = options.expectedMode || mode;
+  const token = options.token ?? mapVersion;
   try {
     if (!allSpotsData) {
       allSpotsData = sessionGet('allSpots');
@@ -2202,6 +2242,8 @@ async function loadAllSpotsOnMap() {
         sessionSet('allSpots', allSpotsData);
       }
     }
+    if (mode !== expectedMode || token !== mapVersion) return;
+    if (options.replaceExisting) clearMarkers({ keepVersion: true });
 
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 40,
@@ -2262,6 +2304,7 @@ async function loadAllSpotsOnMap() {
     // Also load Kawazu cherry spots with distinct markers (★ star, magenta)
     try {
       const kawazu = await api('/api/kawazu');
+      if (mode !== expectedMode || token !== mapVersion) return;
       for (const spot of kawazu.spots || []) {
         if (!spot.lat || !spot.lon) continue;
         if (!matchesBloomFilter(bloomCategory(spot.bloomRate, spot.fullRate, spot.fullBloomForecast))) continue;
@@ -2272,7 +2315,7 @@ async function loadAllSpotsOnMap() {
             html: `<div style="background:${kawazuColor};color:white;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)" title="Kawazu Cherry">★</div>`,
             className: '', iconSize: [22, 22], iconAnchor: [11, 11],
           })
-        }).addTo(mapInstance);
+        });
         const kStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || 'Kawazu Cherry';
         m.bindPopup(
           `<div style="min-width:200px"><b>${spot.name}</b> ${spot.nameRomaji || ''}<br>` +
@@ -2281,27 +2324,16 @@ async function loadAllSpotsOnMap() {
           `<span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>` +
           `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a></div>`
         );
+        if (mode !== expectedMode || token !== mapVersion) return;
+        m.addTo(mapInstance);
         markers.push(m);
       }
     } catch {} // Kawazu is bonus — don't break main view
 
   } catch (e) {
+    if (mode !== expectedMode || token !== mapVersion) return;
     // Fallback to city markers if all-spots fails
-    for (const region of (sakuraData?.regions || [])) {
-      for (const city of region.cities) {
-        const coords = CITY_COORDS[city.cityName];
-        if (!coords) continue;
-        if (!matchesBloomFilter(cityBloomCategory(city))) continue;
-        const color = statusToColor(city.status);
-        const radius = statusToRadius(city.status);
-        const marker = L.circleMarker(coords, {
-          radius, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
-        }).addTo(mapInstance);
-        marker.bindPopup(`<div style="min-width:180px"><b>${city.cityName}</b> (${city.prefName})<br><b>${city.status}</b><br><span style="font-size:11px;color:#888">Bloom: ${fmtDate(city.bloom?.forecast)} · Full: ${fmtDate(city.fullBloom?.forecast)}</span></div>`);
-        marker.on('click', () => loadPrefSpots(city.prefCode, city.prefName));
-        markers.push(marker);
-      }
-    }
+    if (!markers.length) addSakuraCityMarkers();
   }
 }
 
@@ -2381,7 +2413,9 @@ function globalSpotSearch(q) {
 }
 
 // ── KOYO ALL-SPOTS MAP ──
-async function loadAllKoyoSpotsOnMap() {
+async function loadAllKoyoSpotsOnMap(options = {}) {
+  const expectedMode = options.expectedMode || mode;
+  const token = options.token ?? mapVersion;
   try {
     if (!allKoyoSpotsData) {
       allKoyoSpotsData = sessionGet('allKoyoSpots');
@@ -2390,6 +2424,7 @@ async function loadAllKoyoSpotsOnMap() {
         sessionSet('allKoyoSpots', allKoyoSpotsData);
       }
     }
+    if (mode !== expectedMode || token !== mapVersion) return;
 
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 40,

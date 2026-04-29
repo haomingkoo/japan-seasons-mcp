@@ -376,16 +376,18 @@ export function findPrefCode(query: string): string | null {
   return null;
 }
 
-export async function getSakuraSpots(prefCode: string): Promise<SakuraSpotResult> {
-  const cacheKey = `sakura-spots:${prefCode}`;
+export async function getSakuraSpots(prefCode: string, options: { includeObservations?: boolean } = {}): Promise<SakuraSpotResult> {
+  const includeObservations = options.includeObservations !== false;
+  const cacheKey = `sakura-spots:${prefCode}:${includeObservations ? "observed" : "forecast"}`;
   return cache.getOrFetch(cacheKey, TTL.SPOTS, async () => {
     logger.info(`Fetching sakura spots for prefecture ${prefCode}`);
     const url = `${NKISHOU_SPOTS_API}?type=sakura&filter_mode=forecast&area_mode=pref&area_code=${prefCode}&sort_code=0`;
-    // Fetch forecast and observations in parallel — observations are best-effort
-    const [res, observations] = await Promise.all([
-      safeFetch(url),
-      fetchPrefObservations(prefCode),
-    ]);
+    // Prefecture detail pages include spot observations. The national all-spots
+    // overview skips them so startup does not fan out to hundreds of optional
+    // observation requests before the map can populate.
+    const [res, observations] = includeObservations
+      ? await Promise.all([safeFetch(url), fetchPrefObservations(prefCode)])
+      : [await safeFetch(url), new Map()];
     const data = await res.json();
     return parseSpotsResponse(data, prefCode, observations);
   });

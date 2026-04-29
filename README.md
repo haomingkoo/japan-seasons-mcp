@@ -125,6 +125,14 @@ PORT=3000 npx -y japan-seasons-mcp --http
 # MCP endpoint: http://localhost:3000/mcp
 ```
 
+Optional durable cache for the hosted web map:
+
+```bash
+JAPAN_SEASONS_CACHE_DIR=/data PORT=3000 npx -y japan-seasons-mcp --http
+```
+
+Point `JAPAN_SEASONS_CACHE_DIR` at a persistent volume, for example a Railway Volume mounted at `/data`. This stores the warmed national sakura/koyo all-spots JSON across restarts; without it, the app falls back to in-memory cache and still works.
+
 ### Why ChatGPT may find it but refuse to use it
 
 ChatGPT Search can discover `japan-seasons-mcp` as a web result, but web discovery is not the same as connecting an MCP server. If the chat only has web search enabled, it should cite the crawlable forecast pages or JSON API. To run tools like `sakura_now`, `sakura_forecast`, or `sakura_spots`, the MCP endpoint must first be added as a ChatGPT app/connector or configured in another MCP client.

@@ -15,6 +15,7 @@ import { getWeatherForecast } from "./lib/weather.js";
 import { pMapSettled } from "./lib/fetch.js";
 import { logger } from "./lib/logger.js";
 import { TTL } from "./lib/cache.js";
+import { durableCacheEnabled, readDurableTextCache, writeDurableTextCache } from "./lib/durable-cache.js";
 import { JAPAN_BOUNDS, JAPAN_PREFECTURE_COUNT } from "./lib/constants.js";
 import { DATE_RANGE_INPUT_HINT, parseDateRangeInputJst } from "./lib/dates.js";
 
@@ -33,12 +34,102 @@ const STATIC = {
   farms:     loadStatic("fruit-farms.json"),
 };
 
-// ── Server-side caches — shared across users, 1-hour TTL ──
+// ── Server-side caches — shared across users ──
 // All-spots: 47 upstream requests → cache aggressively so only first user pays the cost.
-const ALL_SPOTS_CACHE_TTL = TTL.FORECAST;
+// JMC publishes the daily sakura/koyo update at 09:00 JST, which is 00:00 UTC.
+const ALL_SPOTS_CDN_TTL = TTL.SPOTS;
+const ALL_SPOTS_STALE_TTL = 24 * 60 * 60 * 1000;
 const allSpotsCache = new Map<string, { json: string; ts: number }>();
+let allSpotsRefreshPromise: Promise<void> | null = null;
+type AllSpotsKind = "sakura" | "koyo";
 
 const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
+
+function durableAllSpotsKey(kind: AllSpotsKind): string {
+  return `all-spots-${kind}`;
+}
+
+function lastJmcUpdateMs(nowMs = Date.now()): number {
+  const now = new Date(nowMs);
+  const todayUpdateMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0);
+  return nowMs >= todayUpdateMs ? todayUpdateMs : todayUpdateMs - 24 * 60 * 60 * 1000;
+}
+
+function isAllSpotsFreshForJmcDay(ts: number): boolean {
+  return ts >= lastJmcUpdateMs();
+}
+
+function allSpotsEntryStatus(entry: { json: string; ts: number } | null | undefined) {
+  if (!entry) return { present: false };
+  const ageSeconds = Math.max(0, Math.round((Date.now() - entry.ts) / 1000));
+  return {
+    present: true,
+    freshForJmcDay: isAllSpotsFreshForJmcDay(entry.ts),
+    updatedAt: new Date(entry.ts).toISOString(),
+    ageSeconds,
+    bytes: Buffer.byteLength(entry.json),
+  };
+}
+
+export async function getApiCacheStatus() {
+  const [sakuraDurable, koyoDurable] = await Promise.all([
+    readDurableTextCache(durableAllSpotsKey("sakura")),
+    readDurableTextCache(durableAllSpotsKey("koyo")),
+  ]);
+  return {
+    jmcLastUpdate: new Date(lastJmcUpdateMs()).toISOString(),
+    durableCacheEnabled: durableCacheEnabled(),
+    allSpots: {
+      sakura: {
+        memory: allSpotsEntryStatus(allSpotsCache.get("sakura")),
+        durable: allSpotsEntryStatus(sakuraDurable ? { json: sakuraDurable.body, ts: sakuraDurable.ts } : null),
+      },
+      koyo: {
+        memory: allSpotsEntryStatus(allSpotsCache.get("koyo")),
+        durable: allSpotsEntryStatus(koyoDurable ? { json: koyoDurable.body, ts: koyoDurable.ts } : null),
+      },
+    },
+  };
+}
+
+function setAllSpotsCache(kind: AllSpotsKind, json: string, ts = Date.now()) {
+  allSpotsCache.set(kind, { json, ts });
+  if (!durableCacheEnabled()) return;
+  writeDurableTextCache(durableAllSpotsKey(kind), json, ts).catch((e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger.warn(`Durable all-spots cache write failed (${kind}): ${msg}`);
+  });
+}
+
+async function getAllSpotsCache(kind: AllSpotsKind): Promise<{ json: string; ts: number } | undefined> {
+  const cached = allSpotsCache.get(kind);
+  if (cached) return cached;
+  const durable = await readDurableTextCache(durableAllSpotsKey(kind));
+  if (!durable) return undefined;
+  if (Date.now() - durable.ts > ALL_SPOTS_STALE_TTL) return undefined;
+  const entry = { json: durable.body, ts: durable.ts };
+  allSpotsCache.set(kind, entry);
+  logger.info(`Loaded durable all-spots cache (${kind})`);
+  return entry;
+}
+
+function writeAllSpotsJson(res: ServerResponse, body: string, maxAge = TTL.FORECAST / 1000) {
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+    "Vary": "Accept-Encoding",
+    "Cache-Control": `public, max-age=${maxAge}, stale-while-revalidate=3600`,
+  });
+  res.end(body);
+}
+
+function refreshAllSpotsInBackground(reason: string) {
+  if (allSpotsRefreshPromise) return;
+  logger.info(`All-spots stale cache served; background refresh starting (${reason})`);
+  warmSpotsCache().catch((e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger.error(`All-spots background refresh failed: ${msg}`);
+  });
+}
 
 // ── Response helpers ──
 function json(res: ServerResponse, data: unknown, status = 200, maxAge = 0, immutable = false) {
@@ -130,19 +221,30 @@ export async function handleApiRequest(
 
     // GET /api/sakura/all-spots — load all 1,012 spots across Japan
     if (pathname === "/api/sakura/all-spots") {
-      const cached = allSpotsCache.get("sakura");
-      if (cached && Date.now() - cached.ts < ALL_SPOTS_CACHE_TTL) {
-        res.writeHead(200, {
-          "Content-Type": "application/json",
-          "Vary": "Accept-Encoding",
-          "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
-        });
-        res.end(cached.json);
-        return true;
+      const cached = await getAllSpotsCache("sakura");
+      if (cached) {
+        const age = Date.now() - cached.ts;
+        if (isAllSpotsFreshForJmcDay(cached.ts)) {
+          writeAllSpotsJson(res, cached.json, ALL_SPOTS_CDN_TTL / 1000);
+          return true;
+        }
+        if (age < ALL_SPOTS_STALE_TTL) {
+          refreshAllSpotsInBackground("sakura");
+          writeAllSpotsJson(res, cached.json, 60);
+          return true;
+        }
+      }
+      if (allSpotsRefreshPromise) {
+        await allSpotsRefreshPromise;
+        const warmed = allSpotsCache.get("sakura");
+        if (warmed) {
+          writeAllSpotsJson(res, warmed.json, ALL_SPOTS_CDN_TTL / 1000);
+          return true;
+        }
       }
       const allSpots: unknown[] = [];
       const prefCodes = Array.from({ length: JAPAN_PREFECTURE_COUNT }, (_, i) => String(i + 1).padStart(2, "0"));
-      const results = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
+      const results = await pMapSettled(prefCodes, (code) => getSakuraSpots(code, { includeObservations: false }), 5);
       for (const r of results) {
         if (r.status === "fulfilled" && r.value.spots) {
           allSpots.push(...r.value.spots.map(slimSakuraSpot));
@@ -150,13 +252,8 @@ export async function handleApiRequest(
       }
       const data = { totalSpots: allSpots.length, spots: allSpots };
       const jsonStr = JSON.stringify(data);
-      allSpotsCache.set("sakura", { json: jsonStr, ts: Date.now() });
-      res.writeHead(200, {
-        "Content-Type": "application/json",
-        "Vary": "Accept-Encoding",
-        "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
-      });
-      res.end(jsonStr);
+      setAllSpotsCache("sakura", jsonStr);
+      writeAllSpotsJson(res, jsonStr, ALL_SPOTS_CDN_TTL / 1000);
       return true;
     }
 
@@ -188,15 +285,26 @@ export async function handleApiRequest(
 
     // GET /api/koyo/all-spots — load all koyo spots across 47 prefectures
     if (pathname === "/api/koyo/all-spots") {
-      const cached = allSpotsCache.get("koyo");
-      if (cached && Date.now() - cached.ts < ALL_SPOTS_CACHE_TTL) {
-        res.writeHead(200, {
-          "Content-Type": "application/json",
-          "Vary": "Accept-Encoding",
-          "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
-        });
-        res.end(cached.json);
-        return true;
+      const cached = await getAllSpotsCache("koyo");
+      if (cached) {
+        const age = Date.now() - cached.ts;
+        if (isAllSpotsFreshForJmcDay(cached.ts)) {
+          writeAllSpotsJson(res, cached.json, ALL_SPOTS_CDN_TTL / 1000);
+          return true;
+        }
+        if (age < ALL_SPOTS_STALE_TTL) {
+          refreshAllSpotsInBackground("koyo");
+          writeAllSpotsJson(res, cached.json, 60);
+          return true;
+        }
+      }
+      if (allSpotsRefreshPromise) {
+        await allSpotsRefreshPromise;
+        const warmed = allSpotsCache.get("koyo");
+        if (warmed) {
+          writeAllSpotsJson(res, warmed.json, ALL_SPOTS_CDN_TTL / 1000);
+          return true;
+        }
       }
       const allSpots: unknown[] = [];
       const prefCodes = Array.from({ length: JAPAN_PREFECTURE_COUNT }, (_, i) => String(i + 1).padStart(2, "0"));
@@ -207,13 +315,8 @@ export async function handleApiRequest(
       }
       const data = { totalSpots: allSpots.length, spots: allSpots };
       const jsonStr = JSON.stringify(data);
-      allSpotsCache.set("koyo", { json: jsonStr, ts: Date.now() });
-      res.writeHead(200, {
-        "Content-Type": "application/json",
-        "Vary": "Accept-Encoding",
-        "Cache-Control": `public, max-age=${TTL.FORECAST / 1000}, stale-while-revalidate=60`,
-      });
-      res.end(jsonStr);
+      setAllSpotsCache("koyo", jsonStr);
+      writeAllSpotsJson(res, jsonStr, ALL_SPOTS_CDN_TTL / 1000);
       return true;
     }
 
@@ -285,25 +388,42 @@ export async function handleApiRequest(
 
 // Called at server startup to pre-warm the all-spots cache before the first visitor arrives.
 export async function warmSpotsCache(): Promise<void> {
+  if (allSpotsRefreshPromise) return allSpotsRefreshPromise;
+  allSpotsRefreshPromise = warmSpotsCacheImpl()
+    .finally(() => { allSpotsRefreshPromise = null; });
+  return allSpotsRefreshPromise;
+}
+
+async function warmSpotsCacheImpl(): Promise<void> {
   const prefCodes = Array.from({ length: JAPAN_PREFECTURE_COUNT }, (_, i) => String(i + 1).padStart(2, "0"));
 
-  const sakuraResults = await pMapSettled(prefCodes, (code) => getSakuraSpots(code), 5);
-  const sakuraSpots: unknown[] = [];
-  for (const r of sakuraResults) {
-    if (r.status === "fulfilled" && r.value.spots) {
-      sakuraSpots.push(...r.value.spots.map(slimSakuraSpot));
+  const cachedSakura = await getAllSpotsCache("sakura");
+  if (cachedSakura && isAllSpotsFreshForJmcDay(cachedSakura.ts)) {
+    logger.info("Cache warm: sakura all-spots loaded from durable cache");
+  } else {
+    const sakuraResults = await pMapSettled(prefCodes, (code) => getSakuraSpots(code, { includeObservations: false }), 5);
+    const sakuraSpots: unknown[] = [];
+    for (const r of sakuraResults) {
+      if (r.status === "fulfilled" && r.value.spots) {
+        sakuraSpots.push(...r.value.spots.map(slimSakuraSpot));
+      }
     }
+    const sakuraData = { totalSpots: sakuraSpots.length, spots: sakuraSpots };
+    setAllSpotsCache("sakura", JSON.stringify(sakuraData));
+    logger.info(`Cache warm: sakura all-spots ${sakuraSpots.length} spots`);
   }
-  const sakuraData = { totalSpots: sakuraSpots.length, spots: sakuraSpots };
-  allSpotsCache.set("sakura", { json: JSON.stringify(sakuraData), ts: Date.now() });
-  logger.info(`Cache warm: sakura all-spots ${sakuraSpots.length} spots`);
 
-  const koyoResults = await pMapSettled(prefCodes, (code) => getKoyoSpots(code), 5);
-  const koyoSpots: unknown[] = [];
-  for (const r of koyoResults) {
-    if (r.status === "fulfilled" && r.value.spots) koyoSpots.push(...r.value.spots);
+  const cachedKoyo = await getAllSpotsCache("koyo");
+  if (cachedKoyo && isAllSpotsFreshForJmcDay(cachedKoyo.ts)) {
+    logger.info("Cache warm: koyo all-spots loaded from durable cache");
+  } else {
+    const koyoResults = await pMapSettled(prefCodes, (code) => getKoyoSpots(code), 5);
+    const koyoSpots: unknown[] = [];
+    for (const r of koyoResults) {
+      if (r.status === "fulfilled" && r.value.spots) koyoSpots.push(...r.value.spots);
+    }
+    const koyoData = { totalSpots: koyoSpots.length, spots: koyoSpots };
+    setAllSpotsCache("koyo", JSON.stringify(koyoData));
+    logger.info(`Cache warm: koyo all-spots ${koyoSpots.length} spots`);
   }
-  const koyoData = { totalSpots: koyoSpots.length, spots: koyoSpots };
-  allSpotsCache.set("koyo", { json: JSON.stringify(koyoData), ts: Date.now() });
-  logger.info(`Cache warm: koyo all-spots ${koyoSpots.length} spots`);
 }
