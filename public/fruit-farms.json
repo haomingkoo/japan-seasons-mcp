@@ -1,12 +1,12 @@
 {
-  "scraped_at": "2026-04-26T17:33:18.271606+00:00",
+  "scraped_at": "2026-05-10T17:44:10.945786+00:00",
   "sources": [
     "Jalan.net",
     "Japan Travel by NAVITIME"
   ],
   "source_url": "https://www.jalan.net/kankou/kw_%89%CA%8E%F7/",
-  "total": 347,
-  "with_coords": 332,
+  "total": 348,
+  "with_coords": 333,
   "spots": [
     {
       "id": "02301-2100069",
@@ -16,6 +16,31 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2100069/",
       "lat": 35.13074,
       "lon": 138.944923
+    },
+    {
+      "id": "02301-2300038",
+      "name": "Aichi Farm",
+      "address": "Aichi Nisshin-shi Komenokicho Minamiyama 977",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2300038/",
+      "lat": 35.129961,
+      "lon": 137.086975
+    },
+    {
+      "id": "02308-f00090",
+      "name": "Kajitsu no Sato Harada Farm",
+      "address": "Gunma Numata-shi Yokozukamachi 1294",
+      "fruits": [
+        "Strawberry",
+        "Cherry",
+        "Blueberry",
+        "Peach",
+        "Grape",
+        "Apple"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00090/",
+      "lat": 36.660474,
+      "lon": 139.07739
     },
     {
       "id": "02308-f00541",
@@ -43,29 +68,13 @@
       "lon": 138.924538
     },
     {
-      "id": "02308-f00090",
-      "name": "Kajitsu no Sato Harada Farm",
-      "address": "Gunma Numata-shi Yokozukamachi 1294",
-      "fruits": [
-        "Strawberry",
-        "Cherry",
-        "Blueberry",
-        "Peach",
-        "Grape",
-        "Apple"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00090/",
-      "lat": 36.660474,
-      "lon": 139.07739
-    },
-    {
-      "id": "02301-2300038",
-      "name": "Aichi Farm",
-      "address": "Aichi Nisshin-shi Komenokicho Minamiyama 977",
+      "id": "02301-1903250",
+      "name": "Savor Farm, Tondabayashi City Agricultural Park",
+      "address": "Osaka Tondabayashi-shi Kannabi 2300",
       "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2300038/",
-      "lat": 35.129961,
-      "lon": 137.086975
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903250/",
+      "lat": 34.458071,
+      "lon": 135.608471
     },
     {
       "id": "02308-f00195",
@@ -78,26 +87,6 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00195/",
       "lat": 35.209012,
       "lon": 139.659477
-    },
-    {
-      "id": "02301-3000342",
-      "name": "Tateyama Strawberry Picking Garden",
-      "address": "Chiba Tateyama-shi Yamamoto 257-3 JA Awa Tateno Branch",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000342/",
-      "lat": 34.99064,
-      "lon": 139.883432
-    },
-    {
-      "id": "02301-1903250",
-      "name": "Savor Farm, Tondabayashi City Agricultural Park",
-      "address": "Osaka Tondabayashi-shi Kannabi 2300",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903250/",
-      "lat": 34.458071,
-      "lon": 135.608471
     },
     {
       "id": "02301-2800045",
@@ -118,15 +107,6 @@
       "lon": 139.85005
     },
     {
-      "id": "02301-4200064",
-      "name": "Shinshu Fruits Land (Shinshu Nakano Inter Branch)",
-      "address": "Nagano Nakano-shi Kusama Angenji Sakai 1356-1",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200064/",
-      "lat": 36.741189,
-      "lon": 138.325193
-    },
-    {
       "id": "02308-f00341",
       "name": "Iwafune Fruit Park",
       "address": "Tochigi Tochigi-shi Iwafunemachi Shimotsubara 1585",
@@ -141,6 +121,17 @@
       "lon": 139.634081
     },
     {
+      "id": "02301-3000342",
+      "name": "Tateyama Strawberry Picking Garden",
+      "address": "Chiba Tateyama-shi Yamamoto 257-3 JA Awa Tateno Branch",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000342/",
+      "lat": 34.99064,
+      "lon": 139.883432
+    },
+    {
       "id": "02308-f00048",
       "name": "Mimasaka Farm",
       "address": "Okayama Mimasaka-shi Oku 585-1",
@@ -153,82 +144,24 @@
       "lon": 134.114388
     },
     {
-      "id": "02301-2900440",
-      "name": "Nikkou Strawberry Park",
-      "address": "Tochigi Nikko-shi Serinuma 3581",
+      "id": "02308-f00219",
+      "name": "Kiwi Fruits Country Japan",
+      "address": "Shizuoka Kakegawa-shi Kamiuchida 2040",
       "fruits": [
-        "Strawberry"
+        "Kiwi"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2900440/",
-      "lat": 36.734981,
-      "lon": 139.717163
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00219/",
+      "lat": 34.75138,
+      "lon": 138.051417
     },
     {
-      "id": "02301-3700271",
-      "name": "Yuzawa Ichigo Mura Strawberry Farm",
-      "address": "Niigata Minamiuonuma-gun Yuzawamachi Kandatsu 750-1",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700271/",
-      "lat": 36.937458,
-      "lon": 138.823095
-    },
-    {
-      "id": "02308-f00269",
-      "name": "Futtsu Aqua Farm",
-      "address": "Chiba Futtsu-shi Tsuruoka 449",
-      "fruits": [
-        "Strawberry",
-        "Blueberry",
-        "Grape"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00269/",
-      "lat": 35.242215,
-      "lon": 139.885281
-    },
-    {
-      "id": "02308-f00530",
-      "name": "Sayama Berry Land",
-      "address": "Saitama Sayama-shi Horigane 1262-5",
+      "id": "02301-13000212",
+      "name": "Kasaya Shiitake Land",
+      "address": "Hyogo Sanda-shi Kamiaino 373",
       "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00530/",
-      "lat": 35.858597,
-      "lon": 139.447484
-    },
-    {
-      "id": "02308-f00214",
-      "name": "Yes! Strawberry",
-      "address": "Shizuoka Ito-shi Usami 1036-1",
-      "fruits": [
-        "Strawberry",
-        "Blueberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00214/",
-      "lat": 35.014287,
-      "lon": 139.070295
-    },
-    {
-      "id": "02308-f00212",
-      "name": "Tourist Farm Agri no Sato Oirase",
-      "address": "Aomori Kamikita-gun Oirase Cho Mukaiyamahigashi 2-2-1684",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00212/",
-      "lat": 40.632285,
-      "lon": 141.390981
-    },
-    {
-      "id": "02308-f00013",
-      "name": "Joyful Farm Munoike",
-      "address": "Aichi Chita-gun Mihamacho Kaminoma Nakashinden 10",
-      "fruits": [
-        "Strawberry",
-        "Grape",
-        "Mandarin Orange"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00013/",
-      "lat": 34.800864,
-      "lon": 136.879754
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-13000212/",
+      "lat": 34.946908,
+      "lon": 135.14833
     },
     {
       "id": "02308-f00083",
@@ -242,18 +175,6 @@
       "lon": 130.418081
     },
     {
-      "id": "02301-4300072n",
-      "name": "Gurume Ichigokan Maeda",
-      "address": "Yamanashi Chuo Narushima 1437",
-      "fruits": [
-        "Strawberry",
-        "Japanese Pear"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4300072n/",
-      "lat": 35.605113,
-      "lon": 138.549004
-    },
-    {
       "id": "02308-f00510",
       "name": "Ono Orchid & Orchard Garden",
       "address": "Yamanashi Minami-Alps-shi Nishino 1202",
@@ -263,6 +184,17 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00510/",
       "lat": 35.644992,
       "lon": 138.490132
+    },
+    {
+      "id": "02301-2900440",
+      "name": "Nikkou Strawberry Park",
+      "address": "Tochigi Nikko-shi Serinuma 3581",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2900440/",
+      "lat": 36.734981,
+      "lon": 139.717163
     },
     {
       "id": "02308-f00534",
@@ -279,24 +211,13 @@
       "lon": 140.431151
     },
     {
-      "id": "02301-14401892n",
-      "name": "Kinoko-en Oyama no Taisho Mushroom Picking",
-      "address": "Kanagawa Odawara-shi Nebukawa 657",
+      "id": "02308-f00530",
+      "name": "Sayama Berry Land",
+      "address": "Saitama Sayama-shi Horigane 1262-5",
       "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14401892n/",
-      "lat": 35.20371,
-      "lon": 139.12197
-    },
-    {
-      "id": "02308-f00219",
-      "name": "Kiwi Fruits Country Japan",
-      "address": "Shizuoka Kakegawa-shi Kamiuchida 2040",
-      "fruits": [
-        "Kiwi"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00219/",
-      "lat": 34.75138,
-      "lon": 138.051417
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00530/",
+      "lat": 35.858597,
+      "lon": 139.447484
     },
     {
       "id": "02301-14402888",
@@ -310,15 +231,59 @@
       "lon": 142.189675
     },
     {
-      "id": "02308-f00019",
-      "name": "Sunny Garden",
-      "address": "Aichi Tahara-shi Nakayamacho",
+      "id": "02308-f00284",
+      "name": "Izumi Kogawa Ichigo Farm",
+      "address": "Osaka Izumi-shi Butsunamicho 2043",
       "fruits": [
         "Strawberry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00019/",
-      "lat": 34.624386,
-      "lon": 137.07792
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00284/",
+      "lat": 34.400846,
+      "lon": 135.478349
+    },
+    {
+      "id": "02301-4200064",
+      "name": "Shinshu Fruits Land (Shinshu Nakano Inter Branch)",
+      "address": "Nagano Nakano-shi Kusama Angenji Sakai 1356-1",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200064/",
+      "lat": 36.741189,
+      "lon": 138.325193
+    },
+    {
+      "id": "02308-f00269",
+      "name": "Futtsu Aqua Farm",
+      "address": "Chiba Futtsu-shi Tsuruoka 449",
+      "fruits": [
+        "Strawberry",
+        "Blueberry",
+        "Grape"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00269/",
+      "lat": 35.242215,
+      "lon": 139.885281
+    },
+    {
+      "id": "02308-f00550",
+      "name": "Miharashien Fruit Farm",
+      "address": "Yamanashi Fuefuki-shi Ichinomiyacho Tsuchizuka 240",
+      "fruits": [
+        "Japanese Pear"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00550/",
+      "lat": 35.634555,
+      "lon": 138.701165
+    },
+    {
+      "id": "02301-3700271",
+      "name": "Yuzawa Ichigo Mura Strawberry Farm",
+      "address": "Niigata Minamiuonuma-gun Yuzawamachi Kandatsu 750-1",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700271/",
+      "lat": 36.937458,
+      "lon": 138.823095
     },
     {
       "id": "02301-14416696",
@@ -332,35 +297,6 @@
       "lon": 138.677262
     },
     {
-      "id": "02301-12500155",
-      "name": "Farm Club Nakazato Farm",
-      "address": "Gunma Takasaki-shi Nakazato Machi 820",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12500155/",
-      "lat": 36.397622,
-      "lon": 138.980605
-    },
-    {
-      "id": "02308-f00128",
-      "name": "Tomita Farm",
-      "address": "Saitama Chichibu-shi Maita 1676-1",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00128/",
-      "lat": 36.031429,
-      "lon": 139.074354
-    },
-    {
-      "id": "02301-pn0002371",
-      "name": "Midorikawa Strawberry Sono",
-      "address": "Chiba Sanmu-shi Tomida To 273",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-pn0002371/",
-      "lat": 35.611845,
-      "lon": 140.426175
-    },
-    {
       "id": "02301-13000544",
       "name": "Awaji Country Garden",
       "address": "Hyogo Awaji-shi Nojima Tokiwa 1463-6",
@@ -370,44 +306,13 @@
       "lon": 134.97498
     },
     {
-      "id": "02301-14400863",
-      "name": "Wadono Orchards",
-      "address": "Saitama Chichibu-shi Kuroya 457-3",
+      "id": "02308-f00212",
+      "name": "Tourist Farm Agri no Sato Oirase",
+      "address": "Aomori Kamikita-gun Oirase Cho Mukaiyamahigashi 2-2-1684",
       "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400863/",
-      "lat": 36.045475,
-      "lon": 139.10298
-    },
-    {
-      "id": "02301-14400973",
-      "name": "Wada Farm",
-      "address": "Chiba Inzai-shi Hiraka 906-1",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400973/",
-      "lat": 35.755398,
-      "lon": 140.248672
-    },
-    {
-      "id": "02301-12900087n",
-      "name": "Koshigaya Strawberry Town",
-      "address": "Saitama Koshigaya-shi Mashimori 1-41",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12900087n/",
-      "lat": 35.90004,
-      "lon": 139.823247
-    },
-    {
-      "id": "02308-f00105",
-      "name": "Shodoshima Furusatomura Ichigo Sono",
-      "address": "Kagawa Shozu-gun Shodoshimacho Muro Iku 2084-1",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00105/",
-      "lat": 34.469634,
-      "lon": 134.233133
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00212/",
+      "lat": 40.632285,
+      "lon": 141.390981
     },
     {
       "id": "02308-f00081",
@@ -425,13 +330,26 @@
       "lon": 130.661183
     },
     {
-      "id": "02301-13000212",
-      "name": "Kasaya Shiitake Land",
-      "address": "Hyogo Sanda-shi Kamiaino 373",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-13000212/",
-      "lat": 34.946908,
-      "lon": 135.14833
+      "id": "02301-3700164n",
+      "name": "Fruit Land Shirone Grape Garden",
+      "address": "Niigata Niigata-shi Minami-ku Washinokishinden 573",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700164n/",
+      "lat": 37.832385,
+      "lon": 139.038252
+    },
+    {
+      "id": "02301-12900087n",
+      "name": "Koshigaya Strawberry Town",
+      "address": "Saitama Koshigaya-shi Mashimori 1-41",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12900087n/",
+      "lat": 35.90004,
+      "lon": 139.823247
     },
     {
       "id": "02308-f00514",
@@ -445,52 +363,34 @@
       "lon": 139.034444
     },
     {
-      "id": "02301-12800329n",
-      "name": "Strawberry Farm Aiba",
-      "address": "Chiba Sanmu-shi Yusaka 344",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12800329n/",
-      "lat": 35.604051,
-      "lon": 140.385218
-    },
-    {
-      "id": "02301-3700164n",
-      "name": "Fruit Land Shirone Grape Garden",
-      "address": "Niigata Niigata-shi Minami-ku Washinokishinden 573",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700164n/",
-      "lat": 37.832385,
-      "lon": 139.038252
-    },
-    {
-      "id": "02308-f00544",
-      "name": "Gamagori Orange Park",
-      "address": "Aichi Gamagori-shi Seida Cho Oguri",
-      "fruits": [
-        "Strawberry",
-        "Melon",
-        "Grape",
-        "Mandarin Orange"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00544/",
-      "lat": 34.854652,
-      "lon": 137.24086
-    },
-    {
-      "id": "02308-f00349",
-      "name": "Nasu Senbonmatsu Farm (Fruit Picking)",
-      "address": "Tochigi Nasushiobara-shi Senbonmatsu 799",
+      "id": "02308-f00214",
+      "name": "Yes! Strawberry",
+      "address": "Shizuoka Ito-shi Usami 1036-1",
       "fruits": [
         "Strawberry",
         "Blueberry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00349/",
-      "lat": 36.923769,
-      "lon": 139.933347
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00214/",
+      "lat": 35.014287,
+      "lon": 139.070295
+    },
+    {
+      "id": "02301-14400863",
+      "name": "Wadono Orchards",
+      "address": "Saitama Chichibu-shi Kuroya 457-3",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400863/",
+      "lat": 36.045475,
+      "lon": 139.10298
+    },
+    {
+      "id": "02301-12500155",
+      "name": "Farm Club Nakazato Farm",
+      "address": "Gunma Takasaki-shi Nakazato Machi 820",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12500155/",
+      "lat": 36.397622,
+      "lon": 138.980605
     },
     {
       "id": "02301-4200700",
@@ -502,24 +402,29 @@
       "lon": 137.780931
     },
     {
-      "id": "02301-3000352",
-      "name": "Isoyama Kanko Strawberry Garden",
-      "address": "Chiba Katori-gun Tonoshomachi Sasagawai 4539",
+      "id": "02301-4300072n",
+      "name": "Gurume Ichigokan Maeda",
+      "address": "Yamanashi Chuo Narushima 1437",
       "fruits": [
-        "Strawberry"
+        "Strawberry",
+        "Japanese Pear"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000352/",
-      "lat": 35.834822,
-      "lon": 140.669978
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4300072n/",
+      "lat": 35.605113,
+      "lon": 138.549004
     },
     {
-      "id": "02301-2400163",
-      "name": "Kinokuni Farm",
-      "address": "Wakayama Gobo-shi Nadacho Ueno 1335-4",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2400163/",
-      "lat": 33.831742,
-      "lon": 135.182084
+      "id": "02308-f00013",
+      "name": "Joyful Farm Munoike",
+      "address": "Aichi Chita-gun Mihamacho Kaminoma Nakashinden 10",
+      "fruits": [
+        "Strawberry",
+        "Grape",
+        "Mandarin Orange"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00013/",
+      "lat": 34.800864,
+      "lon": 136.879754
     },
     {
       "id": "02308-f00176",
@@ -529,6 +434,26 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00176/",
       "lat": 35.069907,
       "lon": 135.940056
+    },
+    {
+      "id": "02301-14401892n",
+      "name": "Kinoko-en Oyama no Taisho Mushroom Picking",
+      "address": "Kanagawa Odawara-shi Nebukawa 657",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14401892n/",
+      "lat": 35.20371,
+      "lon": 139.12197
+    },
+    {
+      "id": "02308-f00019",
+      "name": "Sunny Garden",
+      "address": "Aichi Tahara-shi Nakayamacho",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00019/",
+      "lat": 34.624386,
+      "lon": 137.07792
     },
     {
       "id": "02301-t8122",
@@ -542,59 +467,15 @@
       "lon": 130.588395
     },
     {
-      "id": "02301-14402720",
-      "name": "Strawberry Fields Chikushino Strawberry Farm",
-      "address": "Fukuoka Chikushino-shi Chikushi 1278",
+      "id": "02301-t6153",
+      "name": "Tokue Strawberry Farm",
+      "address": "Kanagawa Yokohama-shi Aoba-ku Ichigaocho 4-10",
       "fruits": [
         "Strawberry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402720/",
-      "lat": 33.462476,
-      "lon": 130.53187
-    },
-    {
-      "id": "02308-f00037",
-      "name": "GRANBERRY Daichi",
-      "address": "Ibaraki Joso-shi Misaka Shindenmachi 2383-2",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00037/",
-      "lat": 36.077844,
-      "lon": 139.987009
-    },
-    {
-      "id": "02301-14401509",
-      "name": "Kamisato Ichigo",
-      "address": "Saitama Kodama-gun Kamisatomachi Teshigawara 2200-1",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14401509/",
-      "lat": 36.257524,
-      "lon": 139.115412
-    },
-    {
-      "id": "00004-11151200050",
-      "name": "Ichigo no Sato Farm",
-      "address": "Saitama Iruma-gun Moroyamamachi Nishi To 781-6",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/00004-11151200050/",
-      "lat": 35.961049,
-      "lon": 139.335022
-    },
-    {
-      "id": "02301-14402079n",
-      "name": "Shirahama Strawberry Picking Center",
-      "address": "Chiba Minamiboso-shi Shirahamacho Shirahama 14736",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402079n/",
-      "lat": 34.908812,
-      "lon": 139.88931
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-t6153/",
+      "lat": 35.538743,
+      "lon": 139.540902
     },
     {
       "id": "02301-4300172",
@@ -620,6 +501,28 @@
       "lon": 137.863222
     },
     {
+      "id": "02301-pn0002371",
+      "name": "Midorikawa Strawberry Sono",
+      "address": "Chiba Sanmu-shi Tomida To 273",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-pn0002371/",
+      "lat": 35.611845,
+      "lon": 140.426175
+    },
+    {
+      "id": "02301-3000352",
+      "name": "Isoyama Kanko Strawberry Garden",
+      "address": "Chiba Katori-gun Tonoshomachi Sasagawai 4539",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000352/",
+      "lat": 35.834822,
+      "lon": 140.669978
+    },
+    {
       "id": "02308-f00020",
       "name": "Nikken Farm",
       "address": "Aichi Tahara-shi Horikiricho Seko Hata 65",
@@ -627,17 +530,6 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00020/",
       "lat": 34.586576,
       "lon": 137.065607
-    },
-    {
-      "id": "02308-f00550",
-      "name": "Miharashien Fruit Farm",
-      "address": "Yamanashi Fuefuki-shi Ichinomiyacho Tsuchizuka 240",
-      "fruits": [
-        "Japanese Pear"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00550/",
-      "lat": 35.634555,
-      "lon": 138.701165
     },
     {
       "id": "02301-14427221n",
@@ -649,15 +541,118 @@
       "lon": 144.256949
     },
     {
-      "id": "02308-f00247",
-      "name": "Koyama Farm",
-      "address": "Chiba Sanmu-shi Shimoyokoji 1912",
+      "id": "02308-f00544",
+      "name": "Gamagori Orange Park",
+      "address": "Aichi Gamagori-shi Seida Cho Oguri",
+      "fruits": [
+        "Strawberry",
+        "Melon",
+        "Grape",
+        "Mandarin Orange"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00544/",
+      "lat": 34.854652,
+      "lon": 137.24086
+    },
+    {
+      "id": "02308-f00418",
+      "name": "Awajishima Fruit Farm",
+      "address": "Hyogo Awaji-shi Kamigawai 173",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00418/",
+      "lat": 34.450561,
+      "lon": 134.869418
+    },
+    {
+      "id": "02301-12700192",
+      "name": "Aguri no Sato Sightseeing Farm",
+      "address": "Tochigi Tochigi-shi Otsukamachi 128-1",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12700192/",
+      "lat": 36.398579,
+      "lon": 139.774112
+    },
+    {
+      "id": "02301-14400769",
+      "name": "Takumi-no-sato Fureainoie",
+      "address": "Gunma Tone-gun Minakamimachi Sukawa 252-6",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400769/",
+      "lat": 36.696071,
+      "lon": 138.904834
+    },
+    {
+      "id": "02308-f00105",
+      "name": "Shodoshima Furusatomura Ichigo Sono",
+      "address": "Kagawa Shozu-gun Shodoshimacho Muro Iku 2084-1",
       "fruits": [
         "Strawberry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00247/",
-      "lat": 35.58447,
-      "lon": 140.465086
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00105/",
+      "lat": 34.469634,
+      "lon": 134.233133
+    },
+    {
+      "id": "02301-1903287n",
+      "name": "KISHIKAN",
+      "address": "Osaka Kishiwada-shi Uchihata Cho 5068",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903287n/",
+      "lat": 34.406903,
+      "lon": 135.432894
+    },
+    {
+      "id": "00004-19161400036",
+      "name": "Kawaguchi Sono",
+      "address": "Yamanashi Koshu-shi Katsunumacho Katsunuma 2997",
+      "fruits": [
+        "Japanese Pear"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/00004-19161400036/",
+      "lat": 35.662728,
+      "lon": 138.721989
+    },
+    {
+      "id": "02301-12800405",
+      "name": "Watanabe Strawberry Farm",
+      "address": "Chiba Kimitsu-shi Oi 1",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12800405/",
+      "lat": 35.309999,
+      "lon": 139.963674
+    },
+    {
+      "id": "02308-f00037",
+      "name": "GRANBERRY Daichi",
+      "address": "Ibaraki Joso-shi Misaka Shindenmachi 2383-2",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00037/",
+      "lat": 36.077844,
+      "lon": 139.987009
+    },
+    {
+      "id": "02308-f00128",
+      "name": "Tomita Farm",
+      "address": "Saitama Chichibu-shi Maita 1676-1",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00128/",
+      "lat": 36.031429,
+      "lon": 139.074354
+    },
+    {
+      "id": "02308-f00174",
+      "name": "Rokushin Ichigo Sono",
+      "address": "Shiga Koka-shi Minakuchicho Minakuchi 5940-4",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00174/",
+      "lat": 34.968794,
+      "lon": 136.160052
     },
     {
       "id": "jalan_000000211503",
@@ -817,6 +812,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000194865",
+      "name": "田村果樹園",
+      "address": "神奈川県川崎市多摩区中野島１－７ー１０",
+      "fruits": [
+        "Japanese Pear"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000194865/",
+      "lat": null,
+      "lon": null,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000195059",
       "name": "大塚果樹園",
       "address": "埼玉県春日部市内牧１６２９",
@@ -838,18 +845,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195244/",
       "lat": 31.659929,
       "lon": 131.376387,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000194865",
-      "name": "田村果樹園",
-      "address": "神奈川県川崎市多摩区中野島１－７ー１０",
-      "fruits": [
-        "Japanese Pear"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000194865/",
-      "lat": null,
-      "lon": null,
       "source": "jalan"
     },
     {
@@ -877,15 +872,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211022",
-      "name": "そよ風果樹園",
-      "address": "鹿児島県南九州市川辺町野間２－３",
+      "id": "jalan_000000211131",
+      "name": "ハルミ果樹園",
+      "address": "埼玉県三郷市茂田井５９１",
       "fruits": [
-        "Blueberry"
+        "Mandarin Orange"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211022/",
-      "lat": 31.420921,
-      "lon": 130.389965,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211131/",
+      "lat": 35.842177,
+      "lon": 139.876959,
       "source": "jalan"
     },
     {
@@ -901,15 +896,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211389",
-      "name": "吉原果樹園",
-      "address": "鹿児島県鹿児島市東桜島町５２１－１１",
+      "id": "jalan_000000211402",
+      "name": "宮田果樹園",
+      "address": "群馬県利根郡川場村中野１３２",
       "fruits": [
-        "Mandarin Orange"
+        "Apple"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211389/",
-      "lat": 31.554399,
-      "lon": 130.633902,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211402/",
+      "lat": 36.69516,
+      "lon": 139.110621,
       "source": "jalan"
     },
     {
@@ -937,18 +932,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211552",
-      "name": "色摩果樹園",
-      "address": "山形県南陽市鍋田１８０１－７",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211552/",
-      "lat": 38.032907,
-      "lon": 140.158098,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211557",
       "name": "新井果樹園",
       "address": "埼玉県春日部市内牧１８８５",
@@ -958,6 +941,88 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211557/",
       "lat": 35.990093,
       "lon": 139.728346,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211765",
+      "name": "木村果樹園",
+      "address": "茨城県常陸大宮市山方１９９６",
+      "fruits": [
+        "Apple"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211765/",
+      "lat": 36.619703,
+      "lon": 140.390172,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211022",
+      "name": "そよ風果樹園",
+      "address": "鹿児島県南九州市川辺町野間２－３",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211022/",
+      "lat": 31.420921,
+      "lon": 130.389965,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211243",
+      "name": "みのる果樹園",
+      "address": "山形県東根市大字東根乙１４３０",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211243/",
+      "lat": 38.425657,
+      "lon": 140.409822,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211329",
+      "name": "岡本果樹園",
+      "address": "茨城県石岡市小幡１２９７",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211329/",
+      "lat": 36.226705,
+      "lon": 140.147365,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211389",
+      "name": "吉原果樹園",
+      "address": "鹿児島県鹿児島市東桜島町５２１－１１",
+      "fruits": [
+        "Mandarin Orange"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211389/",
+      "lat": 31.554399,
+      "lon": 130.633902,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211494",
+      "name": "秋葉果樹園",
+      "address": "福島県福島市大笹生字中平地内１７－２",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211494/",
+      "lat": 37.807732,
+      "lon": 140.413129,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211552",
+      "name": "色摩果樹園",
+      "address": "山形県南陽市鍋田１８０１－７",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211552/",
+      "lat": 38.032907,
+      "lon": 140.158098,
       "source": "jalan"
     },
     {
@@ -986,76 +1051,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211131",
-      "name": "ハルミ果樹園",
-      "address": "埼玉県三郷市茂田井５９１",
-      "fruits": [
-        "Mandarin Orange"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211131/",
-      "lat": 35.842177,
-      "lon": 139.876959,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211243",
-      "name": "みのる果樹園",
-      "address": "山形県東根市大字東根乙１４３０",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211243/",
-      "lat": 38.425657,
-      "lon": 140.409822,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211329",
-      "name": "岡本果樹園",
-      "address": "茨城県石岡市小幡１２９７",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211329/",
-      "lat": 36.226705,
-      "lon": 140.147365,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211402",
-      "name": "宮田果樹園",
-      "address": "群馬県利根郡川場村中野１３２",
-      "fruits": [
-        "Apple"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211402/",
-      "lat": 36.69516,
-      "lon": 139.110621,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211494",
-      "name": "秋葉果樹園",
-      "address": "福島県福島市大笹生字中平地内１７－２",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211494/",
-      "lat": 37.807732,
-      "lon": 140.413129,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211765",
-      "name": "木村果樹園",
-      "address": "茨城県常陸大宮市山方１９９６",
-      "fruits": [
-        "Apple"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211765/",
-      "lat": 36.619703,
-      "lon": 140.390172,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000201907",
       "name": "折原果樹園",
       "address": "埼玉県春日部市内牧3888",
@@ -1068,18 +1063,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000194656",
-      "name": "まるけい果樹園",
-      "address": "福島県福島市飯坂町平野源三前７ （直売所）",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000194656/",
-      "lat": null,
-      "lon": null,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000194331",
       "name": "神町観光果樹園",
       "address": "山形県東根市若木通り４－７０",
@@ -1087,6 +1070,18 @@
         "Grape"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000194331/",
+      "lat": null,
+      "lon": null,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000194656",
+      "name": "まるけい果樹園",
+      "address": "福島県福島市飯坂町平野源三前７ （直売所）",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000194656/",
       "lat": null,
       "lon": null,
       "source": "jalan"
@@ -1114,16 +1109,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000194991",
-      "name": "奄美の西果樹園",
-      "address": "鹿児島県奄美市名瀬知名瀬２２１７",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000194991/",
-      "lat": null,
-      "lon": null,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000195293",
       "name": "杉田観光果樹園",
       "address": "茨城県石岡市上曽２０００",
@@ -1133,6 +1118,16 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000195293/",
       "lat": 36.25777,
       "lon": 140.157895,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000194991",
+      "name": "奄美の西果樹園",
+      "address": "鹿児島県奄美市名瀬知名瀬２２１７",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000194991/",
+      "lat": null,
+      "lon": null,
       "source": "jalan"
     },
     {
@@ -1160,64 +1155,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211231",
-      "name": "まるひろ果樹園",
-      "address": "福島県福島市飯坂町平野下ノ檀７－４",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211231/",
-      "lat": 37.816683,
-      "lon": 140.438259,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211456",
-      "name": "山の辺観光果樹園",
-      "address": "奈良県桜井市穴師４５２",
-      "fruits": [
-        "Mandarin Orange"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211456/",
-      "lat": 34.545108,
-      "lon": 135.853053,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211562",
-      "name": "森の中の果樹園",
-      "address": "青森県弘前市大字十面沢字轡４２６",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211562/",
-      "lat": 40.718061,
-      "lon": 140.340702,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211629",
-      "name": "太郎兵衛果樹園",
-      "address": "茨城県石岡市小幡１２３５－２",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211629/",
-      "lat": 36.228112,
-      "lon": 140.149537,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211707",
-      "name": "内田観光果樹園",
-      "address": "茨城県石岡市小幡２２８０－２",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211707/",
-      "lat": 36.219982,
-      "lon": 140.141267,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000210961",
       "name": "くらしな果樹園",
       "address": "群馬県沼田市上原町１６５０",
@@ -1242,15 +1179,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211116",
-      "name": "は　橋本果樹園",
-      "address": "福島県福島市飯坂町平野字外畑１８",
+      "id": "jalan_000000211231",
+      "name": "まるひろ果樹園",
+      "address": "福島県福島市飯坂町平野下ノ檀７－４",
       "fruits": [
-        "Grape"
+        "Cherry"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211116/",
-      "lat": 37.798971,
-      "lon": 140.455038,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211231/",
+      "lat": 37.816683,
+      "lon": 140.438259,
       "source": "jalan"
     },
     {
@@ -1264,18 +1201,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211278",
-      "name": "わたなべ果樹園",
-      "address": "福島県福島市仁井田字北島１９",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211278/",
-      "lat": 37.753419,
-      "lon": 140.411387,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211298",
       "name": "伊藤観光果樹園",
       "address": "山形県南陽市上野１７３６－３",
@@ -1285,18 +1210,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211298/",
       "lat": 38.063538,
       "lon": 140.152732,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211320",
-      "name": "遠藤観光果樹園",
-      "address": "山形県山形市大字山寺１９７３－５",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211320/",
-      "lat": 38.314259,
-      "lon": 140.40639,
       "source": "jalan"
     },
     {
@@ -1326,18 +1239,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211506",
-      "name": "小沢田観光果樹園",
-      "address": "青森県三戸郡南部町上名久井大渋民山２３－２９",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211506/",
-      "lat": 40.393105,
-      "lon": 141.331124,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211546",
       "name": "笑ちゃんの果樹園",
       "address": "山形県東根市大字沼沢６５",
@@ -1347,6 +1248,100 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211546/",
       "lat": 38.40383,
       "lon": 140.448532,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211562",
+      "name": "森の中の果樹園",
+      "address": "青森県弘前市大字十面沢字轡４２６",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211562/",
+      "lat": 40.718061,
+      "lon": 140.340702,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211614",
+      "name": "川口観光果樹園",
+      "address": "山形県上山市皆沢クレ田１１２９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211614/",
+      "lat": 38.108663,
+      "lon": 140.282086,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211707",
+      "name": "内田観光果樹園",
+      "address": "茨城県石岡市小幡２２８０－２",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211707/",
+      "lat": 36.219982,
+      "lon": 140.141267,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211116",
+      "name": "は　橋本果樹園",
+      "address": "福島県福島市飯坂町平野字外畑１８",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211116/",
+      "lat": 37.798971,
+      "lon": 140.455038,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211278",
+      "name": "わたなべ果樹園",
+      "address": "福島県福島市仁井田字北島１９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211278/",
+      "lat": 37.753419,
+      "lon": 140.411387,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211320",
+      "name": "遠藤観光果樹園",
+      "address": "山形県山形市大字山寺１９７３－５",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211320/",
+      "lat": 38.314259,
+      "lon": 140.40639,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211456",
+      "name": "山の辺観光果樹園",
+      "address": "奈良県桜井市穴師４５２",
+      "fruits": [
+        "Mandarin Orange"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211456/",
+      "lat": 34.545108,
+      "lon": 135.853053,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211506",
+      "name": "小沢田観光果樹園",
+      "address": "青森県三戸郡南部町上名久井大渋民山２３－２９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211506/",
+      "lat": 40.393105,
+      "lon": 141.331124,
       "source": "jalan"
     },
     {
@@ -1362,15 +1357,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211614",
-      "name": "川口観光果樹園",
-      "address": "山形県上山市皆沢クレ田１１２９",
+      "id": "jalan_000000211629",
+      "name": "太郎兵衛果樹園",
+      "address": "茨城県石岡市小幡１２３５－２",
       "fruits": [
-        "Cherry"
+        "Grape"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211614/",
-      "lat": 38.108663,
-      "lon": 140.282086,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211629/",
+      "lat": 36.228112,
+      "lon": 140.149537,
       "source": "jalan"
     },
     {
@@ -1396,27 +1391,37 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211283",
-      "name": "（マルイチ）阿部果樹園",
-      "address": "山形県東根市神町営団中通り５２",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211283/",
-      "lat": 38.408889,
-      "lon": 140.413228,
+      "id": "jalan_000000211268",
+      "name": "亀の丸果樹生産組合",
+      "address": "広島県三次市東酒屋町２０００－１",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211268/",
+      "lat": 34.765637,
+      "lon": 132.857092,
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211429",
-      "name": "まる利　後藤果樹園",
-      "address": "福島県福島市大笹生字長老檀８８",
+      "id": "jalan_000000211399",
+      "name": "宮原果樹園　玉山５号園",
+      "address": "福岡県久留米市田主丸町益生田１３８５",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211399/",
+      "lat": 33.326003,
+      "lon": 130.679417,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211490",
+      "name": "まる周　すずき果樹園",
+      "address": "福島県福島市上鳥渡字樋ノ口１８",
       "fruits": [
         "Peach"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211429/",
-      "lat": 37.788609,
-      "lon": 140.397819,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211490/",
+      "lat": 37.731044,
+      "lon": 140.408886,
       "source": "jalan"
     },
     {
@@ -1444,25 +1449,27 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211268",
-      "name": "亀の丸果樹生産組合",
-      "address": "広島県三次市東酒屋町２０００－１",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211268/",
-      "lat": 34.765637,
-      "lon": 132.857092,
+      "id": "jalan_000000211283",
+      "name": "（マルイチ）阿部果樹園",
+      "address": "山形県東根市神町営団中通り５２",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211283/",
+      "lat": 38.408889,
+      "lon": 140.413228,
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211399",
-      "name": "宮原果樹園　玉山５号園",
-      "address": "福岡県久留米市田主丸町益生田１３８５",
+      "id": "jalan_000000211429",
+      "name": "まる利　後藤果樹園",
+      "address": "福島県福島市大笹生字長老檀８８",
       "fruits": [
-        "Grape"
+        "Peach"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211399/",
-      "lat": 33.326003,
-      "lon": 130.679417,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211429/",
+      "lat": 37.788609,
+      "lon": 140.397819,
       "source": "jalan"
     },
     {
@@ -1475,18 +1482,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211455/",
       "lat": 37.704384,
       "lon": 140.360234,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211490",
-      "name": "まる周　すずき果樹園",
-      "address": "福島県福島市上鳥渡字樋ノ口１８",
-      "fruits": [
-        "Peach"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211490/",
-      "lat": 37.731044,
-      "lon": 140.408886,
       "source": "jalan"
     },
     {
@@ -1539,19 +1534,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211484",
-      "name": "若尾果樹園・マルサン葡萄酒",
-      "address": "山梨県甲州市勝沼町勝沼３１１１－１",
-      "fruits": [
-        "Grape",
-        "Japanese Pear"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211484/",
-      "lat": 35.662297,
-      "lon": 138.728857,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211627",
       "name": "太陽のおくりもの斉藤果樹園",
       "address": "山形県東根市神町中央１－１１－７",
@@ -1562,6 +1544,19 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211627/",
       "lat": 38.409291,
       "lon": 140.379915,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211484",
+      "name": "若尾果樹園・マルサン葡萄酒",
+      "address": "山梨県甲州市勝沼町勝沼３１１１－１",
+      "fruits": [
+        "Grape",
+        "Japanese Pear"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211484/",
+      "lat": 35.662297,
+      "lon": 138.728857,
       "source": "jalan"
     },
     {
@@ -2339,18 +2334,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000216000",
-      "name": "御舩果樹園",
-      "address": "熊本県宇城市不知火町松合1746",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000216000/",
-      "lat": 32.631425,
-      "lon": 130.604133,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000216606",
       "name": "飯野果樹園",
       "address": "埼玉県児玉郡美里町大字広木2944-1",
@@ -2360,6 +2343,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216606/",
       "lat": 36.172244,
       "lon": 139.156334,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000216000",
+      "name": "御舩果樹園",
+      "address": "熊本県宇城市不知火町松合1746",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000216000/",
+      "lat": 32.631425,
+      "lon": 130.604133,
       "source": "jalan"
     },
     {
@@ -2628,18 +2623,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000210764",
-      "name": "渡辺果樹園",
-      "address": "新潟県三条市井戸場143",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000210764/",
-      "lat": 37.680116,
-      "lon": 138.994863,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000209373",
       "name": "みのり果樹園",
       "address": "福島県会津若松市北会津町下米塚字古屋敷26-1",
@@ -2649,6 +2632,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209373/",
       "lat": 37.482776,
       "lon": 139.887081,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000210764",
+      "name": "渡辺果樹園",
+      "address": "新潟県三条市井戸場143",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000210764/",
+      "lat": 37.680116,
+      "lon": 138.994863,
       "source": "jalan"
     },
     {
@@ -2700,18 +2695,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000222280",
-      "name": "本藤果樹園",
-      "address": "熊本県菊池市豊間",
-      "fruits": [
-        "Japanese Pear"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000222280/",
-      "lat": 32.99389,
-      "lon": 130.824465,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000222304",
       "name": "フジカワ果樹園",
       "address": "香川県観音寺市大野原町丸井1736",
@@ -2721,6 +2704,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000222304/",
       "lat": 34.077626,
       "lon": 133.700077,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000222280",
+      "name": "本藤果樹園",
+      "address": "熊本県菊池市豊間",
+      "fruits": [
+        "Japanese Pear"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000222280/",
+      "lat": 32.99389,
+      "lon": 130.824465,
       "source": "jalan"
     },
     {
@@ -2786,6 +2781,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000213848/",
       "lat": 43.721653,
       "lon": 142.179244,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000231032",
+      "name": "ころまるブルーベリー果樹園",
+      "address": "茨城県坂東市冨田1455-1",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231032/",
+      "lat": 36.103442,
+      "lon": 139.875939,
       "source": "jalan"
     },
     {
@@ -2862,18 +2869,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000218946/",
       "lat": 42.557174,
       "lon": 140.905945,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000231032",
-      "name": "ころまるブルーベリー果樹園",
-      "address": "茨城県坂東市冨田1455-1",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000231032/",
-      "lat": 36.103442,
-      "lon": 139.875939,
       "source": "jalan"
     },
     {
@@ -4042,6 +4037,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000191334/",
       "lat": 41.189406,
       "lon": 141.059154,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000187303",
+      "name": "きのえねまがり家",
+      "address": "千葉県印旛郡酒々井町馬橋106",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000187303/",
+      "lat": 35.708917,
+      "lon": 140.271813,
       "source": "jalan"
     },
     {
