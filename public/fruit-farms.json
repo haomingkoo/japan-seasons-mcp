@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-10T17:44:10.945786+00:00",
+  "scraped_at": "2026-05-17T17:49:30.968014+00:00",
   "sources": [
     "Jalan.net",
     "Japan Travel by NAVITIME"
@@ -824,6 +824,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000194992",
+      "name": "武田果樹園",
+      "address": "鹿児島県いちき串木野市生福４１－７",
+      "fruits": [
+        "Mandarin Orange"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000194992/",
+      "lat": null,
+      "lon": null,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000195059",
       "name": "大塚果樹園",
       "address": "埼玉県春日部市内牧１６２９",
@@ -848,18 +860,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000194992",
-      "name": "武田果樹園",
-      "address": "鹿児島県いちき串木野市生福４１－７",
-      "fruits": [
-        "Mandarin Orange"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000194992/",
-      "lat": null,
-      "lon": null,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000200501",
       "name": "庄兵衛果樹園",
       "address": "茨城県かすみがうら市上佐谷２３７５",
@@ -869,6 +869,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000200501/",
       "lat": 36.167302,
       "lon": 140.199226,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211022",
+      "name": "そよ風果樹園",
+      "address": "鹿児島県南九州市川辺町野間２－３",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211022/",
+      "lat": 31.420921,
+      "lon": 130.389965,
       "source": "jalan"
     },
     {
@@ -884,6 +896,89 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000211494",
+      "name": "秋葉果樹園",
+      "address": "福島県福島市大笹生字中平地内１７－２",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211494/",
+      "lat": 37.807732,
+      "lon": 140.413129,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211535",
+      "name": "松井果樹園",
+      "address": "群馬県沼田市善桂寺町１３０－１",
+      "fruits": [
+        "Apple"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211535/",
+      "lat": 36.667777,
+      "lon": 139.041596,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211729",
+      "name": "飯田果樹園",
+      "address": "東京都世田谷区用賀２－７",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211729/",
+      "lat": 35.627451,
+      "lon": 139.638993,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211751",
+      "name": "芳賀果樹園",
+      "address": "宮城県登米市登米町小島西針田４８",
+      "fruits": [
+        "Apple",
+        "Chestnut"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211751/",
+      "lat": 38.645692,
+      "lon": 141.249145,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211765",
+      "name": "木村果樹園",
+      "address": "茨城県常陸大宮市山方１９９６",
+      "fruits": [
+        "Apple"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211765/",
+      "lat": 36.619703,
+      "lon": 140.390172,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211243",
+      "name": "みのる果樹園",
+      "address": "山形県東根市大字東根乙１４３０",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211243/",
+      "lat": 38.425657,
+      "lon": 140.409822,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211329",
+      "name": "岡本果樹園",
+      "address": "茨城県石岡市小幡１２９７",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211329/",
+      "lat": 36.226705,
+      "lon": 140.147365,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000211380",
       "name": "岩下果樹園",
       "address": "宮崎県小林市北西方１８５－１０",
@@ -893,6 +988,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211380/",
       "lat": 32.007681,
       "lon": 130.955333,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211389",
+      "name": "吉原果樹園",
+      "address": "鹿児島県鹿児島市東桜島町５２１－１１",
+      "fruits": [
+        "Mandarin Orange"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211389/",
+      "lat": 31.554399,
+      "lon": 130.633902,
       "source": "jalan"
     },
     {
@@ -920,100 +1027,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211535",
-      "name": "松井果樹園",
-      "address": "群馬県沼田市善桂寺町１３０－１",
-      "fruits": [
-        "Apple"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211535/",
-      "lat": 36.667777,
-      "lon": 139.041596,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211557",
-      "name": "新井果樹園",
-      "address": "埼玉県春日部市内牧１８８５",
-      "fruits": [
-        "Japanese Pear"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211557/",
-      "lat": 35.990093,
-      "lon": 139.728346,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211765",
-      "name": "木村果樹園",
-      "address": "茨城県常陸大宮市山方１９９６",
-      "fruits": [
-        "Apple"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211765/",
-      "lat": 36.619703,
-      "lon": 140.390172,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211022",
-      "name": "そよ風果樹園",
-      "address": "鹿児島県南九州市川辺町野間２－３",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211022/",
-      "lat": 31.420921,
-      "lon": 130.389965,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211243",
-      "name": "みのる果樹園",
-      "address": "山形県東根市大字東根乙１４３０",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211243/",
-      "lat": 38.425657,
-      "lon": 140.409822,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211329",
-      "name": "岡本果樹園",
-      "address": "茨城県石岡市小幡１２９７",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211329/",
-      "lat": 36.226705,
-      "lon": 140.147365,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211389",
-      "name": "吉原果樹園",
-      "address": "鹿児島県鹿児島市東桜島町５２１－１１",
-      "fruits": [
-        "Mandarin Orange"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211389/",
-      "lat": 31.554399,
-      "lon": 130.633902,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211494",
-      "name": "秋葉果樹園",
-      "address": "福島県福島市大笹生字中平地内１７－２",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211494/",
-      "lat": 37.807732,
-      "lon": 140.413129,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211552",
       "name": "色摩果樹園",
       "address": "山形県南陽市鍋田１８０１－７",
@@ -1026,28 +1039,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211729",
-      "name": "飯田果樹園",
-      "address": "東京都世田谷区用賀２－７",
+      "id": "jalan_000000211557",
+      "name": "新井果樹園",
+      "address": "埼玉県春日部市内牧１８８５",
       "fruits": [
-        "Grape"
+        "Japanese Pear"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211729/",
-      "lat": 35.627451,
-      "lon": 139.638993,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211751",
-      "name": "芳賀果樹園",
-      "address": "宮城県登米市登米町小島西針田４８",
-      "fruits": [
-        "Apple",
-        "Chestnut"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211751/",
-      "lat": 38.645692,
-      "lon": 141.249145,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211557/",
+      "lat": 35.990093,
+      "lon": 139.728346,
       "source": "jalan"
     },
     {
@@ -1109,6 +1109,16 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000194991",
+      "name": "奄美の西果樹園",
+      "address": "鹿児島県奄美市名瀬知名瀬２２１７",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000194991/",
+      "lat": null,
+      "lon": null,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000195293",
       "name": "杉田観光果樹園",
       "address": "茨城県石岡市上曽２０００",
@@ -1121,16 +1131,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000194991",
-      "name": "奄美の西果樹園",
-      "address": "鹿児島県奄美市名瀬知名瀬２２１７",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000194991/",
-      "lat": null,
-      "lon": null,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000199591",
       "name": "大原観光果樹園",
       "address": "岡山県新見市草間１２０４",
@@ -1140,6 +1140,88 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000199591/",
       "lat": null,
       "lon": null,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211278",
+      "name": "わたなべ果樹園",
+      "address": "福島県福島市仁井田字北島１９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211278/",
+      "lat": 37.753419,
+      "lon": 140.411387,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211298",
+      "name": "伊藤観光果樹園",
+      "address": "山形県南陽市上野１７３６－３",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211298/",
+      "lat": 38.063538,
+      "lon": 140.152732,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211506",
+      "name": "小沢田観光果樹園",
+      "address": "青森県三戸郡南部町上名久井大渋民山２３－２９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211506/",
+      "lat": 40.393105,
+      "lon": 141.331124,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211562",
+      "name": "森の中の果樹園",
+      "address": "青森県弘前市大字十面沢字轡４２６",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211562/",
+      "lat": 40.718061,
+      "lon": 140.340702,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211614",
+      "name": "川口観光果樹園",
+      "address": "山形県上山市皆沢クレ田１１２９",
+      "fruits": [
+        "Cherry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211614/",
+      "lat": 38.108663,
+      "lon": 140.282086,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211629",
+      "name": "太郎兵衛果樹園",
+      "address": "茨城県石岡市小幡１２３５－２",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211629/",
+      "lat": 36.228112,
+      "lon": 140.149537,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211707",
+      "name": "内田観光果樹園",
+      "address": "茨城県石岡市小幡２２８０－２",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211707/",
+      "lat": 36.219982,
+      "lon": 140.141267,
       "source": "jalan"
     },
     {
@@ -1179,6 +1261,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000211116",
+      "name": "は　橋本果樹園",
+      "address": "福島県福島市飯坂町平野字外畑１８",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211116/",
+      "lat": 37.798971,
+      "lon": 140.455038,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000211231",
       "name": "まるひろ果樹園",
       "address": "福島県福島市飯坂町平野下ノ檀７－４",
@@ -1201,15 +1295,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211298",
-      "name": "伊藤観光果樹園",
-      "address": "山形県南陽市上野１７３６－３",
+      "id": "jalan_000000211320",
+      "name": "遠藤観光果樹園",
+      "address": "山形県山形市大字山寺１９７３－５",
       "fruits": [
         "Cherry"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211298/",
-      "lat": 38.063538,
-      "lon": 140.152732,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211320/",
+      "lat": 38.314259,
+      "lon": 140.40639,
       "source": "jalan"
     },
     {
@@ -1239,88 +1333,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211546",
-      "name": "笑ちゃんの果樹園",
-      "address": "山形県東根市大字沼沢６５",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211546/",
-      "lat": 38.40383,
-      "lon": 140.448532,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211562",
-      "name": "森の中の果樹園",
-      "address": "青森県弘前市大字十面沢字轡４２６",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211562/",
-      "lat": 40.718061,
-      "lon": 140.340702,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211614",
-      "name": "川口観光果樹園",
-      "address": "山形県上山市皆沢クレ田１１２９",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211614/",
-      "lat": 38.108663,
-      "lon": 140.282086,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211707",
-      "name": "内田観光果樹園",
-      "address": "茨城県石岡市小幡２２８０－２",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211707/",
-      "lat": 36.219982,
-      "lon": 140.141267,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211116",
-      "name": "は　橋本果樹園",
-      "address": "福島県福島市飯坂町平野字外畑１８",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211116/",
-      "lat": 37.798971,
-      "lon": 140.455038,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211278",
-      "name": "わたなべ果樹園",
-      "address": "福島県福島市仁井田字北島１９",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211278/",
-      "lat": 37.753419,
-      "lon": 140.411387,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211320",
-      "name": "遠藤観光果樹園",
-      "address": "山形県山形市大字山寺１９７３－５",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211320/",
-      "lat": 38.314259,
-      "lon": 140.40639,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211456",
       "name": "山の辺観光果樹園",
       "address": "奈良県桜井市穴師４５２",
@@ -1333,15 +1345,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211506",
-      "name": "小沢田観光果樹園",
-      "address": "青森県三戸郡南部町上名久井大渋民山２３－２９",
+      "id": "jalan_000000211546",
+      "name": "笑ちゃんの果樹園",
+      "address": "山形県東根市大字沼沢６５",
       "fruits": [
         "Cherry"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211506/",
-      "lat": 40.393105,
-      "lon": 141.331124,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211546/",
+      "lat": 38.40383,
+      "lon": 140.448532,
       "source": "jalan"
     },
     {
@@ -1354,18 +1366,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211584/",
       "lat": 37.810983,
       "lon": 140.415495,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000211629",
-      "name": "太郎兵衛果樹園",
-      "address": "茨城県石岡市小幡１２３５－２",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211629/",
-      "lat": 36.228112,
-      "lon": 140.149537,
       "source": "jalan"
     },
     {
@@ -1391,25 +1391,27 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211268",
-      "name": "亀の丸果樹生産組合",
-      "address": "広島県三次市東酒屋町２０００－１",
-      "fruits": [],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211268/",
-      "lat": 34.765637,
-      "lon": 132.857092,
+      "id": "jalan_000000211228",
+      "name": "マルタケたかしな果樹園",
+      "address": "北海道有珠郡壮瞥町滝之町４６８",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211228/",
+      "lat": 42.562584,
+      "lon": 140.907137,
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211399",
-      "name": "宮原果樹園　玉山５号園",
-      "address": "福岡県久留米市田主丸町益生田１３８５",
+      "id": "jalan_000000211283",
+      "name": "（マルイチ）阿部果樹園",
+      "address": "山形県東根市神町営団中通り５２",
       "fruits": [
-        "Grape"
+        "Cherry"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211399/",
-      "lat": 33.326003,
-      "lon": 130.679417,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211283/",
+      "lat": 38.408889,
+      "lon": 140.413228,
       "source": "jalan"
     },
     {
@@ -1437,27 +1439,25 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211228",
-      "name": "マルタケたかしな果樹園",
-      "address": "北海道有珠郡壮瞥町滝之町４６８",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211228/",
-      "lat": 42.562584,
-      "lon": 140.907137,
+      "id": "jalan_000000211268",
+      "name": "亀の丸果樹生産組合",
+      "address": "広島県三次市東酒屋町２０００－１",
+      "fruits": [],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211268/",
+      "lat": 34.765637,
+      "lon": 132.857092,
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211283",
-      "name": "（マルイチ）阿部果樹園",
-      "address": "山形県東根市神町営団中通り５２",
+      "id": "jalan_000000211399",
+      "name": "宮原果樹園　玉山５号園",
+      "address": "福岡県久留米市田主丸町益生田１３８５",
       "fruits": [
-        "Cherry"
+        "Grape"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211283/",
-      "lat": 38.408889,
-      "lon": 140.413228,
+      "url": "https://www.jalan.net/kankou/spt_guide000000211399/",
+      "lat": 33.326003,
+      "lon": 130.679417,
       "source": "jalan"
     },
     {
@@ -1534,19 +1534,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000211627",
-      "name": "太陽のおくりもの斉藤果樹園",
-      "address": "山形県東根市神町中央１－１１－７",
-      "fruits": [
-        "Cherry",
-        "Chestnut"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000211627/",
-      "lat": 38.409291,
-      "lon": 140.379915,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000211484",
       "name": "若尾果樹園・マルサン葡萄酒",
       "address": "山梨県甲州市勝沼町勝沼３１１１－１",
@@ -1557,6 +1544,19 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211484/",
       "lat": 35.662297,
       "lon": 138.728857,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211627",
+      "name": "太陽のおくりもの斉藤果樹園",
+      "address": "山形県東根市神町中央１－１１－７",
+      "fruits": [
+        "Cherry",
+        "Chestnut"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211627/",
+      "lat": 38.409291,
+      "lon": 140.379915,
       "source": "jalan"
     },
     {
@@ -2334,18 +2334,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000216606",
-      "name": "飯野果樹園",
-      "address": "埼玉県児玉郡美里町大字広木2944-1",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000216606/",
-      "lat": 36.172244,
-      "lon": 139.156334,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000216000",
       "name": "御舩果樹園",
       "address": "熊本県宇城市不知火町松合1746",
@@ -2355,6 +2343,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000216000/",
       "lat": 32.631425,
       "lon": 130.604133,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000216606",
+      "name": "飯野果樹園",
+      "address": "埼玉県児玉郡美里町大字広木2944-1",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000216606/",
+      "lat": 36.172244,
+      "lon": 139.156334,
       "source": "jalan"
     },
     {
@@ -2611,15 +2611,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000210495",
-      "name": "西ノ村果樹園",
-      "address": "宮崎県小林市東方6103-67",
+      "id": "jalan_000000210764",
+      "name": "渡辺果樹園",
+      "address": "新潟県三条市井戸場143",
       "fruits": [
         "Grape"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000210495/",
-      "lat": 32.045385,
-      "lon": 130.984341,
+      "url": "https://www.jalan.net/kankou/spt_guide000000210764/",
+      "lat": 37.680116,
+      "lon": 138.994863,
       "source": "jalan"
     },
     {
@@ -2635,15 +2635,15 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000210764",
-      "name": "渡辺果樹園",
-      "address": "新潟県三条市井戸場143",
+      "id": "jalan_000000210495",
+      "name": "西ノ村果樹園",
+      "address": "宮崎県小林市東方6103-67",
       "fruits": [
         "Grape"
       ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000210764/",
-      "lat": 37.680116,
-      "lon": 138.994863,
+      "url": "https://www.jalan.net/kankou/spt_guide000000210495/",
+      "lat": 32.045385,
+      "lon": 130.984341,
       "source": "jalan"
     },
     {
@@ -2695,18 +2695,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000222304",
-      "name": "フジカワ果樹園",
-      "address": "香川県観音寺市大野原町丸井1736",
-      "fruits": [
-        "Mandarin Orange"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000222304/",
-      "lat": 34.077626,
-      "lon": 133.700077,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000222280",
       "name": "本藤果樹園",
       "address": "熊本県菊池市豊間",
@@ -2716,6 +2704,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000222280/",
       "lat": 32.99389,
       "lon": 130.824465,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000222304",
+      "name": "フジカワ果樹園",
+      "address": "香川県観音寺市大野原町丸井1736",
+      "fruits": [
+        "Mandarin Orange"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000222304/",
+      "lat": 34.077626,
+      "lon": 133.700077,
       "source": "jalan"
     },
     {
@@ -2834,18 +2834,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000210277",
-      "name": "井上永太郎果樹園",
-      "address": "福岡県久留米市田主丸町地徳2784",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000210277/",
-      "lat": 33.320356,
-      "lon": 130.676802,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000209080",
       "name": "滝口観光果樹園",
       "address": "山形県東根市観音寺2134-8",
@@ -2855,6 +2843,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000209080/",
       "lat": 38.416216,
       "lon": 140.45811,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000210277",
+      "name": "井上永太郎果樹園",
+      "address": "福岡県久留米市田主丸町地徳2784",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000210277/",
+      "lat": 33.320356,
+      "lon": 130.676802,
       "source": "jalan"
     },
     {
@@ -2970,6 +2970,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000204579",
+      "name": "道の駅 川場田園プラザ",
+      "address": "群馬県利根郡川場村萩室385",
+      "fruits": [
+        "Apple"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000204579/",
+      "lat": 36.687054,
+      "lon": 139.107331,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000192802",
       "name": "ヤスダカメラ",
       "address": "和歌山県海南市日方1501-14",
@@ -3078,18 +3090,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000188008/",
       "lat": 38.428446,
       "lon": 140.381069,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000204579",
-      "name": "道の駅 川場田園プラザ",
-      "address": "群馬県利根郡川場村萩室385",
-      "fruits": [
-        "Apple"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000204579/",
-      "lat": 36.687054,
-      "lon": 139.107331,
       "source": "jalan"
     },
     {
@@ -3532,18 +3532,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000187893/",
       "lat": 34.28359,
       "lon": 135.362487,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000221628",
-      "name": "ここもぐフルーツファーム",
-      "address": "神奈川県綾瀬市早川662",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000221628/",
-      "lat": 35.435224,
-      "lon": 139.422537,
       "source": "jalan"
     },
     {
@@ -4060,8 +4048,21 @@
         "Japanese Pear"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000188616/",
-      "lat": 35.638715,
-      "lon": 138.488721,
+      "lat": 35.633553,
+      "lon": 138.487816,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000221628",
+      "name": "ここもぐフルーツファーム",
+      "address": "神奈川県綾瀬市早川662",
+      "fruits": [
+        "Blueberry",
+        "Peach"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000221628/",
+      "lat": 35.435224,
+      "lon": 139.422537,
       "source": "jalan"
     },
     {
