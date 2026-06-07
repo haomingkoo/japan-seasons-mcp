@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, type ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import { z } from "zod";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "http";
 import { gzipSync } from "zlib";
 import { readFileSync, existsSync } from "fs";
@@ -67,6 +69,47 @@ interface OutputConfig {
   mapLanguage: MapLanguage;
 }
 
+const TEXT_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    answer: {
+      type: "string",
+      description: "The tool's user-facing answer as Markdown or JSON text.",
+    },
+  },
+  required: ["answer"],
+} as const;
+
+function withStructuredText(result: any): any {
+  if (result?.structuredContent) return result;
+  const text = result?.content?.find((part: any) => part?.type === "text" && typeof part.text === "string")?.text ?? "";
+  return { ...result, structuredContent: { answer: text } };
+}
+
+function registerTextTool<Args extends undefined | ZodRawShapeCompat | AnySchema = undefined>(
+  server: McpServer,
+  name: string,
+  config: {
+    title?: string;
+    description?: string;
+    inputSchema?: Args;
+    outputSchema?: any;
+    annotations?: ToolAnnotations;
+    _meta?: Record<string, unknown>;
+  },
+  cb: ToolCallback<Args>
+) {
+  server.registerTool(
+    name,
+    {
+      ...config,
+      outputSchema: config.outputSchema ?? TEXT_OUTPUT_SCHEMA,
+      annotations: { ...READONLY, ...(config.annotations ?? {}) },
+    },
+    (async (...args: any[]) => withStructuredText(await (cb as any)(...args))) as any
+  );
+}
+
 function isClientDisconnectError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
@@ -103,8 +146,6 @@ function staticSpotCount(data: AnySpot | null): number | null {
 const FRUIT_FARM_COUNT = staticSpotCount(STATIC_MCP.farms);
 const FRUIT_FARM_LABEL = FRUIT_FARM_COUNT === null ? "fruit-picking farms" : `${FRUIT_FARM_COUNT} fruit-picking farms`;
 
-// All tools are read-only (no side effects) and idempotent (same input = same output)
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 const READONLY: ToolAnnotations = { readOnlyHint: true, idempotentHint: true };
 const DEFAULT_OUTPUT_CONFIG: OutputConfig = {
   dateStyle: "friendly",
@@ -1047,7 +1088,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_forecast ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "japan_seasonal_answer",
     {
       title: "Answer Japan Seasonal Travel Question",
@@ -1149,7 +1190,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server, 
     "sakura_now",
     {
       title: "Sakura Forecast Now",
@@ -1170,7 +1211,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server, 
     "koyo_now",
     {
       title: "Autumn Leaves Forecast Now",
@@ -1191,7 +1232,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server, 
     "search",
     {
       title: "Search Japan in Seasons",
@@ -1212,7 +1253,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server, 
     "fetch",
     {
       title: "Fetch Japan in Seasons Result",
@@ -1235,7 +1276,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server, 
     "sakura_forecast",
     {
       title: "Cherry Blossom Forecast",
@@ -1273,7 +1314,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_spots ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "sakura_spots",
     {
       title: "Cherry Blossom Viewing Spots",
@@ -1348,7 +1389,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_best_dates ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "sakura_best_dates",
     {
       title: "Best Cherry Blossom Dates for Trip",
@@ -1383,7 +1424,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: kawazu_forecast ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "kawazu_forecast",
     {
       title: "Kawazu Early Cherry Blossom Forecast",
@@ -1438,7 +1479,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_forecast ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "koyo_forecast",
     {
       title: "Autumn Leaves Forecast",
@@ -1507,7 +1548,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_spots ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "koyo_spots",
     {
       title: "Autumn Leaves Viewing Spots",
@@ -1570,7 +1611,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_best_dates ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "koyo_best_dates",
     {
       title: "Best Autumn Leaves Dates for Trip",
@@ -1622,7 +1663,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: weather_forecast ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "weather_forecast",
     {
       title: "Japan Weather Forecast",
@@ -1656,7 +1697,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: flowers_spots ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "flowers_spots",
     {
       title: "Seasonal Flower Spots",
@@ -1734,7 +1775,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: fruit_seasons ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "fruit_seasons",
     {
       title: "Fruit Picking Season Calendar",
@@ -1806,7 +1847,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: festivals_list ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "festivals_list",
     {
       title: "Japan Seasonal Festivals",
@@ -1874,7 +1915,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: fruit_farms ──
 
-  server.registerTool(
+  registerTextTool(server, 
     "fruit_farms",
     {
       title: "Fruit Picking Farms",
