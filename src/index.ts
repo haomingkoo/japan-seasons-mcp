@@ -12,7 +12,7 @@ import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
 import { VERSION as SERVER_VERSION } from "./lib/version.js";
-import { getApiCacheStatus, handleApiRequest, warmSpotsCache } from "./api.js";
+import { handleApiRequest, warmSpotsCache } from "./api.js";
 import { onDailyFlush } from "./lib/cache.js";
 import {
   getSakuraForecast,
@@ -2170,7 +2170,6 @@ async function startHttpServer() {
         server: "japan-seasons-mcp",
         version: SERVER_VERSION,
         activeSessions: transports.size,
-        cache: await getApiCacheStatus(),
         ...stats.toJSON(),
       }));
       return;
