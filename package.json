@@ -1,6 +1,6 @@
 {
   "name": "japan-seasons-mcp",
-  "version": "0.4.21",
+  "version": "0.4.22",
   "mcpName": "io.github.haomingkoo/japan-seasons",
   "description": "Live Japan seasonal travel MCP — sakura forecasts, autumn leaves, flowers, festivals, fruit picking, weather, and broad AI-ready seasonal answers from JMC data.",
   "type": "module",
