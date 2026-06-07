@@ -67,6 +67,19 @@ interface OutputConfig {
   mapLanguage: MapLanguage;
 }
 
+function isClientDisconnectError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  const message = "message" in error ? String((error as { message?: unknown }).message ?? "") : String(error);
+  return (
+    code === "ECONNRESET" ||
+    code === "EPIPE" ||
+    code === "ABORT_ERR" ||
+    code === "ERR_STREAM_PREMATURE_CLOSE" ||
+    /aborted|socket hang up|premature close/i.test(message)
+  );
+}
+
 // ─── Static JSON: load once at startup, reused across all MCP tool calls ─────
 // Resolves relative to the package root (dist/../public) so it works correctly
 // whether the server is run via npx, node dist/index.js, or from any CWD.
@@ -2082,6 +2095,7 @@ async function startHttpServer() {
   }, 2 * 60 * 1000).unref();
 
   const httpServer = createServer(async (req, res) => {
+    try {
     const url = new URL(req.url ?? "/", `http://localhost:${port}`);
     const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
       ?? req.socket.remoteAddress ?? "unknown";
@@ -2293,6 +2307,19 @@ async function startHttpServer() {
     }
 
     res.writeHead(404).end("Not found");
+    } catch (e) {
+      if (isClientDisconnectError(e) || req.destroyed || res.destroyed || res.writableEnded) {
+        return;
+      }
+      const message = e instanceof Error ? e.message : String(e);
+      logger.error(`Request handling failed: ${message}`);
+      if (!res.headersSent && !res.writableEnded) {
+        res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: "Internal server error" }));
+      } else {
+        res.destroy();
+      }
+    }
   });
 
   httpServer.listen(port, () => {
