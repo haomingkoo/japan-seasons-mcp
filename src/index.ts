@@ -69,16 +69,9 @@ interface OutputConfig {
   mapLanguage: MapLanguage;
 }
 
-const TEXT_OUTPUT_SCHEMA = {
-  type: "object",
-  properties: {
-    answer: {
-      type: "string",
-      description: "The tool's user-facing answer as Markdown or JSON text.",
-    },
-  },
-  required: ["answer"],
-} as const;
+const TEXT_OUTPUT_SCHEMA = z.object({
+  answer: z.string().describe("The tool's user-facing answer as Markdown or JSON text."),
+});
 
 function withStructuredText(result: any): any {
   if (result?.structuredContent) return result;
@@ -99,10 +92,15 @@ function registerTextTool<Args extends undefined | ZodRawShapeCompat | AnySchema
   },
   cb: ToolCallback<Args>
 ) {
+  const inputSchema =
+    config.inputSchema && !("parse" in config.inputSchema)
+      ? z.object(config.inputSchema as ZodRawShapeCompat)
+      : config.inputSchema;
   server.registerTool(
     name,
     {
       ...config,
+      inputSchema,
       outputSchema: config.outputSchema ?? TEXT_OUTPUT_SCHEMA,
       annotations: { ...READONLY, ...(config.annotations ?? {}) },
     },
