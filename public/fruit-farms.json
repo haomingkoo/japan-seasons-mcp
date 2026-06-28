@@ -1,12 +1,12 @@
 {
-  "scraped_at": "2026-05-24T17:53:20.910941+00:00",
+  "scraped_at": "2026-06-28T18:00:40.472096+00:00",
   "sources": [
     "Jalan.net",
     "Japan Travel by NAVITIME"
   ],
   "source_url": "https://www.jalan.net/kankou/kw_%89%CA%8E%F7/",
   "total": 60,
-  "with_coords": 60,
+  "with_coords": 59,
   "spots": [
     {
       "id": "02301-2100069",
@@ -23,8 +23,8 @@
       "address": "Aichi Nisshin-shi Komenokicho Minamiyama 977",
       "fruits": [],
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2300038/",
-      "lat": 35.129961,
-      "lon": 137.086975
+      "lat": null,
+      "lon": null
     },
     {
       "id": "02308-f00090",
@@ -68,27 +68,6 @@
       "lon": 138.924538
     },
     {
-      "id": "02301-1903250",
-      "name": "Savor Farm, Tondabayashi City Agricultural Park",
-      "address": "Osaka Tondabayashi-shi Kannabi 2300",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903250/",
-      "lat": 34.458071,
-      "lon": 135.608471
-    },
-    {
-      "id": "02308-f00195",
-      "name": "Tsukuihama Kanko Farm",
-      "address": "Kanagawa Yokosuka-shi Tsukui 5-15-20",
-      "fruits": [
-        "Strawberry",
-        "Mandarin Orange"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00195/",
-      "lat": 35.209012,
-      "lon": 139.659477
-    },
-    {
       "id": "02301-2800045",
       "name": "Nishijima Horticultural Park",
       "address": "Kochi Nankoku Hataeda 600",
@@ -107,18 +86,36 @@
       "lon": 139.85005
     },
     {
-      "id": "02308-f00341",
-      "name": "Iwafune Fruit Park",
-      "address": "Tochigi Tochigi-shi Iwafunemachi Shimotsubara 1585",
+      "id": "02308-f00534",
+      "name": "Osho Fruit Farm",
+      "address": "Yamagata Tendo-shi Kawarago 1303",
       "fruits": [
-        "Strawberry",
-        "Blueberry",
+        "Cherry",
+        "Peach",
         "Grape",
-        "Japanese Pear"
+        "Apple"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00341/",
-      "lat": 36.309313,
-      "lon": 139.634081
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00534/",
+      "lat": 38.401776,
+      "lon": 140.431151
+    },
+    {
+      "id": "02301-1903250",
+      "name": "Savor Farm, Tondabayashi City Agricultural Park",
+      "address": "Osaka Tondabayashi-shi Kannabi 2300",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903250/",
+      "lat": 34.458071,
+      "lon": 135.608471
+    },
+    {
+      "id": "02301-4200064",
+      "name": "Shinshu Fruits Land (Shinshu Nakano Inter Branch)",
+      "address": "Nagano Nakano-shi Kusama Angenji Sakai 1356-1",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200064/",
+      "lat": 36.741189,
+      "lon": 138.325193
     },
     {
       "id": "02301-3000342",
@@ -132,6 +129,18 @@
       "lon": 139.883432
     },
     {
+      "id": "02308-f00195",
+      "name": "Tsukuihama Kanko Farm",
+      "address": "Kanagawa Yokosuka-shi Tsukui 5-15-20",
+      "fruits": [
+        "Strawberry",
+        "Mandarin Orange"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00195/",
+      "lat": 35.209012,
+      "lon": 139.659477
+    },
+    {
       "id": "02308-f00048",
       "name": "Mimasaka Farm",
       "address": "Okayama Mimasaka-shi Oku 585-1",
@@ -142,17 +151,6 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00048/",
       "lat": 34.929244,
       "lon": 134.114388
-    },
-    {
-      "id": "02308-f00219",
-      "name": "Kiwi Fruits Country Japan",
-      "address": "Shizuoka Kakegawa-shi Kamiuchida 2040",
-      "fruits": [
-        "Kiwi"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00219/",
-      "lat": 34.75138,
-      "lon": 138.051417
     },
     {
       "id": "02301-13000212",
@@ -175,6 +173,20 @@
       "lon": 130.418081
     },
     {
+      "id": "02308-f00341",
+      "name": "Iwafune Fruit Park",
+      "address": "Tochigi Tochigi-shi Iwafunemachi Shimotsubara 1585",
+      "fruits": [
+        "Strawberry",
+        "Blueberry",
+        "Grape",
+        "Japanese Pear"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00341/",
+      "lat": 36.309313,
+      "lon": 139.634081
+    },
+    {
       "id": "02308-f00510",
       "name": "Ono Orchid & Orchard Garden",
       "address": "Yamanashi Minami-Alps-shi Nishino 1202",
@@ -186,69 +198,15 @@
       "lon": 138.490132
     },
     {
-      "id": "02301-2900440",
-      "name": "Nikkou Strawberry Park",
-      "address": "Tochigi Nikko-shi Serinuma 3581",
+      "id": "02308-f00219",
+      "name": "Kiwi Fruits Country Japan",
+      "address": "Shizuoka Kakegawa-shi Kamiuchida 2040",
       "fruits": [
-        "Strawberry"
+        "Kiwi"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2900440/",
-      "lat": 36.734981,
-      "lon": 139.717163
-    },
-    {
-      "id": "02308-f00534",
-      "name": "Osho Fruit Farm",
-      "address": "Yamagata Tendo-shi Kawarago 1303",
-      "fruits": [
-        "Cherry",
-        "Peach",
-        "Grape",
-        "Apple"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00534/",
-      "lat": 38.401776,
-      "lon": 140.431151
-    },
-    {
-      "id": "02308-f00530",
-      "name": "Sayama Berry Land",
-      "address": "Saitama Sayama-shi Horigane 1262-5",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00530/",
-      "lat": 35.858597,
-      "lon": 139.447484
-    },
-    {
-      "id": "02301-14402888",
-      "name": "Ohashi Cherry Farm",
-      "address": "Hokkaido Ashibetsu-shi Kamiashibetsucho 469",
-      "fruits": [
-        "Cherry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402888/",
-      "lat": 43.484489,
-      "lon": 142.189675
-    },
-    {
-      "id": "02308-f00284",
-      "name": "Izumi Kogawa Ichigo Farm",
-      "address": "Osaka Izumi-shi Butsunamicho 2043",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00284/",
-      "lat": 34.400846,
-      "lon": 135.478349
-    },
-    {
-      "id": "02301-4200064",
-      "name": "Shinshu Fruits Land (Shinshu Nakano Inter Branch)",
-      "address": "Nagano Nakano-shi Kusama Angenji Sakai 1356-1",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4200064/",
-      "lat": 36.741189,
-      "lon": 138.325193
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00219/",
+      "lat": 34.75138,
+      "lon": 138.051417
     },
     {
       "id": "02308-f00269",
@@ -264,15 +222,26 @@
       "lon": 139.885281
     },
     {
-      "id": "02308-f00550",
-      "name": "Miharashien Fruit Farm",
-      "address": "Yamanashi Fuefuki-shi Ichinomiyacho Tsuchizuka 240",
+      "id": "02301-14402888",
+      "name": "Ohashi Cherry Farm",
+      "address": "Hokkaido Ashibetsu-shi Kamiashibetsucho 469",
       "fruits": [
-        "Japanese Pear"
+        "Cherry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00550/",
-      "lat": 35.634555,
-      "lon": 138.701165
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14402888/",
+      "lat": 43.484489,
+      "lon": 142.189675
+    },
+    {
+      "id": "02301-2900440",
+      "name": "Nikkou Strawberry Park",
+      "address": "Tochigi Nikko-shi Serinuma 3581",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-2900440/",
+      "lat": 36.734981,
+      "lon": 139.717163
     },
     {
       "id": "02301-3700271",
@@ -297,6 +266,26 @@
       "lon": 138.677262
     },
     {
+      "id": "02308-f00530",
+      "name": "Sayama Berry Land",
+      "address": "Saitama Sayama-shi Horigane 1262-5",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00530/",
+      "lat": 35.858597,
+      "lon": 139.447484
+    },
+    {
+      "id": "02308-f00550",
+      "name": "Miharashien Fruit Farm",
+      "address": "Yamanashi Fuefuki-shi Ichinomiyacho Tsuchizuka 240",
+      "fruits": [
+        "Japanese Pear"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00550/",
+      "lat": 35.634555,
+      "lon": 138.701165
+    },
+    {
       "id": "02301-13000544",
       "name": "Awaji Country Garden",
       "address": "Hyogo Awaji-shi Nojima Tokiwa 1463-6",
@@ -304,6 +293,17 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-13000544/",
       "lat": 34.561011,
       "lon": 134.97498
+    },
+    {
+      "id": "02301-3700164n",
+      "name": "Fruit Land Shirone Grape Garden",
+      "address": "Niigata Niigata-shi Minami-ku Washinokishinden 573",
+      "fruits": [
+        "Grape"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700164n/",
+      "lat": 37.832385,
+      "lon": 139.038252
     },
     {
       "id": "02308-f00212",
@@ -330,26 +330,27 @@
       "lon": 130.661183
     },
     {
-      "id": "02301-3700164n",
-      "name": "Fruit Land Shirone Grape Garden",
-      "address": "Niigata Niigata-shi Minami-ku Washinokishinden 573",
+      "id": "02308-f00088",
+      "name": "Kibonooka Farm",
+      "address": "Gunma Takasaki-shi Hanadakamachi 1523-1",
       "fruits": [
-        "Grape"
+        "Cherry",
+        "Blueberry",
+        "Mandarin Orange",
+        "Kiwi"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3700164n/",
-      "lat": 37.832385,
-      "lon": 139.038252
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00088/",
+      "lat": 36.318779,
+      "lon": 138.949534
     },
     {
-      "id": "02301-12900087n",
-      "name": "Koshigaya Strawberry Town",
-      "address": "Saitama Koshigaya-shi Mashimori 1-41",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12900087n/",
-      "lat": 35.90004,
-      "lon": 139.823247
+      "id": "02301-14400973",
+      "name": "Wada Farm",
+      "address": "Chiba Inzai-shi Hiraka 906-1",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400973/",
+      "lat": 35.755398,
+      "lon": 140.248672
     },
     {
       "id": "02308-f00514",
@@ -375,22 +376,15 @@
       "lon": 139.070295
     },
     {
-      "id": "02301-14400863",
-      "name": "Wadono Orchards",
-      "address": "Saitama Chichibu-shi Kuroya 457-3",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400863/",
-      "lat": 36.045475,
-      "lon": 139.10298
-    },
-    {
-      "id": "02301-12500155",
-      "name": "Farm Club Nakazato Farm",
-      "address": "Gunma Takasaki-shi Nakazato Machi 820",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12500155/",
-      "lat": 36.397622,
-      "lon": 138.980605
+      "id": "02301-12900087n",
+      "name": "Koshigaya Strawberry Town",
+      "address": "Saitama Koshigaya-shi Mashimori 1-41",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-12900087n/",
+      "lat": 35.90004,
+      "lon": 139.823247
     },
     {
       "id": "02301-4200700",
@@ -445,17 +439,6 @@
       "lon": 139.12197
     },
     {
-      "id": "02308-f00019",
-      "name": "Sunny Garden",
-      "address": "Aichi Tahara-shi Nakayamacho",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00019/",
-      "lat": 34.624386,
-      "lon": 137.07792
-    },
-    {
       "id": "02301-t8122",
       "name": "Tourist Farm Blueberry no Mura",
       "address": "Fukuoka Kurume-shi Kitanomachi Naka 2355",
@@ -465,17 +448,6 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-t8122/",
       "lat": 33.359081,
       "lon": 130.588395
-    },
-    {
-      "id": "02301-t6153",
-      "name": "Tokue Strawberry Farm",
-      "address": "Kanagawa Yokohama-shi Aoba-ku Ichigaocho 4-10",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-t6153/",
-      "lat": 35.538743,
-      "lon": 139.540902
     },
     {
       "id": "02301-4300172",
@@ -512,17 +484,6 @@
       "lon": 140.426175
     },
     {
-      "id": "02301-3000352",
-      "name": "Isoyama Kanko Strawberry Garden",
-      "address": "Chiba Katori-gun Tonoshomachi Sasagawai 4539",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-3000352/",
-      "lat": 35.834822,
-      "lon": 140.669978
-    },
-    {
       "id": "02308-f00020",
       "name": "Nikken Farm",
       "address": "Aichi Tahara-shi Horikiricho Seko Hata 65",
@@ -541,29 +502,6 @@
       "lon": 144.256949
     },
     {
-      "id": "02308-f00544",
-      "name": "Gamagori Orange Park",
-      "address": "Aichi Gamagori-shi Seida Cho Oguri",
-      "fruits": [
-        "Strawberry",
-        "Melon",
-        "Grape",
-        "Mandarin Orange"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00544/",
-      "lat": 34.854652,
-      "lon": 137.24086
-    },
-    {
-      "id": "02308-f00418",
-      "name": "Awajishima Fruit Farm",
-      "address": "Hyogo Awaji-shi Kamigawai 173",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00418/",
-      "lat": 34.450561,
-      "lon": 134.869418
-    },
-    {
       "id": "02301-12700192",
       "name": "Aguri no Sato Sightseeing Farm",
       "address": "Tochigi Tochigi-shi Otsukamachi 128-1",
@@ -573,33 +511,35 @@
       "lon": 139.774112
     },
     {
-      "id": "02301-14400769",
-      "name": "Takumi-no-sato Fureainoie",
-      "address": "Gunma Tone-gun Minakamimachi Sukawa 252-6",
+      "id": "02301-4700047",
+      "name": "Makino Pic-land",
+      "address": "Shiga Takashima-shi Makinocho Terakubo 835-1",
       "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14400769/",
-      "lat": 36.696071,
-      "lon": 138.904834
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-4700047/",
+      "lat": 35.471184,
+      "lon": 136.037038
     },
     {
-      "id": "02308-f00105",
-      "name": "Shodoshima Furusatomura Ichigo Sono",
-      "address": "Kagawa Shozu-gun Shodoshimacho Muro Iku 2084-1",
+      "id": "02308-f00305",
+      "name": "Suwako Ichigo Sono",
+      "address": "Nagano Suwa-shi Toyoda 3033",
       "fruits": [
         "Strawberry"
       ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00105/",
-      "lat": 34.469634,
-      "lon": 134.233133
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00305/",
+      "lat": 36.027293,
+      "lon": 138.082373
     },
     {
-      "id": "02301-1903287n",
-      "name": "KISHIKAN",
-      "address": "Osaka Kishiwada-shi Uchihata Cho 5068",
-      "fruits": [],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-1903287n/",
-      "lat": 34.406903,
-      "lon": 135.432894
+      "id": "02308-f00284",
+      "name": "Izumi Kogawa Ichigo Farm",
+      "address": "Osaka Izumi-shi Butsunamicho 2043",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00284/",
+      "lat": 34.400846,
+      "lon": 135.478349
     },
     {
       "id": "00004-19161400036",
@@ -624,17 +564,6 @@
       "lon": 139.963674
     },
     {
-      "id": "02308-f00037",
-      "name": "GRANBERRY Daichi",
-      "address": "Ibaraki Joso-shi Misaka Shindenmachi 2383-2",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00037/",
-      "lat": 36.077844,
-      "lon": 139.987009
-    },
-    {
       "id": "02308-f00128",
       "name": "Tomita Farm",
       "address": "Saitama Chichibu-shi Maita 1676-1",
@@ -653,6 +582,71 @@
       "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00174/",
       "lat": 34.968794,
       "lon": 136.160052
+    },
+    {
+      "id": "02308-f00460",
+      "name": "Hanagasa Orchard",
+      "address": "Yamagata Tendo-shi Kamioginoto 820",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00460/",
+      "lat": 38.325214,
+      "lon": 140.397487
+    },
+    {
+      "id": "02301-14412093",
+      "name": "Maze-kaore Kenko Farm",
+      "address": "Gifu Gero-shi Mazegawa",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14412093/",
+      "lat": 35.963768,
+      "lon": 137.136304
+    },
+    {
+      "id": "02301-t6643",
+      "name": "Otomi Farm",
+      "address": "Shizuoka Izunokuni-shi Kitaema 1124",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-t6643/",
+      "lat": 35.052252,
+      "lon": 138.919378
+    },
+    {
+      "id": "02301-14421816",
+      "name": "Yamazaki Farm",
+      "address": "Nagano Obuse Machi Obuse 2051",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14421816/",
+      "lat": 36.699843,
+      "lon": 138.309414
+    },
+    {
+      "id": "00004-20161400025",
+      "name": "Kobayashi Farm",
+      "address": "Nagano Kamitakai-gun",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/00004-20161400025/",
+      "lat": 36.7149,
+      "lon": 138.294526
+    },
+    {
+      "id": "02301-14427251n",
+      "name": "Fruit Farmhouse Hamada Orchard",
+      "address": "Hokkaido Usu-gun Sobetsucho Takinomachi 358",
+      "fruits": [],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02301-14427251n/",
+      "lat": 42.56181,
+      "lon": 140.907486
+    },
+    {
+      "id": "02308-f00330",
+      "name": "Manda Blueberry Farm",
+      "address": "Tokyo Tachikawa-shi Wakabacho 3-31-1",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://japantravel.navitime.com/en/area/jp/spot/02308-f00330/",
+      "lat": 35.720272,
+      "lon": 139.438986
     }
   ]
 }
