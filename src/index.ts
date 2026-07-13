@@ -29,8 +29,9 @@ import {
   SAKURA_SPOT_MODEL_NOTE,
   type SakuraCity,
   type SakuraSpot,
+  type SakuraSpotResult,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
@@ -1329,56 +1330,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           return { content: [{ type: "text", text: `Prefecture "${prefecture}" not found.\n\n${getAvailablePrefectures().join("\n")}` }], isError: true };
         }
         const result = await getSakuraSpots(prefCode);
-        const freshObservationCount = result.spots.filter((spot) => spot.statusSource === "observation").length;
-        let output = `# Sakura Spots — ${result.prefecture}\nForecast updated: ${formatSakuraDate(result.lastUpdated, outputConfig)}`;
-        if (result.observationUpdated) {
-          output += ` | Spot observations updated: ${formatSakuraDate(result.observationUpdated, outputConfig)}`;
-        }
-        output += ` | ${result.spots.length} spots\n\n`;
-        if (result.jmaStation) {
-          const jma = result.jmaStation;
-          output += `## JMA Station: ${jma.name}\n`;
-          output += `_The one official government reference tree for this prefecture. A human observer checks it once per day._\n`;
-          output += `- Bloom rate: **${jma.bloomRate}%** | Full-bloom rate: **${jma.fullRate}%**\n`;
-          if (jma.bloomObservation) {
-            output += `- Bloom: ${formatSakuraDate(jma.bloomObservation, outputConfig)} ✓ confirmed (avg ${jma.bloomNormal ?? "N/A"})\n`;
-          } else {
-            output += `- Bloom: ${formatSakuraDate(jma.bloomForecast, outputConfig)} (avg ${jma.bloomNormal ?? "N/A"})\n`;
-          }
-          if (jma.fullObservation) {
-            output += `- Full bloom: ${formatSakuraDate(jma.fullObservation, outputConfig)} ✓ confirmed (avg ${jma.fullNormal ?? "N/A"})\n\n`;
-          } else {
-            output += `- Full bloom: ${formatSakuraDate(jma.fullForecast, outputConfig)} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
-          }
-        }
-        output += `_${SAKURA_SPOT_MODEL_NOTE}_\n`;
-        if (result.observationUpdated) {
-          output += `_${freshObservationCount}/${result.spots.length} spots currently use fresh spot observations as the main status._\n\n`;
-        } else {
-          output += `\n`;
-        }
-        output += `## Viewing spots\n\n`;
-        for (const spot of result.spots) {
-          output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-          if (spot.statusSource === "observation") {
-            const obsDate = spot.statusUpdated ? ` (observed ${formatSakuraDate(spot.statusUpdated, outputConfig)})` : "";
-            output += `- **${spot.displayStatus}**${obsDate}\n`;
-            output += `- _Forecast model: ${spot.status} — bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%_\n`;
-          } else {
-            output += `- **${spot.displayStatus}** _(forecast estimate)_\n`;
-            if (spot.observationUpdated && !spot.observationFresh && spot.observationStatus) {
-              output += `- _Last spot observation: ${spot.observationStatus} (${formatSakuraDate(spot.observationUpdated, outputConfig)}, now stale)_\n`;
-            }
-            output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
-          }
-          if (spot.bloomForecast || spot.fullBloomForecast) {
-            output += `- Forecast dates: bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
-          }
-          const peakNote = postPeakNote(spot.fullBloomForecast);
-          if (peakNote) output += `- _${peakNote}_\n`;
-          output += coordinateLine(spot.lat, spot.lon, outputConfig);
-        }
-        return { content: [{ type: "text", text: output }] };
+        return { content: [{ type: "text", text: renderSakuraSpotsMarkdown(result, outputConfig) }] };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
       }
@@ -1590,17 +1542,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           return { content: [{ type: "text", text: `Prefecture "${prefecture}" not found.` }], isError: true };
         }
         const result = await getKoyoSpots(prefCode);
-        let output = `# Autumn Leaves — ${result.prefecture}\nSource: ${result.source}\nTotal spots: ${result.spots.length}\n\n`;
-        const freshnessNote = priorSeasonKoyoSpotNote(result.spots);
-        if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
-        for (const spot of result.spots) {
-          output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-          output += `- **${spot.status}**\n`;
-          output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
-          output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
-          output += coordinateLine(spot.lat, spot.lon, outputConfig);
-        }
-        return { content: [{ type: "text", text: output }] };
+        return { content: [{ type: "text", text: renderKoyoSpotsMarkdown(result, outputConfig) }] };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
       }
@@ -2014,6 +1956,73 @@ function formatCityResults(cities: SakuraCity[], outputConfig: OutputConfig): st
     } else {
       output += `- **Full bloom:** ${formatSakuraDate(city.fullBloom.forecast, outputConfig)} forecast (avg ${city.fullBloom.normal ?? "N/A"})\n`;
     }
+  }
+  return output;
+}
+
+function renderSakuraSpotsMarkdown(result: SakuraSpotResult, outputConfig: OutputConfig): string {
+  const freshObservationCount = result.spots.filter((spot) => spot.statusSource === "observation").length;
+  let output = `# Sakura Spots — ${result.prefecture}\nForecast updated: ${formatSakuraDate(result.lastUpdated, outputConfig)}`;
+  if (result.observationUpdated) {
+    output += ` | Spot observations updated: ${formatSakuraDate(result.observationUpdated, outputConfig)}`;
+  }
+  output += ` | ${result.spots.length} spots\n\n`;
+  if (result.jmaStation) {
+    const jma = result.jmaStation;
+    output += `## JMA Station: ${jma.name}\n`;
+    output += `_The one official government reference tree for this prefecture. A human observer checks it once per day._\n`;
+    output += `- Bloom rate: **${jma.bloomRate}%** | Full-bloom rate: **${jma.fullRate}%**\n`;
+    if (jma.bloomObservation) {
+      output += `- Bloom: ${formatSakuraDate(jma.bloomObservation, outputConfig)} ✓ confirmed (avg ${jma.bloomNormal ?? "N/A"})\n`;
+    } else {
+      output += `- Bloom: ${formatSakuraDate(jma.bloomForecast, outputConfig)} (avg ${jma.bloomNormal ?? "N/A"})\n`;
+    }
+    if (jma.fullObservation) {
+      output += `- Full bloom: ${formatSakuraDate(jma.fullObservation, outputConfig)} ✓ confirmed (avg ${jma.fullNormal ?? "N/A"})\n\n`;
+    } else {
+      output += `- Full bloom: ${formatSakuraDate(jma.fullForecast, outputConfig)} (avg ${jma.fullNormal ?? "N/A"})\n\n`;
+    }
+  }
+  output += `_${SAKURA_SPOT_MODEL_NOTE}_\n`;
+  if (result.observationUpdated) {
+    output += `_${freshObservationCount}/${result.spots.length} spots currently use fresh spot observations as the main status._\n\n`;
+  } else {
+    output += `\n`;
+  }
+  output += `## Viewing spots\n\n`;
+  for (const spot of result.spots) {
+    output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
+    if (spot.statusSource === "observation") {
+      const obsDate = spot.statusUpdated ? ` (observed ${formatSakuraDate(spot.statusUpdated, outputConfig)})` : "";
+      output += `- **${spot.displayStatus}**${obsDate}\n`;
+      output += `- _Forecast model: ${spot.status} — bloom ${spot.bloomRate}%, full-bloom ${spot.fullRate}%_\n`;
+    } else {
+      output += `- **${spot.displayStatus}** _(forecast estimate)_\n`;
+      if (spot.observationUpdated && !spot.observationFresh && spot.observationStatus) {
+        output += `- _Last spot observation: ${spot.observationStatus} (${formatSakuraDate(spot.observationUpdated, outputConfig)}, now stale)_\n`;
+      }
+      output += `- Bloom rate: **${spot.bloomRate}%** | Full-bloom rate: **${spot.fullRate}%**\n`;
+    }
+    if (spot.bloomForecast || spot.fullBloomForecast) {
+      output += `- Forecast dates: bloom ${formatSakuraDate(spot.bloomForecast, outputConfig)}${spot.fullBloomForecast ? ` → full bloom ${formatSakuraDate(spot.fullBloomForecast, outputConfig)}` : ""}\n`;
+    }
+    const peakNote = postPeakNote(spot.fullBloomForecast);
+    if (peakNote) output += `- _${peakNote}_\n`;
+    output += coordinateLine(spot.lat, spot.lon, outputConfig);
+  }
+  return output;
+}
+
+function renderKoyoSpotsMarkdown(result: KoyoSpotResult, outputConfig: OutputConfig): string {
+  let output = `# Autumn Leaves — ${result.prefecture}\nSource: ${result.source}\nTotal spots: ${result.spots.length}\n\n`;
+  const freshnessNote = priorSeasonKoyoSpotNote(result.spots);
+  if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
+  for (const spot of result.spots) {
+    output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
+    output += `- **${spot.status}**\n`;
+    output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
+    output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
+    output += coordinateLine(spot.lat, spot.lon, outputConfig);
   }
   return output;
 }
