@@ -59,6 +59,20 @@ function isWarnOnlyNetworkError(error, message, timedOut) {
     isRetryableFetchError(error, message, timedOut);
 }
 
+function headInsecure(url) {
+  return new Promise((resolve) => {
+    import("node:https").then(({ request }) => {
+      const req = request(url, { method: "HEAD", rejectUnauthorized: false, headers: { "User-Agent": BROWSER_USER_AGENT }, timeout: URL_TIMEOUT_MS }, (res) => {
+        resolve(res.statusCode || 0);
+        res.resume();
+      });
+      req.on("timeout", () => { req.destroy(); resolve(0); });
+      req.on("error", () => resolve(0));
+      req.end();
+    }).catch(() => resolve(0));
+  });
+}
+
 async function checkUrl(s) {
   for (let attempt = 0; attempt <= URL_RETRY_DELAYS_MS.length; attempt++) {
     const controller = new AbortController();
@@ -100,6 +114,15 @@ async function checkUrl(s) {
         continue;
       }
 
+      // Site-side TLS misconfiguration (expired cert, incomplete chain) is not a
+      // data problem: verify the host is alive with TLS verification disabled
+      // before classifying. Browsers with AIA fetching load these sites fine.
+      if (/CERT_HAS_EXPIRED|UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED|ECONNRESET/.test(error)) {
+        const aliveStatus = await headInsecure(s.url);
+        if (aliveStatus >= 200 && aliveStatus < 400) {
+          return { id: s.id, url: s.url, status: aliveStatus, bucket: "ok", error: `site live, TLS misconfigured server-side (${error})` };
+        }
+      }
       return {
         id: s.id,
         url: s.url,
@@ -132,7 +155,9 @@ for (const s of biennials) {
   const happens = s.years === "odd" ? CURRENT_YEAR % 2 !== 0 : CURRENT_YEAR % 2 === 0;
   const status = happens ? "✓ HAPPENING this year" : "✗ NOT happening this year";
   console.log(`  ${s.id} (${s.years} years): ${status}`);
-  if (!happens) warn(s.id, `Biennial event will NOT occur in ${CURRENT_YEAR} — should be hidden from UI`);
+  // Off-year is expected behaviour, not a data problem: typicalDate self-describes
+  // the cycle and the server passes it through. Informational only.
+  if (!happens) console.log(`  (info) ${s.id}: off-year in ${CURRENT_YEAR}, typicalDate explains the cycle`);
 }
 if (biennials.length === 0) console.log("  None found");
 
@@ -152,7 +177,7 @@ for (const result of urlResults) {
     fail(id, `URL returned ${status || "network error"}: ${url}${error ? ` (${error})` : ""}`);
     urlFail++;
   } else {
-    ok(`${id} → ${status}`);
+    ok(`${id} → ${status}${error ? ` (${error})` : ""}`);
     urlOk++;
   }
 }
