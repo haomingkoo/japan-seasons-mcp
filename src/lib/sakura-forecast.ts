@@ -127,7 +127,7 @@ const CITY_NAMES_EN: Record<string, string> = {
   "那覇": "Naha", "名瀬": "Naze",
 };
 
-const PREF_NAMES_EN: Record<string, string> = {
+export const PREF_NAMES_EN: Record<string, string> = {
   "北海道": "Hokkaido", "青森県": "Aomori", "岩手県": "Iwate",
   "宮城県": "Miyagi", "秋田県": "Akita", "山形県": "Yamagata",
   "福島県": "Fukushima", "茨城県": "Ibaraki", "栃木県": "Tochigi",
@@ -163,7 +163,7 @@ const PREF_CODES: Record<string, string> = {
   "miyazaki": "45", "kagoshima": "46", "okinawa": "47",
 };
 
-const PREF_CODE_TO_NAME_EN: Record<string, string> = Object.fromEntries(
+export const PREF_CODE_TO_NAME_EN: Record<string, string> = Object.fromEntries(
   Object.entries(PREF_CODES).map(([name, code]) => [code, name.charAt(0).toUpperCase() + name.slice(1)])
 );
 
