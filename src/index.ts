@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { McpServer, type ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate, type ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
+import { completable } from "@modelcontextprotocol/sdk/server/completable.js";
 import { z } from "zod";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "http";
@@ -1025,6 +1026,24 @@ Use the japan-seasons-mcp tools based on the travel month:
     })
   );
 
+  server.registerPrompt(
+    "plan_koyo_trip",
+    {
+      title: "Plan Autumn Leaves Trip",
+      description: "Guide for planning an autumn leaves (koyo) viewing trip to Japan. Use plan_japan_trip for full year-round seasonal coverage.",
+      argsSchema: { travel_dates: z.string().optional().describe("Travel date range, e.g. 'November 10-17'").meta({ title: "Travel Dates" }) },
+    },
+    async ({ travel_dates }) => ({
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Help me plan an autumn leaves trip to Japan${travel_dates ? ` for ${travel_dates}` : ""}. Use koyo_forecast, koyo_best_dates, and koyo_spots. Also see plan_japan_trip for full year-round seasonal coverage.`,
+        },
+      }],
+    })
+  );
+
   // ── Resources: static datasets ──
   // Registering resources enables the MCP resources capability (resources/list + resources/read).
 
@@ -1084,6 +1103,40 @@ Use the japan-seasons-mcp tools based on the travel month:
       })
     );
   }
+
+  server.registerResource(
+    "fruit-seasons",
+    "japan-seasons://fruit-seasons",
+    {
+      title: "Fruit Picking Season Calendar",
+      description: "Complete full-year fruit picking season calendar for 14 fruits in Japan — season months, peak months, best regions, and notes.",
+      mimeType: "application/json",
+    },
+    async (_uri) => ({
+      contents: [{
+        uri: "japan-seasons://fruit-seasons",
+        mimeType: "application/json",
+        text: JSON.stringify(FRUITS, null, 2),
+      }],
+    })
+  );
+
+  server.registerResource(
+    "prefectures",
+    "japan-seasons://prefectures",
+    {
+      title: "Valid Prefecture List",
+      description: "Complete list of valid Japanese prefecture codes and names accepted by the prefecture parameter across sakura_spots, koyo_spots, and other tools.",
+      mimeType: "application/json",
+    },
+    async (_uri) => ({
+      contents: [{
+        uri: "japan-seasons://prefectures",
+        mimeType: "application/json",
+        text: JSON.stringify(getAvailablePrefectures(), null, 2),
+      }],
+    })
+  );
 
   // ── Tool: sakura_forecast ──
 
@@ -1337,6 +1390,33 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
+  // ── Resource template: sakura spots by prefecture ──
+
+  server.registerResource(
+    "sakura-spots-by-prefecture",
+    new ResourceTemplate("japan-seasons://sakura-spots/{prefecture}", {
+      list: undefined,
+      complete: {
+        prefecture: async (value) =>
+          getAvailablePrefectures().filter((p) => p.toLowerCase().includes(value.toLowerCase())),
+      },
+    }),
+    {
+      title: "Cherry Blossom Viewing Spots by Prefecture",
+      description: "Cherry blossom viewing spots for one prefecture, with current status, JMA reference station summary, and GPS coordinates. Same data as the sakura_spots tool, addressed by URI.",
+      mimeType: "text/markdown",
+    },
+    async (uri, { prefecture }) => {
+      const prefQuery = Array.isArray(prefecture) ? (prefecture[0] ?? "") : prefecture;
+      const prefCode = findPrefCode(prefQuery);
+      if (!prefCode) {
+        return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: `Prefecture "${prefQuery}" not found.\n\n${getAvailablePrefectures().join("\n")}` }] };
+      }
+      const result = await getSakuraSpots(prefCode);
+      return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: renderSakuraSpotsMarkdown(result, outputConfig) }] };
+    }
+  );
+
   // ── Tool: sakura_best_dates ──
 
   registerTextTool(server, 
@@ -1546,6 +1626,33 @@ Use the japan-seasons-mcp tools based on the travel month:
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
       }
+    }
+  );
+
+  // ── Resource template: koyo spots by prefecture ──
+
+  server.registerResource(
+    "koyo-spots-by-prefecture",
+    new ResourceTemplate("japan-seasons://koyo-spots/{prefecture}", {
+      list: undefined,
+      complete: {
+        prefecture: async (value) =>
+          getAvailablePrefectures().filter((p) => p.toLowerCase().includes(value.toLowerCase())),
+      },
+    }),
+    {
+      title: "Autumn Leaves Viewing Spots by Prefecture",
+      description: "Autumn leaves viewing spots for one prefecture, with best start, peak, and end dates, leaf type, popularity rating, and GPS coordinates. Same data as the koyo_spots tool, addressed by URI.",
+      mimeType: "text/markdown",
+    },
+    async (uri, { prefecture }) => {
+      const prefQuery = Array.isArray(prefecture) ? (prefecture[0] ?? "") : prefecture;
+      const prefCode = findPrefCode(prefQuery);
+      if (!prefCode) {
+        return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: `Prefecture "${prefQuery}" not found.\n\n${getAvailablePrefectures().join("\n")}` }] };
+      }
+      const result = await getKoyoSpots(prefCode);
+      return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: renderKoyoSpotsMarkdown(result, outputConfig) }] };
     }
   );
 
