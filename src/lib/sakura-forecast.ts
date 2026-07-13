@@ -368,7 +368,7 @@ export function findPrefCode(query: string): string | null {
     if (name.includes(q) || q.includes(name)) return code;
   }
   // Also check Japanese prefecture names
-  for (const [ja, en] of Object.entries(PREF_NAMES_EN)) {
+  for (const en of Object.values(PREF_NAMES_EN)) {
     if (en.toLowerCase().includes(q) || q.includes(en.toLowerCase())) {
       return PREF_CODES[en.toLowerCase()] ?? null;
     }

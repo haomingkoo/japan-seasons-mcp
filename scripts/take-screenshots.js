@@ -24,14 +24,24 @@ await page.waitForTimeout(2500);
 await page.screenshot({ path: 'screenshots/01-sakura-map.png' });
 console.log('✓ 01-sakura-map.png');
 
-// 2. Click a sakura marker and capture popup
-await page.evaluate(() => {
-  const markers = document.querySelectorAll('.leaflet-marker-icon');
-  if (markers.length > 0) markers[3]?.click();
-});
-await page.waitForTimeout(1500);
+// 2. Open a sakura popup and capture it
+const marker = page.locator('.leaflet-marker-icon').first();
+if (await marker.count() > 0) {
+  await marker.click();
+  await page.waitForTimeout(1500);
+}
+const spotItem = page.locator('.spot-item').first();
+if (await spotItem.count() > 0) {
+  await spotItem.click();
+  await page.waitForTimeout(2000);
+}
 await page.screenshot({ path: 'screenshots/02-sakura-popup.png' });
 console.log('✓ 02-sakura-popup.png');
+
+await page.evaluate(() => { window.mapInstance?.setZoom(9); });
+await page.waitForTimeout(2000);
+await page.screenshot({ path: 'screenshots/08-sakura-zoomed.png' });
+console.log('✓ 08-sakura-zoomed.png');
 
 // 3. Fruit picking
 await page.click('#btn-fruit');

@@ -37,7 +37,7 @@
   <h1>Japan Seasonal Travel MCP for Claude and ChatGPT</h1>
   <p class="lead">A read-only Model Context Protocol server that gives AI assistants live Japan seasonal travel data: cherry blossoms, autumn leaves, flowers, festivals, fruit picking, and weather.</p>
   <p>
-    <a class="cta" href="https://smithery.ai/server/haomingkoo/japan-seasons-mcp">Open on Smithery</a>
+    <a class="cta" href="https://smithery.ai/servers/haomingkoo/japan-seasons-mcp">Open on Smithery</a>
     <a class="cta" href="https://github.com/haomingkoo/japan-seasons-mcp">GitHub</a>
     <a class="cta" href="/">Live Map</a>
   </p>
@@ -46,7 +46,9 @@
   <p>If ChatGPT or another AI search product finds this page on the web, it can read and cite the public forecast pages, but it cannot run MCP tools just because it found the endpoint. Tool calls work only after the endpoint is connected in an MCP-capable client, app, or connector.</p>
   <p>For latest sakura dates without any MCP setup, use the crawlable text summary or JSON API:</p>
   <pre><code>{{SAKURA_FORECAST_TEXT_URL}}
-{{SAKURA_FORECAST_API_URL}}</code></pre>
+{{KOYO_FORECAST_TEXT_URL}}
+{{SAKURA_FORECAST_API_URL}}
+{{KOYO_FORECAST_API_URL}}</code></pre>
 
   <h2>Remote Endpoint</h2>
   <pre><code>{{MCP_ENDPOINT}}</code></pre>
@@ -82,6 +84,8 @@ Connector URL: {{MCP_ENDPOINT}}</code></pre>
     <li>"How is the sakura forecast in Japan right now?"</li>
     <li>"Where should I see cherry blossoms from April 8 to April 14? Include exact viewing spots."</li>
     <li>"How are autumn leaves looking in Kyoto?"</li>
+    <li>"I am planning Japan for November. Which dates should I book for Kyoto autumn leaves?"</li>
+    <li>"Should I choose Nikko in October or Kyoto in late November for koyo?"</li>
     <li>"What flowers are in season in June?"</li>
     <li>"What fruit can I pick near Tokyo in May?"</li>
     <li>"Will rain in Osaka this weekend affect sakura?"</li>

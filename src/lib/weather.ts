@@ -1,7 +1,7 @@
 import { cache, TTL } from "./cache.js";
 import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
-import { findAreaByName, findWeatherCityId, JMA_AREAS } from "./areas.js";
+import { findWeatherCityId } from "./areas.js";
 
 export interface WeatherForecast {
   publicTime: string;
@@ -99,4 +99,3 @@ export async function getWeatherForecast(city: string): Promise<WeatherForecast>
     };
   });
 }
-

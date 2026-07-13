@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🌸 japan-seasons-mcp
+# Japan in Seasons MCP
 
-**Give your AI assistant live Japan travel data — cherry blossom forecasts, autumn leaves, fruit picking, flowers, festivals & more.**
+**Live Japan autumn leaves, cherry blossom, and seasonal travel data for AI assistants.**
 
-*1,700+ spots. 17 tools. Live data from Japan Meteorological Corporation.*
+*1,700+ spots. 17 MCP tools. JMC/JMA forecast data. Built for future trip planning and current-season answers.*
 
 [![npm version](https://img.shields.io/npm/v/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
@@ -12,9 +12,9 @@
 [![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet.svg)](#use-it-with-ai-assistants)
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://seasons.kooexperience.com)
 [![japan-seasons-mcp MCP server](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp/badges/score.svg)](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp)
-[![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/server/haomingkoo/japan-seasons-mcp)
+[![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/servers/haomingkoo/japan-seasons-mcp)
 
-[**Live map**](https://seasons.kooexperience.com) · [**Hosted MCP endpoint**](https://seasons.kooexperience.com/mcp) · [**npm**](https://www.npmjs.com/package/japan-seasons-mcp)
+[**Autumn trip planner**](https://seasons.kooexperience.com/japan-autumn-leaves-trip-planner) · [**Live map**](https://seasons.kooexperience.com) · [**Hosted MCP endpoint**](https://seasons.kooexperience.com/mcp) · [**npm**](https://www.npmjs.com/package/japan-seasons-mcp)
 
 </div>
 
@@ -36,17 +36,20 @@
 
 ---
 
-## The problem
+## What this is
 
-You ask Claude, ChatGPT, or Gemini: *"When should I visit Kyoto for cherry blossoms?"*
+Japan in Seasons is a free MCP server and crawlable travel dataset for Japan's seasonal travel decisions: autumn leaves (koyo), cherry blossoms (sakura), flowers, festivals, fruit picking, and weather.
 
-You get "late March to early April" — the same answer every year, based on training data that has no idea what this winter was like.
+It is designed for two use cases:
 
-The actual bloom date shifts by 2–3 weeks depending on temperatures. Tokyo peaked March 29 in 2024, March 22 in 2023, March 28 in 2022 — a 7-day spread in just two years. Your AI is guessing. This MCP server stops the guessing.
+- **Future trip planning:** "When should I book Kyoto for autumn leaves?", "Should I do Nikko in October or Kyoto in late November?", "Where should I go for sakura from April 8-14?"
+- **Current-season answers:** "How is the sakura forecast now?", "Where is koyo good this week?", "Will rain affect cherry blossoms this weekend?"
 
-## The fix
+The important design choice: off-season answers are clearly labeled as planning guidance or prior-season reference. Once the live JMC season feed is available, the same tools switch to current forecast dates.
 
-It connects Claude (or any MCP client) to live forecast data from the Japan Meteorological Corporation — the same data that powers SAKURA NAVI and Japan's major cherry blossom forecast sites. Bloom meters update daily at 9 AM JST; spot observations update when JMC reporters file.
+## Why it matters
+
+Generic AI usually answers with static travel advice like "late March to early April" for sakura or "November" for autumn leaves. Real seasonal timing shifts by region, elevation, and annual temperatures. This server connects Claude, ChatGPT, Cursor, and other MCP clients to Japan Meteorological Corporation and Japan Meteorological Agency data, then pairs it with exact viewing spots, coordinates, and weather context.
 
 ```
 You:    "I'm in Japan April 8–14. Where should I see cherry blossoms?"
@@ -65,7 +68,7 @@ Claude: Based on today's JMC forecast data:
         petal fall, so Apr 11–12 is probably the safer window.
 ```
 
-Real bloom percentages. Real park names. Real weather.
+Real dates. Real places. Clear labels for forecast, observation, prior-season reference, and planning guidance.
 
 ---
 
@@ -79,7 +82,10 @@ There are two different ways an AI assistant can use Japan in Seasons:
 For AI search, use these crawlable sources:
 
 - Latest sakura text summary: `https://seasons.kooexperience.com/sakura-forecast.txt`
+- Autumn leaves forecast and planning text: `https://seasons.kooexperience.com/autumn-leaves-forecast.txt`
 - Sakura forecast JSON: `https://seasons.kooexperience.com/api/sakura/forecast`
+- Autumn leaves forecast JSON: `https://seasons.kooexperience.com/api/koyo/forecast`
+- Autumn trip planner: `https://seasons.kooexperience.com/japan-autumn-leaves-trip-planner`
 - Interactive map and forecast pages: `https://seasons.kooexperience.com`
 
 ### Remote MCP endpoint
@@ -158,6 +164,25 @@ ChatGPT Search can discover `japan-seasons-mcp` as a web result, but web discove
 | Jan–Feb | Winter events (Sapporo Snow Festival, etc.) | 8 events | curated |
 
 1,700+ GPS-tagged spots across 12 seasonal categories.
+
+## Autumn leaves trip planning
+
+The next major launch window is koyo. Japan in Seasons now has crawlable planning pages for people booking before the live autumn forecast is published:
+
+- Japan autumn leaves trip planner: <https://seasons.kooexperience.com/japan-autumn-leaves-trip-planner>
+- AI-search text summary: <https://seasons.kooexperience.com/autumn-leaves-forecast.txt>
+- Kyoto autumn leaves forecast: <https://seasons.kooexperience.com/kyoto-autumn-leaves-forecast>
+- Nikko autumn leaves forecast: <https://seasons.kooexperience.com/nikko-autumn-leaves-forecast>
+- Live koyo JSON: <https://seasons.kooexperience.com/api/koyo/forecast>
+
+These pages are meant to answer high-intent planning searches:
+
+- "When should I visit Japan for autumn leaves?"
+- "Kyoto autumn leaves forecast"
+- "Best dates for Kyoto autumn leaves"
+- "Nikko fall foliage forecast"
+- "Japan autumn leaves itinerary November"
+- "Should I visit Nikko or Kyoto for koyo?"
 
 ---
 

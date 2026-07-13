@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, type ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { createServer } from "http";
-import { gzipSync } from "zlib";
-import { readFileSync, existsSync } from "fs";
-import { join, dirname, resolve } from "path";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
 import { VERSION as SERVER_VERSION } from "./lib/version.js";
@@ -26,6 +27,7 @@ import {
   SAKURA_FULL_BLOOM_MANKAI_MIN,
   SAKURA_SPOT_MODEL_NOTE,
   type SakuraCity,
+  type SakuraForecastResult,
   type SakuraSpot,
 } from "./lib/sakura-forecast.js";
 import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate } from "./lib/koyo.js";
@@ -34,6 +36,8 @@ import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
 import {
   MCP_ENDPOINT,
+  KOYO_FORECAST_API_URL,
+  KOYO_FORECAST_TEXT_URL,
   SAKURA_FORECAST_API_URL,
   SAKURA_FORECAST_TEXT_URL,
   SITE_CONFIG,
@@ -67,6 +71,19 @@ interface OutputConfig {
   mapLanguage: MapLanguage;
 }
 
+function isClientDisconnectError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  const message = "message" in error ? String((error as { message?: unknown }).message ?? "") : String(error);
+  return (
+    code === "ECONNRESET" ||
+    code === "EPIPE" ||
+    code === "ABORT_ERR" ||
+    code === "ERR_STREAM_PREMATURE_CLOSE" ||
+    /aborted|socket hang up|premature close/i.test(message)
+  );
+}
+
 // ─── Static JSON: load once at startup, reused across all MCP tool calls ─────
 // Resolves relative to the package root (dist/../public) so it works correctly
 // whether the server is run via npx, node dist/index.js, or from any CWD.
@@ -80,6 +97,11 @@ const STATIC_MCP = {
   festivals: loadStaticJSON("festivals.json"),
   farms:     loadStaticJSON("fruit-farms.json"),
 };
+const STATIC_MCP_TEXT = {
+  flowers: STATIC_MCP.flowers ? JSON.stringify(STATIC_MCP.flowers, null, 2) : null,
+  festivals: STATIC_MCP.festivals ? JSON.stringify(STATIC_MCP.festivals, null, 2) : null,
+  farms: STATIC_MCP.farms ? JSON.stringify(STATIC_MCP.farms, null, 2) : null,
+};
 
 function staticSpotCount(data: AnySpot | null): number | null {
   if (!data) return null;
@@ -91,14 +113,55 @@ const FRUIT_FARM_COUNT = staticSpotCount(STATIC_MCP.farms);
 const FRUIT_FARM_LABEL = FRUIT_FARM_COUNT === null ? "fruit-picking farms" : `${FRUIT_FARM_COUNT} fruit-picking farms`;
 
 // All tools are read-only (no side effects) and idempotent (same input = same output)
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-const READONLY: ToolAnnotations = { readOnlyHint: true, idempotentHint: true };
+const READONLY: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+};
+const TEXT_OUTPUT_SCHEMA = {
+  answer: z.string().describe("The tool's user-facing answer as Markdown or JSON text."),
+};
 const DEFAULT_OUTPUT_CONFIG: OutputConfig = {
   dateStyle: "friendly",
   temperatureUnit: "celsius",
   includeCoordinates: true,
   mapLanguage: "english",
 };
+
+function withStructuredText(result: any): any {
+  if (result?.structuredContent) return result;
+  const text = result?.content?.find((part: any) => part?.type === "text" && typeof part.text === "string")?.text ?? "";
+  return { ...result, structuredContent: { answer: text } };
+}
+
+function registerTextTool<
+  InputArgs extends undefined | ZodRawShapeCompat | AnySchema = undefined,
+  OutputArgs extends ZodRawShapeCompat | AnySchema = typeof TEXT_OUTPUT_SCHEMA,
+>(
+  server: McpServer,
+  name: string,
+  config: {
+    title?: string;
+    description?: string;
+    inputSchema?: InputArgs;
+    outputSchema?: OutputArgs;
+    annotations?: ToolAnnotations;
+    _meta?: Record<string, unknown>;
+  },
+  cb: ToolCallback<InputArgs>
+) {
+  const wrappedCb = (async (...args: any[]) => withStructuredText(await (cb as any)(...args))) as ToolCallback<InputArgs>;
+  server.registerTool(
+    name,
+    {
+      ...config,
+      outputSchema: config.outputSchema ?? TEXT_OUTPUT_SCHEMA,
+      annotations: { ...READONLY, ...(config.annotations ?? {}) },
+    } as any,
+    wrappedCb as any
+  );
+}
 
 function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -213,11 +276,21 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/cherry-blossom-forecast/": { file: "cherry-blossom-forecast.html",  mime: "text/html; charset=utf-8" },
   "/autumn-leaves-forecast":   { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
   "/autumn-leaves-forecast/":  { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
+  "/japan-fall-foliage-forecast":   { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
+  "/japan-fall-foliage-forecast/":  { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
+  "/japan-autumn-foliage-forecast":   { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
+  "/japan-autumn-foliage-forecast/":  { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
+  "/japan-autumn-leaves-trip-planner":  { file: "japan-autumn-leaves-trip-planner.html", mime: "text/html; charset=utf-8" },
+  "/japan-autumn-leaves-trip-planner/": { file: "japan-autumn-leaves-trip-planner.html", mime: "text/html; charset=utf-8" },
+  "/kyoto-autumn-leaves-forecast":  { file: "kyoto-autumn-leaves-forecast.html", mime: "text/html; charset=utf-8" },
+  "/kyoto-autumn-leaves-forecast/": { file: "kyoto-autumn-leaves-forecast.html", mime: "text/html; charset=utf-8" },
+  "/nikko-autumn-leaves-forecast":  { file: "nikko-autumn-leaves-forecast.html", mime: "text/html; charset=utf-8" },
+  "/nikko-autumn-leaves-forecast/": { file: "nikko-autumn-leaves-forecast.html", mime: "text/html; charset=utf-8" },
   "/japan-seasonal-travel-mcp":  { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
   "/japan-seasonal-travel-mcp/": { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
   "/googlec3efc6b89b4ed154.html": { file: "googlec3efc6b89b4ed154.html", mime: "text/html; charset=utf-8" },
 };
-const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
+const STATIC_FILES: Record<string, { body: Buffer | string; mime: string }> = {};
 {
   const __staticDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
   for (const [route, entry] of Object.entries(STATIC_FILE_MAP)) {
@@ -232,20 +305,26 @@ const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 const SITE_TEMPLATE_REPLACEMENTS: Record<string, string> = {
   "{{SITE_URL}}": SITE_URL,
   "{{MCP_ENDPOINT}}": MCP_ENDPOINT,
+  "{{CURRENT_YEAR}}": String(currentJstYear()),
+  "{{KOYO_FORECAST_TEXT_URL}}": KOYO_FORECAST_TEXT_URL,
   "{{SAKURA_FORECAST_TEXT_URL}}": SAKURA_FORECAST_TEXT_URL,
   "{{SAKURA_FORECAST_API_URL}}": SAKURA_FORECAST_API_URL,
-  "{{KOYO_FORECAST_API_URL}}": `${SITE_URL}${SITE_CONFIG.koyoForecastApiPath}`,
+  "{{KOYO_FORECAST_API_URL}}": KOYO_FORECAST_API_URL,
   "{{CONNECTOR_NAME}}": SITE_CONFIG.connector.name,
   "{{CONNECTOR_DESCRIPTION}}": SITE_CONFIG.connector.description,
 };
 
-function renderSiteTemplate(body: Buffer, mime: string): Buffer | string {
+function renderSiteTemplate(body: Buffer | string, mime: string): Buffer | string {
   if (!mime.startsWith("text/html") && !mime.startsWith("text/plain")) return body;
-  let text = body.toString("utf-8");
+  let text = Buffer.isBuffer(body) ? body.toString("utf-8") : body;
   for (const [token, value] of Object.entries(SITE_TEMPLATE_REPLACEMENTS)) {
     text = text.split(token).join(value);
   }
   return text;
+}
+
+for (const entry of Object.values(STATIC_FILES)) {
+  entry.body = renderSiteTemplate(entry.body, entry.mime);
 }
 
 // ─── Sitemap ────────────────────────────────────────────────────────────────
@@ -257,6 +336,10 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/cherry-blossom-forecast`, priority: "0.95" },
     { loc: SAKURA_FORECAST_TEXT_URL, priority: "0.9" },
     { loc: `${SITE_URL}/autumn-leaves-forecast`, priority: "0.95" },
+    { loc: KOYO_FORECAST_TEXT_URL, priority: "0.9" },
+    { loc: `${SITE_URL}/japan-autumn-leaves-trip-planner`, priority: "0.98" },
+    { loc: `${SITE_URL}/kyoto-autumn-leaves-forecast`, priority: "0.92" },
+    { loc: `${SITE_URL}/nikko-autumn-leaves-forecast`, priority: "0.9" },
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
     { loc: `${SITE_URL}/llms.txt`, priority: "0.5" },
@@ -431,8 +514,9 @@ async function formatSakuraNowAnswer(options: {
   start_date?: string;
   end_date?: string;
   outputConfig: OutputConfig;
+  forecast?: SakuraForecastResult;
 }): Promise<string> {
-  const forecast = await getSakuraForecast();
+  const forecast = options.forecast ?? await getSakuraForecast();
   const today = todayJstIsoDate();
 
   if (options.start_date && options.end_date) {
@@ -518,7 +602,7 @@ async function formatSakuraNowAnswer(options: {
 async function buildSakuraForecastMarkdown(outputConfig: OutputConfig = DEFAULT_OUTPUT_CONFIG): Promise<string> {
   const forecast = await getSakuraForecast();
   const today = todayJstIsoDate();
-  let output = await formatSakuraNowAnswer({ outputConfig });
+  let output = await formatSakuraNowAnswer({ outputConfig, forecast });
 
   output += `\n\n## All JMC observation cities\n`;
   output += `This section is intentionally crawlable for AI search and web search. It lists the latest bloom and full-bloom dates available from Japan Meteorological Corporation for ${forecast.totalCities} observation cities. Today in Japan: ${today}.\n\n`;
@@ -539,11 +623,74 @@ async function buildSakuraForecastMarkdown(outputConfig: OutputConfig = DEFAULT_
   return output;
 }
 
-function formatKoyoCityLine(city: { nameEn?: string; name: string; prefNameEn?: string; prefName: string; maple?: any; ginkgo?: any }, outputConfig: OutputConfig): string {
+async function buildKoyoForecastMarkdown(outputConfig: OutputConfig = DEFAULT_OUTPUT_CONFIG): Promise<string> {
+  const forecast = await getKoyoForecast();
+  const today = todayJstIsoDate();
+  const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
+  let output = `# Japan autumn leaves forecast and trip-planning guide\n`;
+  output += `Source: ${forecast.source}. Last updated: ${forecast.lastUpdated || "not available"}. Today in Japan: ${today}.\n\n`;
+  if (freshnessNote) {
+    output += `**Forecast status:** ${freshnessNote}\n\n`;
+  } else {
+    output += `**Forecast status:** Current JMC autumn leaves forecast data is available.\n\n`;
+  }
+
+  output += `## Best time to plan Japan autumn leaves\n`;
+  output += `${KOYO_TYPICAL_TIMING_GUIDE}\n\n`;
+  output += `For future trips, treat these as planning windows until the current-year JMC forecast appears:\n`;
+  output += `- **Hokkaido and high mountains:** late September to October.\n`;
+  output += `- **Nikko, Tohoku, Nagano, and alpine areas:** October to early November.\n`;
+  output += `- **Kyoto, Tokyo, Nara, Osaka, and much of central Honshu:** mid-November to early December.\n`;
+  output += `- **Kyushu and warmer lowland areas:** late November to early December.\n\n`;
+
+  if (forecast.forecastComment && !freshnessNote) {
+    output += `## JMC source commentary\n${forecast.forecastComment}\n\n`;
+  }
+
+  output += `## City-level maple and ginkgo dates\n`;
+  const referenceYear = freshnessNote ? currentJstYear() : null;
+  output += `This section is intentionally crawlable for AI search and web search. It lists the latest autumn leaves timing available from Japan Meteorological Corporation. If the forecast status above says prior-season reference, the dates below map prior-season month/day timing onto ${referenceYear ?? "the trip year"} for planning only.\n\n`;
+  for (const region of forecast.regions) {
+    output += `### ${region.name}\n`;
+    for (const city of region.cities) output += `${formatKoyoCityLine(city, outputConfig, referenceYear)}\n`;
+    output += `\n`;
+  }
+
+  output += `## AI search and MCP use\n`;
+  output += `If an assistant found this page through web search, it can cite this text page or the JSON API for autumn leaves timing. Finding the page does not mean the assistant can execute MCP tools.\n\n`;
+  output += `To call tools such as koyo_now, koyo_forecast, koyo_best_dates, and koyo_spots, first connect the MCP endpoint in an MCP-capable client or ChatGPT app/connector setup.\n\n`;
+  output += `- Crawlable text summary: ${KOYO_FORECAST_TEXT_URL}\n`;
+  output += `- Forecast JSON API: ${KOYO_FORECAST_API_URL}\n`;
+  output += `- Autumn trip planner: ${SITE_URL}/japan-autumn-leaves-trip-planner\n`;
+  output += `- Remote MCP endpoint: ${MCP_ENDPOINT}\n`;
+  return output;
+}
+
+function isoDateWithYear(value: string | null | undefined, year: number | null | undefined): string | null {
+  if (!value || !year) return value ?? null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  return match ? `${year}-${match[2]}-${match[3]}` : value;
+}
+
+function shouldUseKoyoPlanningReference(lastUpdated: string | null | undefined, tripStartDate: Date): number | null {
+  const dataYear = isoYearInJst(lastUpdated);
+  const tripYear = isoYearInJst(tripStartDate);
+  if (!dataYear || !tripYear) return null;
+  return dataYear < tripYear ? tripYear : null;
+}
+
+function formatKoyoCityLine(
+  city: { nameEn?: string; name: string; prefNameEn?: string; prefName: string; maple?: any; ginkgo?: any },
+  outputConfig: OutputConfig,
+  referenceYear?: number | null,
+): string {
   const name = city.nameEn || city.name;
   const pref = city.prefNameEn || city.prefName;
-  const maple = city.maple?.forecast ? `maple ${formatKoyoOutputDate(city.maple.forecast, outputConfig)} (${daysLabel(daysFromTodayJst(city.maple.forecast))})` : null;
-  const ginkgo = city.ginkgo?.forecast ? `ginkgo ${formatKoyoOutputDate(city.ginkgo.forecast, outputConfig)} (${daysLabel(daysFromTodayJst(city.ginkgo.forecast))})` : null;
+  const mapleDate = isoDateWithYear(city.maple?.forecast, referenceYear);
+  const ginkgoDate = isoDateWithYear(city.ginkgo?.forecast, referenceYear);
+  const mode = referenceYear ? " planning reference" : "";
+  const maple = mapleDate ? `maple ${formatKoyoOutputDate(mapleDate, outputConfig)} (${daysLabel(daysFromTodayJst(mapleDate))})${mode}` : null;
+  const ginkgo = ginkgoDate ? `ginkgo ${formatKoyoOutputDate(ginkgoDate, outputConfig)} (${daysLabel(daysFromTodayJst(ginkgoDate))})${mode}` : null;
   return `- **${name} (${pref})** — ${[maple, ginkgo].filter(Boolean).join("; ")}`;
 }
 
@@ -574,8 +721,10 @@ function koyoViewingWindowOverlaps(
   city: { maple?: { forecast: string | null } | null; ginkgo?: { forecast: string | null } | null },
   startDate: Date,
   endDate: Date,
+  referenceYear?: number | null,
 ): boolean {
   const peakDates = [city.maple?.forecast, city.ginkgo?.forecast]
+    .map((date) => isoDateWithYear(date, referenceYear))
     .map((date) => parseDateInputJst(date ?? null))
     .filter((date): date is Date => Boolean(date));
   if (!peakDates.length) return false;
@@ -616,20 +765,24 @@ async function formatKoyoNowAnswer(options: {
     if (!range) {
       return `Invalid trip dates. ${DATE_RANGE_INPUT_HINT}`;
     }
+    const referenceYear = shouldUseKoyoPlanningReference(forecast.lastUpdated, range.startDate);
     const matches: typeof allCities = [];
     for (const city of allCities) {
-      if (koyoViewingWindowOverlaps(city, range.startDate, range.endDate)) matches.push(city);
+      if (koyoViewingWindowOverlaps(city, range.startDate, range.endDate, referenceYear)) matches.push(city);
     }
     let output = `# Autumn leaves forecast for ${options.start_date} to ${options.end_date}\n`;
     output += `Source: ${forecast.source}. Last updated: ${forecast.lastUpdated}. Today in Japan: ${today}.\n\n`;
     const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
     if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
+    if (referenceYear) {
+      output += `**Planning mode:** Current-year JMC koyo dates are not available yet, so matches below map prior-season month/day timing onto ${referenceYear}. Use this for booking guidance, then re-check when the ${referenceYear} forecast publishes.\n\n`;
+    }
     if (!matches.length) {
       output += `${koyoNoMatchText(options.start_date, options.end_date)}\n`;
       return output;
     }
     output += `## Best city matches\n`;
-    for (const city of matches.slice(0, 12)) output += `${formatKoyoCityLine(city, options.outputConfig)}\n`;
+    for (const city of matches.slice(0, 12)) output += `${formatKoyoCityLine(city, options.outputConfig, referenceYear)}\n`;
     output += `\nNext step: call koyo_spots for exact temples, parks, and gardens in the matched prefecture.\n`;
     return output;
   }
@@ -765,7 +918,7 @@ function inferSeason(question: string | undefined, startDate: string | undefined
     if (/(kawazu|early blossom|izu|february|january)/.test(q)) return "kawazu";
     return "sakura";
   }
-  if (/(autumn|fall foliage|koyo|momiji|maple|ginkgo|leaves|colour|color)/.test(q)) return "koyo";
+  if (/(autumn|foliage|foilage|koyo|momiji|maple|ginkgo|leaves|colour|color)/.test(q)) return "koyo";
   if (/(seasonal|what.*good|things to do|activities|in season|blooming now|good now)/.test(q)) return "overview";
   if (/(wisteria|hydrangea|lavender|sunflower|cosmos|plum|flower|blooming now)/.test(q)) return "flowers";
   if (/(festival|matsuri|fireworks|hanabi|event)/.test(q)) return "festivals";
@@ -804,9 +957,16 @@ const SEARCH_DOCS = [
   {
     id: "koyo-now",
     title: "Japan Autumn Leaves Forecast",
-    url: `${SITE_URL}/autumn-leaves-forecast`,
-    keywords: "koyo autumn leaves fall foliage momiji maple ginkgo kyoto nikko hokkaido forecast japan",
-    summary: "JMC koyo forecast for maple and ginkgo timing by city, with forecast maps, regional commentary, and 687 viewing spots.",
+    url: KOYO_FORECAST_TEXT_URL,
+    keywords: "koyo autumn leaves fall foliage momiji maple ginkgo kyoto nikko hokkaido forecast japan current",
+    summary: "Crawlable JMC koyo forecast and planning guide for maple and ginkgo timing by city, with forecast status, regional timing guidance, maps, commentary, and 687 viewing spots.",
+  },
+  {
+    id: "koyo-planner",
+    title: "Japan Autumn Leaves Trip Planner",
+    url: `${SITE_URL}/japan-autumn-leaves-trip-planner`,
+    keywords: "japan autumn leaves trip planner future travel dates kyoto nikko hokkaido fall foliage itinerary november october december",
+    summary: "Future-trip planning guide for Japan autumn leaves, including typical regional windows, when to book Kyoto, Nikko, Hokkaido, Tokyo, and how to switch from typical timing to live JMC forecast data.",
   },
   {
     id: "flowers",
@@ -865,8 +1025,8 @@ async function fetchSearchDoc(id: string, outputConfig: OutputConfig) {
     return {
       id,
       title: "Japan Autumn Leaves Forecast",
-      url: `${SITE_URL}/autumn-leaves-forecast`,
-      text: await formatKoyoNowAnswer({ outputConfig }),
+      url: KOYO_FORECAST_TEXT_URL,
+      text: await buildKoyoForecastMarkdown(outputConfig),
       metadata: { source: "Japan Meteorological Corporation", type: "live_forecast" },
     };
   }
@@ -988,7 +1148,7 @@ Use the japan-seasons-mcp tools based on the travel month:
         contents: [{
           uri: "japan-seasons://flowers",
           mimeType: "application/json",
-          text: JSON.stringify(STATIC_MCP.flowers, null, 2),
+          text: STATIC_MCP_TEXT.flowers!,
         }],
       })
     );
@@ -1007,7 +1167,7 @@ Use the japan-seasons-mcp tools based on the travel month:
         contents: [{
           uri: "japan-seasons://festivals",
           mimeType: "application/json",
-          text: JSON.stringify(STATIC_MCP.festivals, null, 2),
+          text: STATIC_MCP_TEXT.festivals!,
         }],
       })
     );
@@ -1026,7 +1186,7 @@ Use the japan-seasons-mcp tools based on the travel month:
         contents: [{
           uri: "japan-seasons://fruit-farms",
           mimeType: "application/json",
-          text: JSON.stringify(STATIC_MCP.farms, null, 2),
+          text: STATIC_MCP_TEXT.farms!,
         }],
       })
     );
@@ -1034,7 +1194,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_forecast ──
 
-  server.registerTool(
+  registerTextTool(server,
     "japan_seasonal_answer",
     {
       title: "Answer Japan Seasonal Travel Question",
@@ -1136,7 +1296,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server,
     "sakura_now",
     {
       title: "Sakura Forecast Now",
@@ -1157,7 +1317,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server,
     "koyo_now",
     {
       title: "Autumn Leaves Forecast Now",
@@ -1178,7 +1338,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server,
     "search",
     {
       title: "Search Japan in Seasons",
@@ -1199,7 +1359,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server,
     "fetch",
     {
       title: "Fetch Japan in Seasons Result",
@@ -1222,7 +1382,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     }
   );
 
-  server.registerTool(
+  registerTextTool(server,
     "sakura_forecast",
     {
       title: "Cherry Blossom Forecast",
@@ -1260,7 +1420,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_spots ──
 
-  server.registerTool(
+  registerTextTool(server,
     "sakura_spots",
     {
       title: "Cherry Blossom Viewing Spots",
@@ -1335,7 +1495,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: sakura_best_dates ──
 
-  server.registerTool(
+  registerTextTool(server,
     "sakura_best_dates",
     {
       title: "Best Cherry Blossom Dates for Trip",
@@ -1370,7 +1530,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: kawazu_forecast ──
 
-  server.registerTool(
+  registerTextTool(server,
     "kawazu_forecast",
     {
       title: "Kawazu Early Cherry Blossom Forecast",
@@ -1425,7 +1585,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_forecast ──
 
-  server.registerTool(
+  registerTextTool(server,
     "koyo_forecast",
     {
       title: "Autumn Leaves Forecast",
@@ -1494,7 +1654,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_spots ──
 
-  server.registerTool(
+  registerTextTool(server,
     "koyo_spots",
     {
       title: "Autumn Leaves Viewing Spots",
@@ -1557,7 +1717,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: koyo_best_dates ──
 
-  server.registerTool(
+  registerTextTool(server,
     "koyo_best_dates",
     {
       title: "Best Autumn Leaves Dates for Trip",
@@ -1575,12 +1735,18 @@ Use the japan-seasons-mcp tools based on the travel month:
           return { content: [{ type: "text", text: `Invalid date format. ${DATE_RANGE_INPUT_HINT}` }], isError: true };
         }
         const forecast = await getKoyoForecast();
+        const referenceYear = shouldUseKoyoPlanningReference(forecast.lastUpdated, range.startDate);
 
         const matches: { name: string; pref: string; mapleDate: string | null; ginkgoDate: string | null }[] = [];
         for (const region of forecast.regions) {
           for (const city of region.cities) {
-            if (koyoViewingWindowOverlaps(city, range.startDate, range.endDate)) {
-              matches.push({ name: city.name, pref: city.prefName, mapleDate: city.maple?.forecast ?? null, ginkgoDate: city.ginkgo?.forecast ?? null });
+            if (koyoViewingWindowOverlaps(city, range.startDate, range.endDate, referenceYear)) {
+              matches.push({
+                name: city.nameEn || city.name,
+                pref: city.prefNameEn || city.prefName,
+                mapleDate: isoDateWithYear(city.maple?.forecast, referenceYear),
+                ginkgoDate: isoDateWithYear(city.ginkgo?.forecast, referenceYear),
+              });
             }
           }
         }
@@ -1588,6 +1754,9 @@ Use the japan-seasons-mcp tools based on the travel month:
         let output = `# Best cities for koyo: ${start_date} to ${end_date}\n\n`;
         const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
         if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
+        if (referenceYear) {
+          output += `**Planning mode:** Current-year JMC koyo dates are not available yet, so matches below map prior-season month/day timing onto ${referenceYear}. Use this for booking guidance, then re-check when the ${referenceYear} forecast publishes.\n\n`;
+        }
         if (!matches.length) {
           output += koyoNoMatchText(start_date, end_date);
           return { content: [{ type: "text", text: output }] };
@@ -1609,7 +1778,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: weather_forecast ──
 
-  server.registerTool(
+  registerTextTool(server,
     "weather_forecast",
     {
       title: "Japan Weather Forecast",
@@ -1643,7 +1812,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: flowers_spots ──
 
-  server.registerTool(
+  registerTextTool(server,
     "flowers_spots",
     {
       title: "Seasonal Flower Spots",
@@ -1721,7 +1890,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: fruit_seasons ──
 
-  server.registerTool(
+  registerTextTool(server,
     "fruit_seasons",
     {
       title: "Fruit Picking Season Calendar",
@@ -1793,7 +1962,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: festivals_list ──
 
-  server.registerTool(
+  registerTextTool(server,
     "festivals_list",
     {
       title: "Japan Seasonal Festivals",
@@ -1861,7 +2030,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 
   // ── Tool: fruit_farms ──
 
-  server.registerTool(
+  registerTextTool(server,
     "fruit_farms",
     {
       title: "Fruit Picking Farms",
@@ -2082,217 +2251,246 @@ async function startHttpServer() {
   }, 2 * 60 * 1000).unref();
 
   const httpServer = createServer(async (req, res) => {
-    const url = new URL(req.url ?? "/", `http://localhost:${port}`);
-    const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
-      ?? req.socket.remoteAddress ?? "unknown";
+    try {
+      const url = new URL(req.url ?? "/", `http://localhost:${port}`);
+      const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+        ?? req.socket.remoteAddress ?? "unknown";
 
-    // Security headers
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "SAMEORIGIN");
-    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'");
+      // Security headers
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+      res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+      res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'");
 
-    // CORS
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id, x-date-style, x-temperature-unit, x-include-coordinates, x-map-language");
-    res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
-    if (req.method === "OPTIONS") { res.writeHead(204).end(); return; }
+      // CORS
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id, x-date-style, x-temperature-unit, x-include-coordinates, x-map-language");
+      res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+      if (req.method === "OPTIONS") { res.writeHead(204).end(); return; }
 
-    stats.recordRequest(clientIp);
+      stats.recordRequest(clientIp);
 
-    // Rate limit (except health check)
-    if (url.pathname !== "/health" && isRateLimited(clientIp)) {
-      res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
-      res.end(JSON.stringify({ error: "Too many requests. Limit: 60/minute." }));
-      return;
-    }
-
-    if (url.pathname === "/health") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        status: "ok",
-        server: "japan-seasons-mcp",
-        version: SERVER_VERSION,
-        activeSessions: transports.size,
-        cache: await getApiCacheStatus(),
-        ...stats.toJSON(),
-      }));
-      return;
-    }
-
-    if (url.pathname === "/site-config.json") {
-      res.writeHead(200, {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "public, max-age=300",
-      });
-      res.end(JSON.stringify(SITE_PUBLIC_CONFIG));
-      return;
-    }
-
-    if (url.pathname === "/sakura-forecast.txt") {
-      try {
-        const outputConfig = getOutputConfig(url.searchParams, req.headers);
-        const body = await buildSakuraForecastMarkdown(outputConfig);
-        res.writeHead(200, {
-          "Content-Type": "text/markdown; charset=utf-8",
-          "Cache-Control": "public, max-age=900",
-        });
-        res.end(body);
-      } catch (e: any) {
-        res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end(`Unable to load sakura forecast: ${e.message}`);
-      }
-      return;
-    }
-
-    if (url.pathname === "/mcp") {
-      const sessionId = req.headers["mcp-session-id"] as string | undefined;
-
-      // Handle DELETE (session close)
-      if (req.method === "DELETE") {
-        if (sessionId && transports.has(sessionId)) {
-          const transport = transports.get(sessionId)!;
-          await transport.handleRequest(req, res);
-          transports.delete(sessionId);
-          sessionLastActive.delete(sessionId);
-        } else {
-          res.writeHead(204).end();
-        }
+      // Rate limit (except health check)
+      if (url.pathname !== "/health" && isRateLimited(clientIp)) {
+        res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
+        res.end(JSON.stringify({ error: "Too many requests. Limit: 60/minute." }));
         return;
       }
 
-      // Reuse existing session
-      if (sessionId && transports.has(sessionId)) {
-        sessionLastActive.set(sessionId, Date.now());
-        if (req.method === "POST") {
-          const chunks: Buffer[] = [];
-          let bodyBytes = 0;
-          for await (const chunk of req) {
-            bodyBytes += (chunk as Buffer).length;
-            if (bodyBytes > MAX_BODY_BYTES) {
-              res.writeHead(413, { "Content-Type": "application/json" });
-              res.end(JSON.stringify({ error: "Request body too large." }));
-              return;
-            }
-            chunks.push(chunk as Buffer);
-          }
-          const bodyStr = Buffer.concat(chunks).toString();
-          let parsedBody: any;
-          try { parsedBody = JSON.parse(bodyStr); } catch { parsedBody = null; }
-          recordToolCallsFromBody(parsedBody);
-          await transports.get(sessionId)!.handleRequest(req, res, parsedBody);
-        } else {
-          await transports.get(sessionId)!.handleRequest(req, res);
-        }
-        return;
-      }
-
-      // Reject new sessions if at capacity
-      if (transports.size >= MAX_SESSIONS) {
-        res.writeHead(503, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Server at capacity. Try again later." }));
-        return;
-      }
-
-      // New connection without session ID.
-      // Read body to check if it's an initialize request or not.
-      // Limit body size to 1 MB to prevent memory-exhaustion attacks.
-      const chunks: Buffer[] = [];
-      let bodyBytes = 0;
-      for await (const chunk of req) {
-        bodyBytes += (chunk as Buffer).length;
-        if (bodyBytes > MAX_BODY_BYTES) {
-          res.writeHead(413, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Request body too large." }));
-          return;
-        }
-        chunks.push(chunk as Buffer);
-      }
-      const bodyStr = Buffer.concat(chunks).toString();
-      let parsedBody: any;
-      try { parsedBody = JSON.parse(bodyStr); } catch { parsedBody = null; }
-
-      const isInit = parsedBody?.method === "initialize" ||
-        (Array.isArray(parsedBody) && parsedBody.some((m: any) => m.method === "initialize"));
-      recordToolCallsFromBody(parsedBody);
-      const outputConfig = getOutputConfig(url.searchParams, req.headers);
-
-      // For non-init requests without session ID (e.g. Smithery probes),
-      // use a stateless transport so they don't need initialization.
-      if (sessionId && !isInit) {
-        res.writeHead(404, { "Content-Type": "application/json" });
+      if (url.pathname === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({
-          jsonrpc: "2.0",
-          error: { code: -32001, message: "Session not found" },
-          id: parsedBody?.id ?? null,
+          status: "ok",
+          server: "japan-seasons-mcp",
+          version: SERVER_VERSION,
+          activeSessions: transports.size,
+          cache: await getApiCacheStatus(),
+          ...stats.toJSON(),
         }));
         return;
       }
 
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: isInit ? () => crypto.randomUUID() : undefined,
-      });
+      if (url.pathname === "/site-config.json") {
+        res.writeHead(200, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=300",
+        });
+        res.end(JSON.stringify(SITE_PUBLIC_CONFIG));
+        return;
+      }
 
-      if (isInit) {
-        transport.onclose = () => {
-          if (transport.sessionId) {
-            transports.delete(transport.sessionId);
-            sessionLastActive.delete(transport.sessionId);
+      if (url.pathname === "/sakura-forecast.txt") {
+        try {
+          const outputConfig = getOutputConfig(url.searchParams, req.headers);
+          const body = await buildSakuraForecastMarkdown(outputConfig);
+          res.writeHead(200, {
+            "Content-Type": "text/markdown; charset=utf-8",
+            "Cache-Control": "public, max-age=900",
+          });
+          res.end(body);
+        } catch (e: any) {
+          res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+          res.end(`Unable to load sakura forecast: ${e.message}`);
+        }
+        return;
+      }
+
+      if (url.pathname === "/autumn-leaves-forecast.txt") {
+        try {
+          const outputConfig = getOutputConfig(url.searchParams, req.headers);
+          const body = await buildKoyoForecastMarkdown(outputConfig);
+          res.writeHead(200, {
+            "Content-Type": "text/markdown; charset=utf-8",
+            "Cache-Control": "public, max-age=900",
+          });
+          res.end(body);
+        } catch (e: any) {
+          res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+          res.end(`Unable to load autumn leaves forecast: ${e.message}`);
+        }
+        return;
+      }
+
+      if (url.pathname === "/mcp") {
+        const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+        // Handle DELETE (session close)
+        if (req.method === "DELETE") {
+          if (sessionId && transports.has(sessionId)) {
+            const transport = transports.get(sessionId)!;
+            await transport.handleRequest(req, res);
+            transports.delete(sessionId);
+            sessionLastActive.delete(sessionId);
+          } else {
+            res.writeHead(204).end();
           }
-        };
+          return;
+        }
+
+        // Reuse existing session
+        if (sessionId && transports.has(sessionId)) {
+          sessionLastActive.set(sessionId, Date.now());
+          if (req.method === "POST") {
+            const chunks: Buffer[] = [];
+            let bodyBytes = 0;
+            for await (const chunk of req) {
+              bodyBytes += (chunk as Buffer).length;
+              if (bodyBytes > MAX_BODY_BYTES) {
+                res.writeHead(413, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Request body too large." }));
+                return;
+              }
+              chunks.push(chunk as Buffer);
+            }
+            const bodyStr = Buffer.concat(chunks).toString();
+            let parsedBody: any;
+            try { parsedBody = JSON.parse(bodyStr); } catch { parsedBody = null; }
+            recordToolCallsFromBody(parsedBody);
+            await transports.get(sessionId)!.handleRequest(req, res, parsedBody);
+          } else {
+            await transports.get(sessionId)!.handleRequest(req, res);
+          }
+          return;
+        }
+
+        // Reject new sessions if at capacity
+        if (transports.size >= MAX_SESSIONS) {
+          res.writeHead(503, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Server at capacity. Try again later." }));
+          return;
+        }
+
+        // New connection without session ID.
+        // Read body to check if it's an initialize request or not.
+        // Limit body size to 1 MB to prevent memory-exhaustion attacks.
+        const chunks: Buffer[] = [];
+        let bodyBytes = 0;
+        for await (const chunk of req) {
+          bodyBytes += (chunk as Buffer).length;
+          if (bodyBytes > MAX_BODY_BYTES) {
+            res.writeHead(413, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Request body too large." }));
+            return;
+          }
+          chunks.push(chunk as Buffer);
+        }
+        const bodyStr = Buffer.concat(chunks).toString();
+        let parsedBody: any;
+        try { parsedBody = JSON.parse(bodyStr); } catch { parsedBody = null; }
+
+        const isInit = parsedBody?.method === "initialize" ||
+          (Array.isArray(parsedBody) && parsedBody.some((m: any) => m.method === "initialize"));
+        recordToolCallsFromBody(parsedBody);
+        const outputConfig = getOutputConfig(url.searchParams, req.headers);
+
+        // For non-init requests without session ID (e.g. Smithery probes),
+        // use a stateless transport so they don't need initialization.
+        if (sessionId && !isInit) {
+          res.writeHead(404, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32001, message: "Session not found" },
+            id: parsedBody?.id ?? null,
+          }));
+          return;
+        }
+
+        const transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: isInit ? () => crypto.randomUUID() : undefined,
+        });
+
+        if (isInit) {
+          transport.onclose = () => {
+            if (transport.sessionId) {
+              transports.delete(transport.sessionId);
+              sessionLastActive.delete(transport.sessionId);
+            }
+          };
+        }
+
+        const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: SERVER_VERSION }, {
+          instructions: SERVER_INSTRUCTIONS,
+        });
+        registerAllTools(sessionServer, outputConfig);
+        await sessionServer.connect(transport);
+
+        // Pass the pre-parsed body so the transport doesn't try to re-read the stream
+        await transport.handleRequest(req, res, parsedBody);
+
+        if (isInit && transport.sessionId) {
+          transports.set(transport.sessionId, transport);
+          sessionLastActive.set(transport.sessionId, Date.now());
+          logger.info(`Initialized MCP session ${transport.sessionId.slice(0, 8)}...`);
+        }
+        return;
       }
 
-      const sessionServer = new McpServer({ name: "japan-seasons-mcp", version: SERVER_VERSION }, {
-        instructions: SERVER_INSTRUCTIONS,
-      });
-      registerAllTools(sessionServer, outputConfig);
-      await sessionServer.connect(transport);
-
-      // Pass the pre-parsed body so the transport doesn't try to re-read the stream
-      await transport.handleRequest(req, res, parsedBody);
-
-      if (isInit && transport.sessionId) {
-        transports.set(transport.sessionId, transport);
-        sessionLastActive.set(transport.sessionId, Date.now());
-        logger.info(`Initialized MCP session ${transport.sessionId.slice(0, 8)}...`);
+      // REST API endpoints (for the frontend)
+      if (url.pathname.startsWith("/api/")) {
+        const handled = await handleApiRequest(req, res, url.pathname, url.searchParams);
+        if (handled) return;
       }
-      return;
-    }
 
-    // REST API endpoints (for the frontend)
-    if (url.pathname.startsWith("/api/")) {
-      const handled = await handleApiRequest(req, res, url.pathname, url.searchParams);
-      if (handled) return;
-    }
+      // Dynamic sitemap — regenerated on each request with today's date
+      if (url.pathname === "/sitemap.xml") {
+        res.writeHead(200, {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+        });
+        res.end(SITEMAP_XML());
+        return;
+      }
 
-    // Dynamic sitemap — regenerated on each request with today's date
-    if (url.pathname === "/sitemap.xml") {
-      res.writeHead(200, {
-        "Content-Type": "application/xml; charset=utf-8",
-        "Cache-Control": "public, max-age=3600",
-      });
-      res.end(SITEMAP_XML());
-      return;
-    }
+      // Serve frontend static files
+      // Files are read once at startup and served from memory.
+      // No server-side gzip — let the reverse proxy (Railway) handle compression
+      // to avoid double-encoding issues.
+      const staticEntry = STATIC_FILES[url.pathname];
+      if (staticEntry) {
+        res.writeHead(200, {
+          "Content-Type": staticEntry.mime,
+          "Cache-Control": "public, max-age=300",
+          "Vary": "Accept-Encoding",
+        });
+        res.end(staticEntry.body);
+        return;
+      }
 
-    // Serve frontend static files
-    // Files are read once at startup and served from memory.
-    // No server-side gzip — let the reverse proxy (Railway) handle compression
-    // to avoid double-encoding issues.
-    const staticEntry = STATIC_FILES[url.pathname];
-    if (staticEntry) {
-      const body = renderSiteTemplate(staticEntry.body, staticEntry.mime);
-      res.writeHead(200, {
-        "Content-Type": staticEntry.mime,
-        "Cache-Control": "public, max-age=300",
-        "Vary": "Accept-Encoding",
-      });
-      res.end(body);
-      return;
+      res.writeHead(404).end("Not found");
+    } catch (e) {
+      if (isClientDisconnectError(e) || req.destroyed || res.destroyed || res.writableEnded) {
+        return;
+      }
+      const message = e instanceof Error ? e.message : String(e);
+      logger.error(`Request handling failed: ${message}`);
+      if (!res.headersSent && !res.writableEnded) {
+        res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: "Internal server error" }));
+      } else {
+        res.destroy();
+      }
     }
-
-    res.writeHead(404).end("Not found");
   });
 
   httpServer.listen(port, () => {

@@ -8,6 +8,10 @@ Built by Haoming Koo. MIT licensed. Project site: {{SITE_URL}}
 - [Cherry blossom forecast]({{SITE_URL}}/cherry-blossom-forecast): 48 observation cities with JMC bloom and full-bloom dates, historical averages, and 1,012 sakura viewing spots across all 47 prefectures
 - [Latest sakura dates for AI search]({{SAKURA_FORECAST_TEXT_URL}}): crawlable text summary with current JMC observation-city bloom and full-bloom dates
 - [Autumn leaves (koyo) forecast]({{SITE_URL}}/autumn-leaves-forecast): Koyo peak timing by city and region, with 687 spot-level viewing locations
+- [Autumn leaves text for AI search]({{KOYO_FORECAST_TEXT_URL}}): crawlable forecast and planning text that clearly labels live JMC data versus prior-season reference
+- [Japan autumn leaves trip planner]({{SITE_URL}}/japan-autumn-leaves-trip-planner): future-trip guidance for Kyoto, Nikko, Hokkaido, Tokyo, Kansai, Tohoku, and Kyushu
+- [Kyoto autumn leaves forecast]({{SITE_URL}}/kyoto-autumn-leaves-forecast): Kyoto-specific koyo planning window and live forecast entry point
+- [Nikko autumn leaves forecast]({{SITE_URL}}/nikko-autumn-leaves-forecast): Nikko/Tochigi-specific koyo planning window and live forecast entry point
 - [Festivals (matsuri, fireworks, winter)]({{SITE_URL}}/): 46 curated recurring events with official URLs, typical dates, and GPS
 - [Flowers]({{SITE_URL}}/): Non-sakura blooms — plum, wisteria, hydrangea, lavender, sunflower, cosmos
 - [Fruit picking]({{SITE_URL}}/): Seasonal fruit guide plus a farm directory with GPS and booking links
@@ -24,12 +28,14 @@ Built by Haoming Koo. MIT licensed. Project site: {{SITE_URL}}
 ## Important distinction for AI search
 - If you are reading this through web search or browsing only, you can cite the public forecast pages, text summaries, and JSON APIs, but you cannot execute MCP tools.
 - For latest sakura dates through web search, prefer {{SAKURA_FORECAST_TEXT_URL}} or {{SAKURA_FORECAST_API_URL}}.
+- For autumn leaves and future koyo trip planning through web search, prefer {{KOYO_FORECAST_TEXT_URL}} or {{KOYO_FORECAST_API_URL}}.
 - To call tools such as sakura_now, sakura_forecast, sakura_best_dates, or sakura_spots, the MCP endpoint must first be connected in an MCP-capable client or ChatGPT app/connector.
 - Finding the MCP page in search is not the same as connecting the MCP server.
 
 ## When AI assistants should use this source
 - Use for live or current Japan cherry blossom questions: "how is the sakura forecast?", "is sakura blooming now?", "where should I see cherry blossoms this week?", and city/prefecture peak timing.
 - Use for Japan autumn leaves questions: koyo timing, maple/ginkgo forecasts, peak windows, and exact viewing spots.
+- Use for future Japan autumn leaves trip planning, especially questions like "when should I book Kyoto for autumn leaves?", "Nikko fall foliage dates", or "best Japan autumn leaves itinerary in November".
 - Use for seasonal activities by travel dates: flowers, fireworks, matsuri, fruit picking, and short-range weather that affects bloom viewing.
 - Do not use for hotels, flights, trains, visas, restaurants, or generic itineraries unrelated to seasonal timing.
 

@@ -1124,12 +1124,13 @@ async function loadKoyo() {
 
   // Off-season banner (koyo season = roughly Sep–Nov, forecasts released ~Aug)
   const month = new Date().getMonth() + 1; // 1–12
+  const currentYear = new Date().getFullYear();
   const isKoyoSeason = KOYO_MONTHS.includes(month);
   const offSeasonBanner = !isKoyoSeason
     ? `<div style="margin:12px 16px;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
         🍂 <b>Autumn leaves season is Oct–Nov.</b><br>
-        JMA releases forecasts in August — dates shown below are from last season and may not reflect 2026 conditions.
-        Check back in August for updated forecasts.
+        JMC usually publishes current-year autumn leaves forecasts closer to autumn. Dates shown below may be prior-season reference until the ${currentYear} feed appears.
+        Use them for planning, then re-check near departure.
       </div>`
     : '';
 

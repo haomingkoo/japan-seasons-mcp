@@ -4,6 +4,7 @@ export const SITE_CONFIG = {
   siteUrl: "https://seasons.kooexperience.com",
   mcpPath: "/mcp",
   sakuraForecastTextPath: "/sakura-forecast.txt",
+  koyoForecastTextPath: "/autumn-leaves-forecast.txt",
   sakuraForecastApiPath: "/api/sakura/forecast",
   koyoForecastApiPath: "/api/koyo/forecast",
   connector: {
@@ -50,6 +51,7 @@ export const SITE_CONFIG = {
 export const SITE_URL = SITE_CONFIG.siteUrl;
 export const MCP_ENDPOINT = `${SITE_CONFIG.siteUrl}${SITE_CONFIG.mcpPath}`;
 export const SAKURA_FORECAST_TEXT_URL = `${SITE_CONFIG.siteUrl}${SITE_CONFIG.sakuraForecastTextPath}`;
+export const KOYO_FORECAST_TEXT_URL = `${SITE_CONFIG.siteUrl}${SITE_CONFIG.koyoForecastTextPath}`;
 export const SAKURA_FORECAST_API_URL = `${SITE_CONFIG.siteUrl}${SITE_CONFIG.sakuraForecastApiPath}`;
 export const KOYO_FORECAST_API_URL = `${SITE_CONFIG.siteUrl}${SITE_CONFIG.koyoForecastApiPath}`;
 
@@ -59,6 +61,7 @@ export const SITE_PUBLIC_CONFIG = {
   siteUrl: SITE_CONFIG.siteUrl,
   mcpEndpoint: MCP_ENDPOINT,
   sakuraForecastTextUrl: SAKURA_FORECAST_TEXT_URL,
+  koyoForecastTextUrl: KOYO_FORECAST_TEXT_URL,
   sakuraForecastApiUrl: SAKURA_FORECAST_API_URL,
   koyoForecastApiUrl: KOYO_FORECAST_API_URL,
   connector: {

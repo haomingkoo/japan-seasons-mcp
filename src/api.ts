@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import { resolve } from "path";
 import {
   getSakuraForecast,
@@ -18,9 +18,6 @@ import { TTL } from "./lib/cache.js";
 import { durableCacheEnabled, readDurableTextCache, writeDurableTextCache } from "./lib/durable-cache.js";
 import { JAPAN_BOUNDS, JAPAN_PREFECTURE_COUNT } from "./lib/constants.js";
 import { DATE_RANGE_INPUT_HINT, parseDateRangeInputJst } from "./lib/dates.js";
-
-// ── Minimal shared spot type ──────────────────────────────────────────────────
-interface SpotRecord { lat?: number; lon?: number; name?: string; [key: string]: unknown; }
 
 // ── Static JSON: read once at startup, served from memory on every request ──
 // These files change only when you deploy new data — no need to re-read from disk.
@@ -172,7 +169,7 @@ function slimSakuraSpot(s: SakuraSpot) {
 }
 
 export async function handleApiRequest(
-  req: IncomingMessage,
+  _req: IncomingMessage,
   res: ServerResponse,
   pathname: string,
   params: URLSearchParams

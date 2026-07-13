@@ -3,24 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Japan Autumn Leaves Forecast | Live Koyo, Maple and Ginkgo</title>
-  <meta name="description" content="Japan autumn leaves forecast data: JMC maple and ginkgo timing when in season, koyo city forecasts, forecast maps, and 687 viewing spots across Japan.">
+  <title>Japan Autumn Leaves Forecast {{CURRENT_YEAR}} | Live Koyo, Maple and Ginkgo</title>
+  <meta name="description" content="Japan autumn leaves forecast for {{CURRENT_YEAR}}: JMC maple and ginkgo timing when in season, future trip planning windows, koyo city forecasts, maps, and 687 viewing spots.">
   <link rel="canonical" href="{{SITE_URL}}/autumn-leaves-forecast">
-  <meta property="og:title" content="Japan Autumn Leaves Forecast">
-  <meta property="og:description" content="Live koyo timing for maple and ginkgo from Japan Meteorological Corporation, with 687 autumn leaves viewing spots and MCP access for AI assistants.">
+  <meta property="og:title" content="Japan Autumn Leaves Forecast {{CURRENT_YEAR}}">
+  <meta property="og:description" content="Live koyo timing and future-trip planning for Japan autumn leaves, with JMC maple and ginkgo data, 687 viewing spots, and MCP access for AI assistants.">
   <meta property="og:image" content="{{SITE_URL}}/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    "name": "Japan Autumn Leaves Forecast",
-    "description": "Koyo forecast data from Japan Meteorological Corporation: maple and ginkgo forecast dates when in season, regional commentary, forecast maps, and 687 viewing spots.",
+    "name": "Japan Autumn Leaves Forecast {{CURRENT_YEAR}}",
+    "description": "Koyo forecast and trip-planning data from Japan Meteorological Corporation: maple and ginkgo forecast dates when in season, regional commentary, forecast maps, and 687 viewing spots.",
     "url": "{{SITE_URL}}/autumn-leaves-forecast",
     "keywords": ["Japan autumn leaves forecast", "koyo forecast", "momiji", "maple", "ginkgo", "Kyoto autumn leaves", "Nikko koyo"],
     "isAccessibleForFree": true,
     "creator": { "@type": "Person", "name": "Haoming Koo", "url": "https://kooexperience.com" },
     "distribution": [
+      { "@type": "DataDownload", "encodingFormat": "text/markdown", "contentUrl": "{{KOYO_FORECAST_TEXT_URL}}" },
       { "@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "{{KOYO_FORECAST_API_URL}}" },
       { "@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "{{SITE_URL}}/api/koyo/all-spots" }
     ],
@@ -38,9 +39,11 @@
 <body>
 <main>
   <nav><a href="/">Japan in Seasons</a> / Autumn Leaves Forecast</nav>
-  <h1>Japan Autumn Leaves Forecast</h1>
-  <p class="lead">Koyo forecast data for Japan, sourced from Japan Meteorological Corporation. Track maple and ginkgo timing when the current season is published, regional forecast commentary, forecast maps, and 687 autumn leaves viewing spots.</p>
+  <h1>Japan Autumn Leaves Forecast {{CURRENT_YEAR}}</h1>
+  <p class="lead">Koyo forecast and trip-planning data for Japan, sourced from Japan Meteorological Corporation. Track maple and ginkgo timing when the current season is published, plus future planning windows and 687 autumn leaves viewing spots.</p>
   <p>
+    <a class="cta" href="/japan-autumn-leaves-trip-planner">Plan a Future Trip</a>
+    <a class="cta" href="{{KOYO_FORECAST_TEXT_URL}}">Open AI Search Text</a>
     <a class="cta" href="/#install">Use in Claude or ChatGPT</a>
     <a class="cta" href="/api/koyo/forecast">Open Forecast JSON</a>
     <a class="cta" href="/">Open Live Map</a>
@@ -57,6 +60,10 @@
   <p>Autumn color timing shifts every year by region, elevation, and temperature. Maple and ginkgo also peak on different schedules. Japan in Seasons keeps these separate so AI assistants can answer with real timing instead of a generic November recommendation.</p>
   <p>The current-year autumn forecast is published closer to autumn. Before that feed appears, the MCP clearly labels prior-season koyo data as reference instead of presenting it as a fresh forecast.</p>
 
+  <h2>Future Trip Planning</h2>
+  <p>If you are planning months ahead, use typical regional windows first: Hokkaido and high mountains from late September to October, Nikko and Tohoku in October to early November, Kyoto, Tokyo, Nara, and Osaka from mid-November to early December, and Kyushu from late November to early December. Then switch to live JMC data when the season feed is published.</p>
+  <p>Focused planning pages: <a href="/japan-autumn-leaves-trip-planner">Japan autumn leaves trip planner</a>, <a href="/kyoto-autumn-leaves-forecast">Kyoto autumn leaves forecast</a>, and <a href="/nikko-autumn-leaves-forecast">Nikko autumn leaves forecast</a>.</p>
+
   <h2>Coverage</h2>
   <ul>
     <li>City-level maple and ginkgo forecast dates from JMC.</li>
@@ -69,6 +76,11 @@
   <p>Remote MCP endpoint:</p>
   <pre><code>{{MCP_ENDPOINT}}</code></pre>
   <p>Best broad tool names for AI routing: <code>japan_seasonal_answer</code>, <code>koyo_now</code>, <code>koyo_forecast</code>, <code>koyo_best_dates</code>, <code>koyo_spots</code>, <code>search</code>, and <code>fetch</code>.</p>
+
+  <h2>For ChatGPT Search and AI Search</h2>
+  <p>If an AI assistant finds this page through web search, it can cite the text summary or JSON API. It cannot execute MCP tools until the endpoint is connected.</p>
+  <pre><code>{{KOYO_FORECAST_TEXT_URL}}
+{{KOYO_FORECAST_API_URL}}</code></pre>
 
   <h2>Data Source</h2>
   <p>Primary koyo data comes from <a href="https://n-kishou.com/" rel="noopener" target="_blank">Japan Meteorological Corporation</a>.</p>

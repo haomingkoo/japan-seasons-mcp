@@ -2,7 +2,7 @@
   "name": "japan-seasons-mcp",
   "version": "0.4.21",
   "mcpName": "io.github.haomingkoo/japan-seasons",
-  "description": "Live Japan seasonal travel MCP — sakura forecasts, autumn leaves, flowers, festivals, fruit picking, weather, and broad AI-ready seasonal answers from JMC data.",
+  "description": "Live Japan seasonal travel MCP and trip-planning data — autumn leaves/koyo forecasts, sakura dates, flowers, festivals, fruit picking, weather, and AI-ready answers from JMC/JMA data.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -14,7 +14,8 @@
     "build": "tsc && chmod +x dist/index.js && node scripts/check-site-copy.mjs",
     "start": "node dist/index.js",
     "start:http": "node dist/index.js --http",
-    "test": "vitest",
+    "test": "tsc && node --test test/*.test.mjs",
+    "submit:indexnow": "node scripts/submit-indexnow.mjs",
     "version": "node scripts/sync-version.mjs && git add server.json",
     "prepublishOnly": "npm run build"
   },
@@ -30,6 +31,16 @@
     "cherry-blossom",
     "koyo",
     "autumn-leaves",
+    "fall-foliage",
+    "autumn-foliage",
+    "japan-autumn-leaves",
+    "kyoto-autumn-leaves",
+    "nikko-autumn-leaves",
+    "japan-trip-planner",
+    "trip-planning",
+    "ai-travel",
+    "geo",
+    "generative-engine-optimization",
     "forecast",
     "travel",
     "jma",
@@ -72,14 +83,11 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "express": "^5.2.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
     "playwright": "^1.59.1",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "typescript": "^6.0.3"
   }
 }
