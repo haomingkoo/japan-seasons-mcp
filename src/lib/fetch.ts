@@ -119,21 +119,6 @@ export async function safeFetch(url: string, options?: RequestInit): Promise<Res
   throw lastError ?? new Error(`Failed to fetch ${url}`);
 }
 
-// ─── pMap: concurrency-limited parallel map ──────────────────────────────────
-
-export async function pMap<T, R>(
-  items: T[],
-  fn: (item: T) => Promise<R>,
-  concurrency: number
-): Promise<R[]> {
-  const results: R[] = [];
-  for (let i = 0; i < items.length; i += concurrency) {
-    const chunk = items.slice(i, i + concurrency);
-    results.push(...await Promise.all(chunk.map(fn)));
-  }
-  return results;
-}
-
 // pMapSettled: like pMap but uses allSettled per chunk — partial failures don't abort the run.
 // Use this for fan-out requests where some prefectures may be unavailable.
 export async function pMapSettled<T, R>(

@@ -4,6 +4,7 @@ import { safeFetch } from "./fetch.js";
 import { romanizeName } from "./romaji.js";
 import { tokyoDatumToWGS84 } from "./areas.js";
 import { daysFromTodayJst, formatMonthDayJst } from "./dates.js";
+import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN } from "./sakura-forecast.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -65,22 +66,8 @@ export interface KoyoSpotResult {
   spots: KoyoSpot[];
 }
 
-// ─── Prefecture mapping (same as sakura) ─────────────────────────────────────
+// ─── Prefecture mapping: imported from sakura-forecast.ts (single source of truth) ───
 
-const PREF_CODE_TO_EN: Record<string, string> = {
-  "01": "Hokkaido", "02": "Aomori", "03": "Iwate", "04": "Miyagi",
-  "05": "Akita", "06": "Yamagata", "07": "Fukushima", "08": "Ibaraki",
-  "09": "Tochigi", "10": "Gunma", "11": "Saitama", "12": "Chiba",
-  "13": "Tokyo", "14": "Kanagawa", "15": "Niigata", "16": "Toyama",
-  "17": "Ishikawa", "18": "Fukui", "19": "Yamanashi", "20": "Nagano",
-  "21": "Gifu", "22": "Shizuoka", "23": "Aichi", "24": "Mie",
-  "25": "Shiga", "26": "Kyoto", "27": "Osaka", "28": "Hyogo",
-  "29": "Nara", "30": "Wakayama", "31": "Tottori", "32": "Shimane",
-  "33": "Okayama", "34": "Hiroshima", "35": "Yamaguchi", "36": "Tokushima",
-  "37": "Kagawa", "38": "Ehime", "39": "Kochi", "40": "Fukuoka",
-  "41": "Saga", "42": "Nagasaki", "43": "Kumamoto", "44": "Oita",
-  "45": "Miyazaki", "46": "Kagoshima", "47": "Okinawa",
-};
 
 const REGION_EN: Record<string, string> = {
   "北海道地方": "Hokkaido", "東北地方": "Tohoku",
@@ -106,20 +93,6 @@ const CITY_EN: Record<string, string> = {
   "大分":"Oita","宮崎":"Miyazaki","鹿児島":"Kagoshima",
 };
 
-const PREF_EN: Record<string, string> = {
-  "北海道":"Hokkaido","青森県":"Aomori","岩手県":"Iwate","宮城県":"Miyagi",
-  "秋田県":"Akita","山形県":"Yamagata","福島県":"Fukushima","茨城県":"Ibaraki",
-  "栃木県":"Tochigi","群馬県":"Gunma","埼玉県":"Saitama","千葉県":"Chiba",
-  "東京都":"Tokyo","神奈川県":"Kanagawa","新潟県":"Niigata","富山県":"Toyama",
-  "石川県":"Ishikawa","福井県":"Fukui","山梨県":"Yamanashi","長野県":"Nagano",
-  "岐阜県":"Gifu","静岡県":"Shizuoka","愛知県":"Aichi","三重県":"Mie",
-  "滋賀県":"Shiga","京都府":"Kyoto","大阪府":"Osaka","兵庫県":"Hyogo",
-  "奈良県":"Nara","和歌山県":"Wakayama","鳥取県":"Tottori","島根県":"Shimane",
-  "岡山県":"Okayama","広島県":"Hiroshima","山口県":"Yamaguchi","徳島県":"Tokushima",
-  "香川県":"Kagawa","愛媛県":"Ehime","高知県":"Kochi","福岡県":"Fukuoka",
-  "佐賀県":"Saga","長崎県":"Nagasaki","熊本県":"Kumamoto","大分県":"Oita",
-  "宮崎県":"Miyazaki","鹿児島県":"Kagoshima",
-};
 
 const NORMAL_DIFF_EN: Record<string, string> = {
   "平年並": "Normal",
@@ -178,7 +151,7 @@ export async function getKoyoForecast(): Promise<KoyoForecastResult> {
         name: c.name ?? "",
         nameEn: CITY_EN[c.name] ?? c.name ?? "",
         prefName: c.pref_name ?? "",
-        prefNameEn: PREF_EN[c.pref_name] ?? c.pref_name ?? "",
+        prefNameEn: PREF_NAMES_EN[c.pref_name] ?? c.pref_name ?? "",
         maple: c.kaede_forecast_datetime ? {
           forecast: c.kaede_forecast_datetime,
           normalDiffClass: NORMAL_DIFF_EN[c.kaede_normal_diff_class] ?? c.kaede_normal_diff_class ?? "",
@@ -239,7 +212,7 @@ export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
 
     return {
       source: "Japan Meteorological Corporation (n-kishou.co.jp)",
-      prefecture: PREF_CODE_TO_EN[prefCode] ?? result?.area ?? "",
+      prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? result?.area ?? "",
       spots,
     };
   });

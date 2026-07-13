@@ -143,10 +143,6 @@ export function findAreaByName(query: string): AreaInfo | undefined {
   );
 }
 
-export function findAreasByRegion(region: string): AreaInfo[] {
-  const r = region.toLowerCase();
-  return JMA_AREAS.filter((a) => a.region.toLowerCase() === r);
-}
 
 export function findWeatherCityId(city: string): string | undefined {
   const q = city.toLowerCase();

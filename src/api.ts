@@ -59,39 +59,6 @@ function isAllSpotsFreshForJmcDay(ts: number): boolean {
   return ts >= lastJmcUpdateMs();
 }
 
-function allSpotsEntryStatus(entry: { json: string; ts: number } | null | undefined) {
-  if (!entry) return { present: false };
-  const ageSeconds = Math.max(0, Math.round((Date.now() - entry.ts) / 1000));
-  return {
-    present: true,
-    freshForJmcDay: isAllSpotsFreshForJmcDay(entry.ts),
-    updatedAt: new Date(entry.ts).toISOString(),
-    ageSeconds,
-    bytes: Buffer.byteLength(entry.json),
-  };
-}
-
-export async function getApiCacheStatus() {
-  const [sakuraDurable, koyoDurable] = await Promise.all([
-    readDurableTextCache(durableAllSpotsKey("sakura")),
-    readDurableTextCache(durableAllSpotsKey("koyo")),
-  ]);
-  return {
-    jmcLastUpdate: new Date(lastJmcUpdateMs()).toISOString(),
-    durableCacheEnabled: durableCacheEnabled(),
-    allSpots: {
-      sakura: {
-        memory: allSpotsEntryStatus(allSpotsCache.get("sakura")),
-        durable: allSpotsEntryStatus(sakuraDurable ? { json: sakuraDurable.body, ts: sakuraDurable.ts } : null),
-      },
-      koyo: {
-        memory: allSpotsEntryStatus(allSpotsCache.get("koyo")),
-        durable: allSpotsEntryStatus(koyoDurable ? { json: koyoDurable.body, ts: koyoDurable.ts } : null),
-      },
-    },
-  };
-}
-
 function setAllSpotsCache(kind: AllSpotsKind, json: string, ts = Date.now()) {
   allSpotsCache.set(kind, { json, ts });
   if (!durableCacheEnabled()) return;
