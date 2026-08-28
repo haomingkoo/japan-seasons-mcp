@@ -153,7 +153,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <script data-cfasync="false" defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="app.css?v={{ASSET_VERSION}}">
   <script>window.onerror=function(m,s,l){var el=document.getElementById('sidebar-content');if(el){el.innerHTML='<div style="padding:16px;color:red;font-size:14px"><b>JS Error:</b> '+m+'<br>at '+s+':'+l+'</div>';}}</script>
 </head>
 <body>
@@ -316,6 +316,6 @@ Connector URL: {{MCP_ENDPOINT}}</code></pre>
   </section>
 </main>
 
-<script data-cfasync="false" defer src="app.js"></script>
+<script data-cfasync="false" defer src="app.js?v={{ASSET_VERSION}}"></script>
 </body>
 </html>

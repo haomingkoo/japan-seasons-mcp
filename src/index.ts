@@ -284,6 +284,7 @@ const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 }
 
 const SITE_TEMPLATE_REPLACEMENTS: Record<string, string> = {
+  "{{ASSET_VERSION}}": process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 12) ?? SERVER_VERSION,
   "{{SITE_URL}}": SITE_URL,
   "{{MCP_ENDPOINT}}": MCP_ENDPOINT,
   "{{SAKURA_FORECAST_TEXT_URL}}": SAKURA_FORECAST_TEXT_URL,
