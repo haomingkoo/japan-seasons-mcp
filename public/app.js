@@ -70,9 +70,9 @@ function handleSpotClick(id) {
 function initMap() {
   mapInstance = L.map('map', { zoomControl: false }).setView([36.5, 137.5], 6);
   L.control.zoom({ position: 'topright' }).addTo(mapInstance);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    maxZoom: 18,
+  L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    maxZoom: 19,
   }).addTo(mapInstance);
 
   // Lazy-load weather when a spot popup opens
