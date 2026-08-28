@@ -1122,20 +1122,29 @@ async function loadKoyo() {
   setMapPlaceholder(null);
   scheduleMapWork(() => loadAllKoyoSpotsOnMap({ token, expectedMode: 'koyo' }));
 
-  // Off-season banner (koyo season = roughly Sep–Nov, forecasts released ~Aug)
-  const month = new Date().getMonth() + 1; // 1–12
-  const isKoyoSeason = KOYO_MONTHS.includes(month);
-  const offSeasonBanner = !isKoyoSeason
-    ? `<div style="margin:12px 16px;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
-        🍂 <b>Autumn leaves season is Oct–Nov.</b><br>
-        JMA releases forecasts in August — dates shown below are from last season and may not reflect 2026 conditions.
-        Check back in August for updated forecasts.
-      </div>`
-    : '';
-
   try {
     const data = await api('/api/koyo/forecast');
-    let html = offSeasonBanner;
+    const currentYear = Number(new Intl.DateTimeFormat('en', {
+      year: 'numeric',
+      timeZone: 'Asia/Tokyo',
+    }).format(new Date()));
+    const dataYear = Number(String(data.lastUpdated || '').slice(0, 4));
+    const lastUpdated = data.lastUpdated
+      ? new Intl.DateTimeFormat('en-SG', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          timeZone: 'Asia/Tokyo',
+        }).format(new Date(data.lastUpdated))
+      : null;
+    const freshnessBanner = dataYear && dataYear < currentYear
+      ? `<div style="margin:12px 16px;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
+          🍂 <b>The ${currentYear} autumn leaves forecast has not appeared in the upstream JMC feed yet.</b><br>
+          The latest feed is dated ${lastUpdated || dataYear}, so the dates below are prior-season reference, not a ${currentYear} forecast.
+          This page will update when Japan Meteorological Corporation publishes the new feed.
+        </div>`
+      : '';
+    let html = freshnessBanner;
     for (const region of data.regions) {
       html += `<div style="padding:12px 16px;background:var(--orange-light);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.name}</div>`;
       for (const city of region.cities) {
