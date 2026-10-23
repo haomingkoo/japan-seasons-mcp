@@ -263,11 +263,13 @@ function farmPopupHtml(farm, m) {
     </div>
   </div>`;
 }
+// JMC dates are JST calendar days; format in Tokyo time so viewers west of Japan do not see the previous day.
+const JST_MONTH_DAY = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' });
 function fmtDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '—';
-  return `${d.getMonth()+1}/${d.getDate()}`;
+  return JST_MONTH_DAY.format(d);
 }
 function daysSince(iso) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -1051,8 +1053,8 @@ async function loadPrefSpots(prefCode, prefName) {
     if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
 
     // Sidebar
-    const forecastUpdated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Unknown';
-    const observationUpdated = data.observationUpdated ? new Date(data.observationUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : null;
+    const forecastUpdated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Tokyo'}) : 'Unknown';
+    const observationUpdated = data.observationUpdated ? new Date(data.observationUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Tokyo'}) : null;
     $('sidebar-header').innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div><h2>${prefName}</h2><p>${data.spots.length} spots &middot; Forecast: ${forecastUpdated}${observationUpdated ? ` &middot; Observations: ${observationUpdated}` : ''}</p></div>
