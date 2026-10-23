@@ -194,9 +194,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
   .main { flex-direction: column; }
   .map-container { height: 55vh; }
   .sidebar { width: 100%; height: 45vh; border-left: none; border-top: 1px solid var(--gray-200); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-  .koyo-filters { flex-wrap: nowrap; overflow-x: auto; }
-  .koyo-filters .filter-pill { flex: none; }
   .koyo-filter-note { display: none; } /* the map legend carries the same note */
+  /* Koyo puts filters and the travel-date panel above the list, so its sidebar joins the page flow. */
+  body[data-mode="koyo"] .app { height: auto; }
+  body[data-mode="koyo"] .main { overflow: visible; }
+  body[data-mode="koyo"] .map-container { flex: none; }
+  body[data-mode="koyo"] .sidebar { height: auto; overflow: visible; }
+  body[data-mode="koyo"] .sidebar-content { max-height: 60vh; }
   .map-placeholder {
     top: 12px;
     left: 12px;

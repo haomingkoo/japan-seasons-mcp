@@ -708,6 +708,8 @@ const MODE_TITLES = {
 
 function setMode(m) {
   mode = m;
+  document.body.dataset.mode = m;
+  mapInstance?.invalidateSize(); // koyo's phone layout changes the map height
   document.title = MODE_TITLES[m] || 'Japan in Seasons';
   setMapPlaceholder(null);
   ['sakura','koyo','fruit','flowers','whatson','trip'].forEach(k => { const b = $(`btn-${k}`); if (b) b.classList.toggle('active', k === m); });
