@@ -70,9 +70,68 @@ function koyoPopupHtml(spot) {
 
 let koyoPhaseFilter = 'all';
 let koyoPrefView = null; // { data, name } while a prefecture is open
+let koyoDateRange = null; // { start, end } as YYYY-MM-DD
+let koyoDateCities = [];
+
+// A spot matches a trip when its JMC forecast viewing window (bestStart..bestEnd, JST dates) overlaps it.
+function koyoInDateRange(spot) {
+  if (!koyoDateRange) return true;
+  if (!spot.bestStart || !spot.bestEnd) return false;
+  return spot.bestStart.slice(0, 10) <= koyoDateRange.end && spot.bestEnd.slice(0, 10) >= koyoDateRange.start;
+}
 
 function koyoPhaseVisible(spot) {
-  return koyoPhaseFilter === 'all' || spot.phase === koyoPhaseFilter;
+  return koyoInDateRange(spot) && (koyoPhaseFilter === 'all' || spot.phase === koyoPhaseFilter);
+}
+
+async function applyKoyoDates() {
+  const startEl = $('koyo-start'), endEl = $('koyo-end');
+  endEl.setCustomValidity(endEl.value && startEl.value && endEl.value < startEl.value ? 'End date must be on or after the start date.' : '');
+  if (!endEl.reportValidity() || !startEl.reportValidity()) return;
+  koyoDateRange = { start: startEl.value, end: endEl.value };
+  koyoPrefView = null;
+  $('koyo-dates-clear').hidden = false;
+  try {
+    const [cities] = await Promise.all([
+      api(`/api/koyo/best?start=${koyoDateRange.start}&end=${koyoDateRange.end}`).then(d => d.cities),
+      (async () => { clearMarkers({ keepVersion: true }); await loadAllKoyoSpotsOnMap(); })(),
+    ]);
+    if (!allKoyoSpotsData) throw new Error('Autumn leaves spots did not load. Please try again.');
+    koyoDateCities = cities;
+    renderKoyoDateResults(cities);
+  } catch (e) {
+    $('koyo-date-results').innerHTML = `<div class="loading" style="color:${C.error}">${esc(e.message)}</div>`;
+  }
+}
+
+function clearKoyoDates() {
+  koyoDateRange = null;
+  $('koyo-dates-clear').hidden = true;
+  $('koyo-start').value = $('koyo-end').value = '';
+  loadKoyo();
+}
+
+const KOYO_DATE_RESULTS_SHOWN = 20;
+
+function renderKoyoDateResults(cities) {
+  $('koyo-city-list').hidden = true;
+  const spots = allKoyoSpotsData.spots.filter(koyoPhaseVisible)
+    .sort((a, b) => b.popularity - a.popularity || a.bestPeak.localeCompare(b.bestPeak));
+  const range = `${fmtDate(koyoDateRange.start + 'T00:00:00+09:00')} – ${fmtDate(koyoDateRange.end + 'T00:00:00+09:00')}`;
+  let html = `<div class="koyo-results-head">${spots.length} spots expected in colour ${range}</div>`;
+  for (const spot of spots.slice(0, KOYO_DATE_RESULTS_SHOWN)) {
+    const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
+    html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon,popup:koyoPopupHtml(spot)})})">
+      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
+      <div class="sub">Forecast window ${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)} · peak <strong>${fmtDate(spot.bestPeak)}</strong></div>
+      <div class="sub"><span class="koyo-swatch" style="display:inline-block;vertical-align:-1px;${koyoSwatchStyle(spot.phase)}"></span> Status today: ${KOYO_PHASES[spot.phase].label}</div>
+    </div>`;
+  }
+  if (spots.length > KOYO_DATE_RESULTS_SHOWN) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-600)">+ ${spots.length - KOYO_DATE_RESULTS_SHOWN} more on the map</div>`;
+  if (!spots.length) html += `<div class="loading">No spots have a forecast viewing window in these dates. Try a wider range.</div>`;
+  html += `<div class="koyo-results-head">${cities.length} forecast cities in colour</div>`;
+  html += `<div class="sub" style="padding:8px 16px">${cities.map(c => esc(c.nameEn || c.name)).join(', ') || 'None in these dates.'}</div>`;
+  $('koyo-date-results').innerHTML = html;
 }
 
 function updateKoyoFilterCounts(spots) {
@@ -88,11 +147,12 @@ function updateKoyoFilterCounts(spots) {
   });
 }
 
-function setKoyoPhaseFilter(phase) {
+async function setKoyoPhaseFilter(phase) {
   koyoPhaseFilter = phase;
   if (koyoPrefView) { renderKoyoPrefSpots(koyoPrefView.data, koyoPrefView.name); return; }
   clearMarkers({ keepVersion: true });
-  loadAllKoyoSpotsOnMap();
+  await loadAllKoyoSpotsOnMap();
+  if (koyoDateRange) renderKoyoDateResults(koyoDateCities);
 }
 
 // ── State ──
@@ -716,6 +776,8 @@ function setMode(m) {
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
   if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.style.display = 'none'; }
   $('koyo-filters').hidden = m !== 'koyo';
+  $('koyo-dates').hidden = m !== 'koyo';
+  if (m === 'koyo' && matchMedia('(min-width: 769px)').matches) $('koyo-dates').open = true; // phones start collapsed
   const fn = $('footer-data-note'); if (fn) fn.innerHTML = FOOTER_NOTES[m] || '';
   if (m === 'sakura') loadSakura();
   if (m === 'trip') loadTripPlanner();
@@ -1211,7 +1273,7 @@ async function loadKoyo() {
           This page will update when Japan Meteorological Corporation publishes the new feed.
         </div>`
       : '';
-    let html = freshnessBanner;
+    let html = '<div id="koyo-date-results" aria-live="polite"></div>' + freshnessBanner + '<div id="koyo-city-list">';
     for (const region of data.regions) {
       html += `<div style="padding:12px 16px;background:var(--orange-light);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.name}</div>`;
       for (const city of region.cities) {
@@ -1224,7 +1286,8 @@ async function loadKoyo() {
         </div>`;
       }
     }
-    $('sidebar-content').innerHTML = html;
+    $('sidebar-content').innerHTML = html + '</div>';
+    if (koyoDateRange) await applyKoyoDates();
   } catch (e) {
     setMapPlaceholder({
       title: 'Autumn leaves map unavailable',
@@ -1249,7 +1312,7 @@ async function loadKoyoSpots(prefCode, name) {
 
 function renderKoyoPrefSpots(data, name) {
   clearMarkers({ keepVersion: true });
-  updateKoyoFilterCounts(data.spots);
+  updateKoyoFilterCounts(data.spots.filter(koyoInDateRange));
   const visible = data.spots.filter(koyoPhaseVisible);
   const bounds = [];
   for (const spot of visible) {
@@ -1740,7 +1803,7 @@ async function searchTrip() {
     // Koyo forecast for no-city trip view (inline city list)
     let tripKoyoForecast = null;
     if (isKoyoSeason && noCities) {
-      fetches.push(api('/api/koyo/forecast').then(d => { tripKoyoForecast = d; }).catch(() => {}));
+      fetches.push(api(`/api/koyo/best?start=${startVal}&end=${endVal}`).then(d => { tripKoyoForecast = d; }).catch(() => {}));
     }
 
     // Koyo pref codes for selected cities
@@ -1857,13 +1920,8 @@ async function searchTrip() {
         html += `<div style="padding:8px 16px;font-size:0.82rem;color:var(--gray-600)">Pick cities above to see nearby farms, or explore the map.</div>`;
       }
       if (isKoyoSeason) {
-        const allKoyoCities = (tripKoyoForecast?.regions || []).flatMap(r => r.cities || []);
-        const peakStart = new Date(startVal); peakStart.setDate(peakStart.getDate() - 7);
-        const peakEnd = new Date(endVal); peakEnd.setDate(peakEnd.getDate() + 7);
-        const peakCities = allKoyoCities.filter(c => {
-          const d = new Date(c.maple?.forecast || c.ginkgo?.forecast || '');
-          return !isNaN(d.getTime()) && d >= peakStart && d <= peakEnd;
-        });
+        // Same city rule as the koyo_best_dates MCP tool.
+        const peakCities = tripKoyoForecast?.cities || [];
         html += `<div style="padding:10px 16px;background:#fff7ed;font-weight:600;font-size:0.85rem;color:#92400e;border-top:1px solid var(--gray-200);border-bottom:1px solid #fed7aa">🍂 Autumn Leaves — peak cities for your dates</div>`;
         if (peakCities.length) {
           peakCities.slice(0, 10).forEach(c => {
@@ -1877,7 +1935,7 @@ async function searchTrip() {
               <div class="sub">${maple ? `Maple: ${maple}` : ''}${ginkgo ? ` · Ginkgo: ${ginkgo}` : ''}${diff ? ` · ${diff}` : ''}</div>
             </div>`;
           });
-        } else if (allKoyoCities.length) {
+        } else if (tripKoyoForecast) {
           html += `<div style="padding:10px 16px;font-size:0.82rem;color:var(--gray-400)">No cities at peak during your dates. Adjust your window or explore the full Autumn Leaves forecast.</div>`;
         }
       }
@@ -2504,7 +2562,8 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
       }
     }
     if (mode !== expectedMode || token !== mapVersion || koyoPrefView) return;
-    updateKoyoFilterCounts(allKoyoSpotsData.spots);
+    updateKoyoFilterCounts(allKoyoSpotsData.spots.filter(koyoInDateRange));
+    if (clusterGroup) mapInstance.removeLayer(clusterGroup); // a filter change can overlap the initial load
 
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 40,
