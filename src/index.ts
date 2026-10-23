@@ -31,6 +31,7 @@ import {
   type SakuraCity,
   type SakuraSpot,
   type SakuraSpotResult,
+  refreshSpotObservations,
 } from "./lib/sakura-forecast.js";
 import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
@@ -2488,10 +2489,14 @@ async function startHttpServer() {
     logger.info(`Rate limit: ${RATE_LIMIT_MAX} req/min per IP, max ${MAX_SESSIONS} sessions`);
   });
 
+  // Spot reports are refreshed on the same schedule; a failed refresh keeps the last good set.
+  const warmSpotReports = () => Promise.all((["koyo", "sakura"] as const).map((type) =>
+    refreshSpotObservations(type).catch((e: any) => logger.warn(`Spot report warm-up failed (${type}): ${e.message}`))));
+
   // Re-warm forecasts + spots automatically after each daily 9 AM JST cache flush.
   onDailyFlush(() => {
     logger.info("Post-flush re-warm starting…");
-    Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()])
+    Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast(), warmSpotReports()])
       .then(() => warmSpotsCache())
       .catch((e: any) => logger.error(`Post-flush re-warm failed: ${e.message}`));
   });
@@ -2502,7 +2507,7 @@ async function startHttpServer() {
     try {
       logger.info("Cache warm-up: forecasts + all-spots…");
       // Forecasts first (fast — single API call each)
-      await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()]);
+      await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast(), warmSpotReports()]);
       logger.info("Forecasts ready — warming all-spots (background)…");
       // All-spots in background: 47 upstream requests each, takes ~30s on first deploy
       warmSpotsCache().catch((e: any) => logger.error(`all-spots warm-up failed: ${e.message}`));

@@ -321,17 +321,37 @@ async function fetchSpotObservations(type: "sakura" | "koyo"): Promise<SpotObser
   return map;
 }
 
-const observationsInflight = new Map<string, Promise<SpotObservationMap>>();
+// Reports live outside the daily-flushed cache: visitors always get the last good set
+// while the scheduled refresh (startup + 09:00 JST) replaces it in the background.
+type ObservationType = "sakura" | "koyo";
+const observationStore = new Map<ObservationType, { map: SpotObservationMap; fetchedAt: number }>();
+const observationsInflight = new Map<ObservationType, Promise<SpotObservationMap>>();
 
-export function getSpotObservations(type: "sakura" | "koyo"): Promise<SpotObservationMap> {
-  const key = `spot-observations:${type}`;
-  let pending = observationsInflight.get(key);
-  if (!pending) {
-    pending = cache.getOrFetch(key, TTL.SPOTS, () => fetchSpotObservations(type))
-      .finally(() => observationsInflight.delete(key));
-    observationsInflight.set(key, pending);
-  }
+export function refreshSpotObservations(type: ObservationType): Promise<SpotObservationMap> {
+  let pending = observationsInflight.get(type);
+  if (pending) return pending;
+  pending = fetchSpotObservations(type)
+    .then((map) => {
+      observationStore.set(type, { map, fetchedAt: Date.now() });
+      logger.info(`Spot reports refreshed (${type}): ${map.size} spots`);
+      return map;
+    })
+    .catch((e) => {
+      const last = observationStore.get(type);
+      if (!last) throw e;
+      logger.warn(`Spot report refresh failed (${type}): ${e}. Keeping last good reports from ${new Date(last.fetchedAt).toISOString()}`);
+      return last.map;
+    })
+    .finally(() => observationsInflight.delete(type));
+  observationsInflight.set(type, pending);
   return pending;
+}
+
+export function getSpotObservations(type: ObservationType): Promise<SpotObservationMap> {
+  const last = observationStore.get(type);
+  if (!last) return refreshSpotObservations(type);
+  if (Date.now() - last.fetchedAt > TTL.SPOTS) void refreshSpotObservations(type); // keeps last good on failure
+  return Promise.resolve(last.map);
 }
 
 export async function getSakuraForecast(): Promise<SakuraForecastResult> {
