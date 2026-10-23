@@ -33,7 +33,7 @@ import {
   type SakuraSpotResult,
   refreshSpotObservations,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
@@ -47,14 +47,12 @@ import {
 } from "./lib/site-config.js";
 import {
   DATE_RANGE_INPUT_HINT,
-  DAY_MS,
   currentJstMonth,
   currentJstYear,
   daysFromTodayJst,
   formatIsoDateJst,
   isoYearInJst,
   monthFromDateInputJst,
-  parseDateInputJst,
   parseDateRangeInputJst,
   todayJstIsoDate,
 } from "./lib/dates.js";
@@ -359,8 +357,6 @@ const SAKURA_TYPICAL_TIMING = SITE_CONFIG.seasonalTiming.sakura;
 const KOYO_TYPICAL_TIMING_GUIDE = SITE_CONFIG.seasonalTiming.koyoGuide;
 const KOYO_TYPICAL_TIMING_SHORT = SITE_CONFIG.seasonalTiming.koyoShort;
 const KOYO_EXACT_SPOTS_NEXT_STEP = SITE_CONFIG.toolGuidance.koyoExactSpotsNextStep;
-const KOYO_VIEWING_WINDOW_BEFORE_PEAK_DAYS = SITE_CONFIG.koyo.viewingWindowBeforePeakDays;
-const KOYO_VIEWING_WINDOW_AFTER_PEAK_DAYS = SITE_CONFIG.koyo.viewingWindowAfterPeakDays;
 const KOYO_FILTER_ALIASES: Record<string, readonly string[]> = SITE_CONFIG.koyo.filterAliases;
 const TOP_KOYO_PREFS = SITE_CONFIG.koyo.topPrefectures;
 
@@ -624,21 +620,6 @@ function matchesKoyoFilter(
     city.prefNameEn,
   ].map((value) => value.toLowerCase());
   return terms.some((term) => haystack.some((value) => value.includes(term)));
-}
-
-function koyoViewingWindowOverlaps(
-  city: { maple?: { forecast: string | null } | null; ginkgo?: { forecast: string | null } | null },
-  startDate: Date,
-  endDate: Date,
-): boolean {
-  const peakDates = [city.maple?.forecast, city.ginkgo?.forecast]
-    .map((date) => parseDateInputJst(date ?? null))
-    .filter((date): date is Date => Boolean(date));
-  if (!peakDates.length) return false;
-  const timestamps = peakDates.map((date) => date.getTime());
-  const windowStart = new Date(Math.min(...timestamps) - KOYO_VIEWING_WINDOW_BEFORE_PEAK_DAYS * DAY_MS);
-  const windowEnd = new Date(Math.max(...timestamps) + KOYO_VIEWING_WINDOW_AFTER_PEAK_DAYS * DAY_MS);
-  return startDate <= windowEnd && endDate >= windowStart;
 }
 
 function koyoNoMatchText(startDate: string, endDate: string): string {

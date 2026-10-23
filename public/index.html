@@ -208,6 +208,28 @@
         <button class="filter-pill" data-filter="peak" onclick="applyBloomFilter('peak',this)">🌺 Full Bloom</button>
         <button class="filter-pill" data-filter="ended" onclick="applyBloomFilter('ended',this)">🍃 Past Peak</button>
       </div>
+      <div id="koyo-filters" class="koyo-filters" role="group" aria-label="Filter autumn leaves spots by status" hidden>
+        <button type="button" class="filter-pill" data-phase="all" aria-pressed="true" onclick="setKoyoPhaseFilter('all')">All</button>
+        <button type="button" class="filter-pill" data-phase="peak_now" aria-pressed="false" onclick="setKoyoPhaseFilter('peak_now')"><span class="koyo-swatch" data-phase="peak_now" aria-hidden="true"></span>Peak now</button>
+        <button type="button" class="filter-pill" data-phase="colouring_now" aria-pressed="false" onclick="setKoyoPhaseFilter('colouring_now')"><span class="koyo-swatch" data-phase="colouring_now" aria-hidden="true"></span>Colouring now</button>
+        <button type="button" class="filter-pill" data-phase="forecast" aria-pressed="false" onclick="setKoyoPhaseFilter('forecast')"><span class="koyo-swatch" data-phase="forecast" aria-hidden="true"></span>Forecast</button>
+        <button type="button" class="filter-pill" data-phase="past" aria-pressed="false" onclick="setKoyoPhaseFilter('past')"><span class="koyo-swatch" data-phase="past" aria-hidden="true"></span>Past peak</button>
+        <p class="koyo-filter-note">"Now" means a JMC spot report from the last 48 hours. Forecast spots have no colour reported yet.</p>
+      </div>
+      <details id="koyo-dates" class="koyo-dates" hidden>
+        <summary>Search by travel dates</summary>
+        <form onsubmit="event.preventDefault(); applyKoyoDates()">
+          <div class="koyo-dates-row">
+            <label>From <input type="date" id="koyo-start" required onchange="$('koyo-end').min = this.value"></label>
+            <label>To <input type="date" id="koyo-end" required></label>
+          </div>
+          <div class="koyo-dates-row">
+            <button type="submit" class="koyo-dates-go">Find spots in colour</button>
+            <button type="button" class="koyo-dates-clear" id="koyo-dates-clear" onclick="clearKoyoDates()" hidden>Clear dates</button>
+          </div>
+          <p class="koyo-dates-help">Matches spots whose JMC forecast viewing window overlaps your trip.</p>
+        </form>
+      </details>
       <div class="sidebar-content" id="sidebar-content" role="status" aria-live="polite">
         <div class="loading">Loading forecast data...</div>
       </div>
