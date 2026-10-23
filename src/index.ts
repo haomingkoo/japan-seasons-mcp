@@ -497,7 +497,7 @@ async function formatSakuraNowAnswer(options: {
     }
     const matches = findBestRegions(forecast, range.startDate, range.endDate);
     let output = `# Sakura forecast for ${options.start_date} to ${options.end_date}\n`;
-    output += `Source: ${forecast.source}. Checked against ${forecast.totalCities} JMC observation cities. Today in Japan: ${today}.\n\n`;
+    output += `Source: ${forecast.source}. Checked against ${forecast.totalCities} JMA observation cities. Today in Japan: ${today}.\n\n`;
     if (!matches.length) {
       output += `No standard Somei-Yoshino observation city has a peak viewing window overlapping those dates. For January-February early blossoms, use kawazu_forecast. For exact parks after choosing an area, use sakura_spots.\n`;
       return output;
@@ -526,7 +526,7 @@ async function formatSakuraNowAnswer(options: {
   const pastSeason = sortByClosestDate(entries.filter((entry) => entry.delta !== null && entry.delta < -14));
 
   let output = `# Sakura forecast now\n`;
-  output += `Source: ${forecast.source}. Today in Japan: ${today}. Coverage: ${cities.length} JMC observation ${cities.length === 1 ? "city" : "cities"}.\n\n`;
+  output += `Source: ${forecast.source}. Today in Japan: ${today}. Coverage: ${cities.length} JMA observation ${cities.length === 1 ? "city" : "cities"}.\n\n`;
 
   if (bestNow.length) {
     output += `## Best viewing now or very soon\n`;
@@ -575,7 +575,7 @@ async function buildSakuraForecastMarkdown(outputConfig: OutputConfig = DEFAULT_
   const today = todayJstIsoDate();
   let output = await formatSakuraNowAnswer({ outputConfig });
 
-  output += `\n\n## All JMC observation cities\n`;
+  output += `\n\n## All JMA observation cities\n`;
   output += `This section is intentionally crawlable for AI search and web search. It lists the latest bloom and full-bloom dates available from Japan Meteorological Corporation for ${forecast.totalCities} observation cities. Today in Japan: ${today}.\n\n`;
   for (const region of forecast.regions) {
     output += `### ${region.nameEn || region.name}\n`;

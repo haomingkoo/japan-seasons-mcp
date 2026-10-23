@@ -6,7 +6,7 @@ Built by Haoming Koo. MIT licensed. Project site: {{SITE_URL}}
 
 ## Primary experiences
 - [Cherry blossom forecast]({{SITE_URL}}/cherry-blossom-forecast): 48 observation cities with JMC bloom and full-bloom dates, historical averages, and 1,012 sakura viewing spots across all 47 prefectures
-- [Latest sakura dates for AI search]({{SAKURA_FORECAST_TEXT_URL}}): crawlable text summary with current JMC observation-city bloom and full-bloom dates
+- [Latest sakura dates for AI search]({{SAKURA_FORECAST_TEXT_URL}}): crawlable text summary with current bloom and full-bloom dates for JMA observation cities
 - [Autumn leaves (koyo) forecast]({{SITE_URL}}/autumn-leaves-forecast): Koyo peak timing by city and region, with 687 spot-level viewing locations
 - [Festivals (matsuri, fireworks, winter)]({{SITE_URL}}/): 46 curated recurring events with official URLs, typical dates, and GPS
 - [Flowers]({{SITE_URL}}/): Non-sakura blooms — plum, wisteria, hydrangea, lavender, sunflower, cosmos
