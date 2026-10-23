@@ -194,6 +194,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
   .main { flex-direction: column; }
   .map-container { height: 55vh; }
   .sidebar { width: 100%; height: 45vh; border-left: none; border-top: 1px solid var(--gray-200); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .koyo-filters { flex-wrap: nowrap; overflow-x: auto; }
+  .koyo-filters .filter-pill { flex: none; }
+  .koyo-filter-note { display: none; } /* the map legend carries the same note */
   .map-placeholder {
     top: 12px;
     left: 12px;
