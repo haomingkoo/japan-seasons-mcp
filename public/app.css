@@ -175,13 +175,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
 
 /* ── Koyo travel dates ── */
 .koyo-dates { padding: 10px 16px 8px; border-bottom: 1px solid var(--gray-200); background: var(--orange-light); }
-.koyo-dates fieldset { border: 0; display: flex; flex-direction: column; gap: 8px; }
-.koyo-dates legend { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
+.koyo-dates[hidden] { display: none; }
+.koyo-dates summary { font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 6px 0; }
+.koyo-dates summary:focus-visible { outline: 2px solid var(--gray-800); outline-offset: 2px; }
+.koyo-dates form { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
 .koyo-dates-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .koyo-dates label { flex: 1 1 140px; display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; color: var(--gray-600); }
 .koyo-dates input { padding: 7px 10px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.85rem; background: white; min-height: 36px; }
 .koyo-dates button { min-height: 36px; padding: 0 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 .koyo-dates-go { flex: 1; background: #c2410c; color: white; border: 1px solid #c2410c; }
+.koyo-dates-clear[hidden] { display: none; }
 .koyo-dates-clear { background: white; color: var(--gray-800); border: 1px solid var(--gray-200); }
 .koyo-dates input:focus-visible, .koyo-dates button:focus-visible { outline: 2px solid var(--gray-800); outline-offset: 2px; }
 .koyo-dates-help { margin-top: 6px; font-size: 0.72rem; color: var(--gray-600); }

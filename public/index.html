@@ -216,6 +216,20 @@
         <button type="button" class="filter-pill" data-phase="past" aria-pressed="false" onclick="setKoyoPhaseFilter('past')"><span class="koyo-swatch" data-phase="past" aria-hidden="true"></span>Past peak</button>
         <p class="koyo-filter-note">"Now" means a JMC spot report from the last 48 hours. Forecast spots have no colour reported yet.</p>
       </div>
+      <details id="koyo-dates" class="koyo-dates" hidden>
+        <summary>Search by travel dates</summary>
+        <form onsubmit="event.preventDefault(); applyKoyoDates()">
+          <div class="koyo-dates-row">
+            <label>From <input type="date" id="koyo-start" required onchange="$('koyo-end').min = this.value"></label>
+            <label>To <input type="date" id="koyo-end" required></label>
+          </div>
+          <div class="koyo-dates-row">
+            <button type="submit" class="koyo-dates-go">Find spots in colour</button>
+            <button type="button" class="koyo-dates-clear" id="koyo-dates-clear" onclick="clearKoyoDates()" hidden>Clear dates</button>
+          </div>
+          <p class="koyo-dates-help">Matches spots whose JMC forecast viewing window overlaps your trip.</p>
+        </form>
+      </details>
       <div class="sidebar-content" id="sidebar-content" role="status" aria-live="polite">
         <div class="loading">Loading forecast data...</div>
       </div>

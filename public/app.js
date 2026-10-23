@@ -84,30 +84,13 @@ function koyoPhaseVisible(spot) {
   return koyoInDateRange(spot) && (koyoPhaseFilter === 'all' || spot.phase === koyoPhaseFilter);
 }
 
-function koyoDateFormHtml() {
-  return `<form class="koyo-dates" onsubmit="event.preventDefault(); applyKoyoDates()">
-    <fieldset>
-      <legend>Your travel dates</legend>
-      <div class="koyo-dates-row">
-        <label>From <input type="date" id="koyo-start" required value="${koyoDateRange?.start || ''}" onchange="$('koyo-end').min = this.value"></label>
-        <label>To <input type="date" id="koyo-end" required value="${koyoDateRange?.end || ''}"></label>
-      </div>
-      <div class="koyo-dates-row">
-        <button type="submit" class="koyo-dates-go">Find spots in colour</button>
-        ${koyoDateRange ? '<button type="button" class="koyo-dates-clear" onclick="clearKoyoDates()">Clear dates</button>' : ''}
-      </div>
-    </fieldset>
-    <p class="koyo-dates-help">Matches spots whose JMC forecast viewing window overlaps your trip.</p>
-  </form>
-  <div id="koyo-date-results" aria-live="polite"></div>`;
-}
-
 async function applyKoyoDates() {
   const startEl = $('koyo-start'), endEl = $('koyo-end');
   endEl.setCustomValidity(endEl.value && startEl.value && endEl.value < startEl.value ? 'End date must be on or after the start date.' : '');
   if (!endEl.reportValidity() || !startEl.reportValidity()) return;
   koyoDateRange = { start: startEl.value, end: endEl.value };
   koyoPrefView = null;
+  $('koyo-dates-clear').hidden = false;
   try {
     const [cities] = await Promise.all([
       api(`/api/koyo/best?start=${koyoDateRange.start}&end=${koyoDateRange.end}`).then(d => d.cities),
@@ -123,6 +106,8 @@ async function applyKoyoDates() {
 
 function clearKoyoDates() {
   koyoDateRange = null;
+  $('koyo-dates-clear').hidden = true;
+  $('koyo-start').value = $('koyo-end').value = '';
   loadKoyo();
 }
 
@@ -791,6 +776,8 @@ function setMode(m) {
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
   if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.style.display = 'none'; }
   $('koyo-filters').hidden = m !== 'koyo';
+  $('koyo-dates').hidden = m !== 'koyo';
+  if (m === 'koyo' && matchMedia('(min-width: 769px)').matches) $('koyo-dates').open = true; // phones start collapsed
   const fn = $('footer-data-note'); if (fn) fn.innerHTML = FOOTER_NOTES[m] || '';
   if (m === 'sakura') loadSakura();
   if (m === 'trip') loadTripPlanner();
@@ -1286,7 +1273,7 @@ async function loadKoyo() {
           This page will update when Japan Meteorological Corporation publishes the new feed.
         </div>`
       : '';
-    let html = koyoDateFormHtml() + freshnessBanner + '<div id="koyo-city-list">';
+    let html = '<div id="koyo-date-results" aria-live="polite"></div>' + freshnessBanner + '<div id="koyo-city-list">';
     for (const region of data.regions) {
       html += `<div style="padding:12px 16px;background:var(--orange-light);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.name}</div>`;
       for (const city of region.cities) {
