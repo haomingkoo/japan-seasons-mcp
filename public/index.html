@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#e8466b">
 
   <title>Japan in Seasons — Live Cherry Blossom, Autumn Leaves, Festivals & Flowers</title>
-  <meta name="description" content="Live Japan seasonal travel data: sakura (cherry blossom) forecasts, koyo (autumn leaves), festivals, flowers, fruit picking, and weather. 1,700+ GPS-tagged spots across all 47 prefectures, with JMC/JMA forecasts and curated travel datasets. Free, open-source, with an MCP server for AI assistants.">
+  <meta name="description" content="Live Japan seasonal travel data: sakura (cherry blossom) forecasts, koyo (autumn leaves), festivals, flowers, fruit picking, and weather. 1,700+ GPS-tagged spots across all 47 prefectures, with JMC sakura and koyo forecasts, JMA weather, and curated travel datasets. Free, open-source, with an MCP server for AI assistants.">
   <meta name="keywords" content="Japan travel, cherry blossom, sakura, autumn leaves, koyo, Japan festivals, matsuri, fruit picking, Japan Meteorological Agency, JMA, MCP server">
   <meta name="author" content="Haoming Koo">
 
@@ -60,7 +60,7 @@
     "@context": "https://schema.org",
     "@type": "Dataset",
     "name": "Japan Seasonal Travel Dataset",
-    "description": "Live cherry blossom (sakura) bloom forecasts across 48 JMC observation cities, autumn leaves (koyo) timing, 46 festivals, 90 flower spots, 1,012 sakura viewing locations, and a 346-farm fruit directory. Across all 47 Japanese prefectures. Forecast data comes from Japan Meteorological Corporation, Japan Meteorological Agency, and Open-Meteo; static travel datasets include official source links.",
+    "description": "Live cherry blossom (sakura) bloom forecasts from JMC for 48 JMA observation cities, autumn leaves (koyo) timing, 46 festivals, 90 flower spots, 1,012 sakura viewing locations, and a 346-farm fruit directory. Across all 47 Japanese prefectures. Sakura and koyo forecasts and spot reports come from Japan Meteorological Corporation. Weather comes from Japan Meteorological Agency and Open-Meteo; static travel datasets include official source links.",
     "url": "{{SITE_URL}}/",
     "keywords": ["sakura", "cherry blossom", "koyo", "autumn leaves", "Japan travel", "matsuri", "festivals", "Japan Meteorological Agency", "JMA", "JMC"],
     "creator": {
@@ -227,7 +227,7 @@
   <section class="content-section" id="about">
     <h2>Japan's four seasons, in live data</h2>
     <p><strong>Japan in Seasons</strong> is a free, open-source travel companion that tracks live seasonal timing across Japan: <strong>cherry blossoms (sakura)</strong>, <strong>autumn leaves (koyo)</strong>, <strong>festivals (matsuri and fireworks)</strong>, <strong>seasonal flowers</strong> (plum, wisteria, hydrangea, lavender, sunflower, cosmos), and <strong>fruit picking</strong>. It covers 1,700+ GPS-tagged spots across all 47 prefectures, with forecasts updated daily at 09:00 JST.</p>
-    <p>Forecast data comes from the <strong>Japan Meteorological Corporation (JMC)</strong>, the <strong>Japan Meteorological Agency (JMA)</strong>, and <strong>Open-Meteo</strong>. Flower, festival, and fruit-farm datasets are packaged with official URLs and GPS coordinates so AI answers can cite concrete source links instead of inventing places.</p>
+    <p>Sakura and autumn leaves forecasts and daily spot reports come from the <strong>Japan Meteorological Corporation (JMC)</strong>, an independent forecaster. City dates are anchored to the <strong>Japan Meteorological Agency (JMA)</strong> observation trees, and weather comes from JMA and <strong>Open-Meteo</strong>. Flower, festival, and fruit-farm datasets are packaged with official URLs and GPS coordinates so AI answers can cite concrete source links instead of inventing places.</p>
   </section>
 
   <section class="content-section" id="stats">
@@ -307,7 +307,7 @@ Connector URL: {{MCP_ENDPOINT}}</code></pre>
   <section class="content-section" id="sources">
     <h2>Data sources and attribution</h2>
     <ul>
-      <li><a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> — official sakura and koyo bloom forecasts</li>
+      <li><a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> — sakura and koyo forecasts and daily spot reports</li>
       <li><a href="https://www.jma.go.jp/" target="_blank" rel="noopener">Japan Meteorological Agency (JMA)</a> — short-range weather per city</li>
       <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — spot-level weather by latitude/longitude</li>
       <li>Official tourism boards and festival organizer websites — matsuri dates, attendance, and links</li>

@@ -32,7 +32,7 @@ import {
   type SakuraSpot,
   type SakuraSpotResult,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpotResult } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
@@ -1609,7 +1609,7 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += `## ${TOP_KOYO_PREFS[i].label}\n`;
             for (const spot of topSpots) {
               output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-              output += `- **${spot.status}**\n`;
+              output += koyoStatusLines(spot);
               output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
               output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
               output += coordinateLine(spot.lat, spot.lon, outputConfig);
@@ -1663,7 +1663,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     "koyo_best_dates",
     {
       title: "Best Autumn Leaves Dates for Trip",
-      description: "Use this when the user gives autumn travel dates and wants the best cities during that window. Returns cities whose maple or ginkgo viewing windows overlap the trip, based on forecast peak dates. Do not use this for general climate questions or for exact park recommendations without dates; use koyo_spots when the prefecture is already known.",
+      description: "Use this when the user gives autumn travel dates and wants the best cities during that window. Returns cities whose maple or ginkgo viewing windows overlap the trip, based on JMC forecasts of each city's JMA colouring date (the day JMA's reference tree turns). Do not use this for general climate questions or for exact park recommendations without dates; use koyo_spots when the prefecture is already known.",
       inputSchema: {
         start_date: z.string().describe("Trip start date in YYYY-MM-DD format, for example '2026-11-20'. The tool checks whether each city's koyo window overlaps this date.").meta({ title: "Trip Start Date" }),
         end_date: z.string().describe("Trip end date in YYYY-MM-DD format, for example '2026-11-27'. Must be on or after start_date.").meta({ title: "Trip End Date" }),
@@ -1698,8 +1698,8 @@ Use the japan-seasons-mcp tools based on the travel month:
         output += `${matches.length} cities with autumn colour in your window.\nUse koyo_spots to find specific parks and temples.\n\n`;
         for (const m of matches) {
           output += `### ${m.name} (${m.pref})\n`;
-          if (m.mapleDate) output += `- 🍁 Maple peak: ${formatKoyoOutputDate(m.mapleDate, outputConfig)}\n`;
-          if (m.ginkgoDate) output += `- 🟡 Ginkgo peak: ${formatKoyoOutputDate(m.ginkgoDate, outputConfig)}\n`;
+          if (m.mapleDate) output += `- 🍁 Maple colouring date (JMC forecast): ${formatKoyoOutputDate(m.mapleDate, outputConfig)}\n`;
+          if (m.ginkgoDate) output += `- 🟡 Ginkgo colouring date (JMC forecast): ${formatKoyoOutputDate(m.ginkgoDate, outputConfig)}\n`;
           output += "\n";
         }
         return { content: [{ type: "text", text: output }] };
@@ -2121,13 +2121,18 @@ function renderSakuraSpotsMarkdown(result: SakuraSpotResult, outputConfig: Outpu
   return output;
 }
 
+function koyoStatusLines(spot: KoyoSpot): string {
+  const report = spot.phaseSource === "report" ? `- Spot report (JMC): **${spot.reportStatus}**\n` : "";
+  return `${report}- Forecast: ${spot.status}\n`;
+}
+
 function renderKoyoSpotsMarkdown(result: KoyoSpotResult, outputConfig: OutputConfig): string {
   let output = `# Autumn Leaves — ${result.prefecture}\nSource: ${result.source}\nTotal spots: ${result.spots.length}\n\n`;
   const freshnessNote = priorSeasonKoyoSpotNote(result.spots);
   if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
   for (const spot of result.spots) {
     output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-    output += `- **${spot.status}**\n`;
+    output += koyoStatusLines(spot);
     output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
     output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
     output += coordinateLine(spot.lat, spot.lon, outputConfig);

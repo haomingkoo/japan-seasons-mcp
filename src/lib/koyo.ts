@@ -4,7 +4,7 @@ import { safeFetch } from "./fetch.js";
 import { romanizeName } from "./romaji.js";
 import { tokyoDatumToWGS84 } from "./areas.js";
 import { daysFromTodayJst, formatMonthDayJst } from "./dates.js";
-import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN } from "./sakura-forecast.js";
+import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN, getSpotObservations, isFreshObservation, type SpotObservationMap } from "./sakura-forecast.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,13 +57,52 @@ export interface KoyoSpot {
   bestStart: string | null;      // ISO date — start of viewing window
   bestPeak: string | null;       // ISO date — peak color
   bestEnd: string | null;        // ISO date — end of viewing window
-  status: string;
+  status: string;                // forecast-only wording from bestStart/bestPeak/bestEnd
+  reportState: number | null;    // latest JMC spot report (0-4), see KOYO_REPORT_LABELS
+  reportStatus: string | null;
+  reportUpdated: string | null;
+  phase: KoyoPhase;
+  phaseSource: "report" | "forecast";
 }
+
+// "now" phases come only from a fresh spot report; forecast dates never claim them.
+export type KoyoPhase = "peak_now" | "colouring_now" | "forecast" | "past";
 
 export interface KoyoSpotResult {
   source: string;
   prefecture: string;
+  reportsAvailable: boolean;     // false when the JMC report feed could not be fetched
   spots: KoyoSpot[];
+}
+
+// JMC spot report states (tenki.jp legend: 青葉, 色づき始め, 紅葉見頃, 色あせ始め, 落葉).
+export const KOYO_REPORT_LABELS: Record<number, string> = {
+  0: "Green leaves (aoba)",
+  1: "Starting to colour (irozuki-hajime)",
+  2: "Peak colour (mi-goro)",
+  3: "Colour fading (iroase-hajime)",
+  4: "Leaves fallen (rakuyo)",
+};
+
+const KOYO_REPORT_PHASES: Record<number, KoyoPhase> = {
+  0: "forecast",
+  1: "colouring_now",
+  2: "peak_now",
+  3: "past",
+  4: "past",
+};
+
+export function koyoSpotPhase(
+  report: { state: number; updated: string } | null,
+  bestEnd: string | null,
+  now = new Date(),
+): { phase: KoyoPhase; phaseSource: "report" | "forecast" } {
+  const reportPhase = report ? KOYO_REPORT_PHASES[report.state] : undefined;
+  if (report && reportPhase && isFreshObservation(report.updated, now)) {
+    return { phase: reportPhase, phaseSource: "report" };
+  }
+  const daysToEnd = daysFromTodayJst(bestEnd, now);
+  return { phase: daysToEnd !== null && daysToEnd < 0 ? "past" : "forecast", phaseSource: "forecast" };
 }
 
 // ─── Prefecture mapping: imported from sakura-forecast.ts (single source of truth) ───
@@ -187,7 +226,13 @@ export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
   return cache.getOrFetch(cacheKey, TTL.SPOTS, async () => {
     logger.info(`Fetching koyo spots for prefecture ${prefCode}`);
     const url = `${KOYO_SPOTS_API}?type=koyo&filter_mode=forecast&area_mode=pref&area_code=${prefCode}&sort_code=0`;
-    const res = await safeFetch(url);
+    const [res, reports] = await Promise.all([
+      safeFetch(url),
+      getSpotObservations("koyo").catch((e): SpotObservationMap | null => {
+        logger.warn(`Koyo spot reports unavailable: ${e}`);
+        return null;
+      }),
+    ]);
     if (!res.ok) throw new Error(`Koyo spots API error: ${res.status}`);
     const data = await res.json();
 
@@ -196,23 +241,31 @@ export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
       throw new Error(`Koyo spots API returned error: ${result.message}`);
     }
 
-    const spots: KoyoSpot[] = (result?.jr_data ?? []).map((s: any) => ({
-      code: s.code ?? "",
-      name: s.name ?? "",
-      nameReading: s.kana ?? "",
-      nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
-      ...tokyoDatumToWGS84(s.lat ?? 0, s.lon ?? 0),
-      leafType: s.leaf_type === "1" ? "Maple (momiji)" : s.leaf_type === "2" ? "Ginkgo (ichou)" : "Mixed",
-      popularity: parseInt(s.access_star ?? "0"),
-      bestStart: s.best_start_datetime ?? null,
-      bestPeak: s.best_peak_datetime ?? null,
-      bestEnd: s.best_end_datetime ?? null,
-      status: computeKoyoStatus(s.best_start_datetime, s.best_peak_datetime, s.best_end_datetime),
-    }));
+    const spots: KoyoSpot[] = (result?.jr_data ?? []).map((s: any) => {
+      const report = reports?.get(String(s.code)) ?? null;
+      return {
+        code: s.code ?? "",
+        name: s.name ?? "",
+        nameReading: s.kana ?? "",
+        nameRomaji: romanizeName(s.name ?? "", s.kana ?? ""),
+        ...tokyoDatumToWGS84(s.lat ?? 0, s.lon ?? 0),
+        leafType: s.leaf_type === "1" ? "Maple (momiji)" : s.leaf_type === "2" ? "Ginkgo (ichou)" : "Mixed",
+        popularity: parseInt(s.access_star ?? "0"),
+        bestStart: s.best_start_datetime ?? null,
+        bestPeak: s.best_peak_datetime ?? null,
+        bestEnd: s.best_end_datetime ?? null,
+        status: computeKoyoStatus(s.best_start_datetime, s.best_peak_datetime, s.best_end_datetime),
+        reportState: report?.state ?? null,
+        reportStatus: report ? (KOYO_REPORT_LABELS[report.state] ?? null) : null,
+        reportUpdated: report?.updated ?? null,
+        ...koyoSpotPhase(report, s.best_end_datetime ?? null),
+      };
+    });
 
     return {
       source: "Japan Meteorological Corporation (n-kishou.co.jp)",
       prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? result?.area ?? "",
+      reportsAvailable: reports !== null,
       spots,
     };
   });
