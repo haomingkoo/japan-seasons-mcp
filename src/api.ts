@@ -45,8 +45,9 @@ type AllSpotsKind = "sakura" | "koyo";
 
 const spotWeatherCache = new Map<string, { data: unknown; ts: number }>();
 
+// koyo-v2 adds report/phase fields; a new key stops a pre-deploy file being served.
 function durableAllSpotsKey(kind: AllSpotsKind): string {
-  return `all-spots-${kind}`;
+  return kind === "koyo" ? "all-spots-koyo-v2" : `all-spots-${kind}`;
 }
 
 function lastJmcUpdateMs(nowMs = Date.now()): number {
