@@ -3,7 +3,8 @@ import { logger } from "./logger.js";
 import { safeFetch } from "./fetch.js";
 import { romanizeName } from "./romaji.js";
 import { tokyoDatumToWGS84 } from "./areas.js";
-import { daysFromTodayJst, formatMonthDayJst } from "./dates.js";
+import { DAY_MS, daysFromTodayJst, formatMonthDayJst, parseDateInputJst } from "./dates.js";
+import { SITE_CONFIG } from "./site-config.js";
 import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN, getSpotObservations, isFreshObservation, type SpotObservationMap } from "./sakura-forecast.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -285,6 +286,23 @@ function computeKoyoStatus(start: string | null, peak: string | null, end: strin
   if (daysToStart > 0 && daysToStart <= 7) return `Starting soon — ${daysToStart} day(s) away`;
   if (daysToStart > 7 && daysToStart <= 30) return "Coming — leaves still green";
   return "Not yet — more than a month away";
+}
+
+// City window: JMC forecast colouring date minus/plus the site-config day offsets.
+// Shared by the koyo_best_dates tool and /api/koyo/best.
+export function koyoViewingWindowOverlaps(
+  city: { maple?: { forecast: string | null } | null; ginkgo?: { forecast: string | null } | null },
+  startDate: Date,
+  endDate: Date,
+): boolean {
+  const peakDates = [city.maple?.forecast, city.ginkgo?.forecast]
+    .map((date) => parseDateInputJst(date ?? null))
+    .filter((date): date is Date => Boolean(date));
+  if (!peakDates.length) return false;
+  const timestamps = peakDates.map((date) => date.getTime());
+  const windowStart = new Date(Math.min(...timestamps) - SITE_CONFIG.koyo.viewingWindowBeforePeakDays * DAY_MS);
+  const windowEnd = new Date(Math.max(...timestamps) + SITE_CONFIG.koyo.viewingWindowAfterPeakDays * DAY_MS);
+  return startDate <= windowEnd && endDate >= windowStart;
 }
 
 export function formatDate(iso: string | null): string {

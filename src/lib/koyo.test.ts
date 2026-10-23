@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { koyoSpotPhase } from "./koyo.js";
+import { koyoSpotPhase, koyoViewingWindowOverlaps } from "./koyo.js";
+import { jstDate } from "./dates.js";
 import { parseRegionObservations, type SpotObservationMap } from "./sakura-forecast.js";
 
 const NOW = new Date("2026-10-23T03:00:00Z"); // 12:00 JST
@@ -47,5 +48,19 @@ describe("koyoSpotPhase", () => {
   it("maps fading and fallen reports to past", () => {
     expect(koyoSpotPhase({ state: 3, updated: TODAY_STAMP }, null, NOW).phase).toBe("past");
     expect(koyoSpotPhase({ state: 4, updated: TODAY_STAMP }, null, NOW).phase).toBe("past");
+  });
+});
+
+describe("koyoViewingWindowOverlaps", () => {
+  const city = { maple: { forecast: "2026-11-20T00:00:00+09:00" }, ginkgo: null };
+
+  it("matches a trip inside the peak-3 to peak+10 window", () => {
+    expect(koyoViewingWindowOverlaps(city, jstDate("2026-11-17"), jstDate("2026-11-17"))).toBe(true);
+    expect(koyoViewingWindowOverlaps(city, jstDate("2026-11-30"), jstDate("2026-12-02"))).toBe(true);
+  });
+
+  it("rejects a trip outside the window", () => {
+    expect(koyoViewingWindowOverlaps(city, jstDate("2026-11-10"), jstDate("2026-11-16"))).toBe(false);
+    expect(koyoViewingWindowOverlaps(city, jstDate("2026-12-01"), jstDate("2026-12-05"))).toBe(false);
   });
 });

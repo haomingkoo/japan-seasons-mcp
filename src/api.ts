@@ -10,7 +10,7 @@ import {
   findPrefCode,
   type SakuraSpot,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { pMapSettled } from "./lib/fetch.js";
 import { logger } from "./lib/logger.js";
@@ -236,6 +236,23 @@ export async function handleApiRequest(
     if (pathname === "/api/koyo/forecast") {
       const data = await getKoyoForecast();
       json(res, data, 200, TTL.FORECAST / 1000);
+      return true;
+    }
+
+    // GET /api/koyo/best?start=2026-11-20&end=2026-11-27 — same city rule as koyo_best_dates
+    if (pathname === "/api/koyo/best") {
+      const start = params.get("start");
+      const end = params.get("end");
+      if (!start || !end) { error(res, "Missing ?start= and ?end= parameters"); return true; }
+      const range = parseDateRangeInputJst(start, end);
+      if (!range) {
+        error(res, `Invalid date format. ${DATE_RANGE_INPUT_HINT}`);
+        return true;
+      }
+      const forecast = await getKoyoForecast();
+      const cities = forecast.regions.flatMap((region) => region.cities)
+        .filter((city) => koyoViewingWindowOverlaps(city, range.startDate, range.endDate));
+      json(res, { start, end, cities });
       return true;
     }
 
