@@ -206,10 +206,10 @@ function parseValidDate(iso: string | null | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function hoursSince(iso: string | null | undefined): number | null {
+function hoursSince(iso: string | null | undefined, now = new Date()): number | null {
   const date = parseValidDate(iso);
   if (!date) return null;
-  return (Date.now() - date.getTime()) / 3_600_000;
+  return (now.getTime() - date.getTime()) / 3_600_000;
 }
 
 function daysSince(iso: string | null | undefined): number | null {
@@ -217,8 +217,8 @@ function daysSince(iso: string | null | undefined): number | null {
   return delta === null ? null : -delta;
 }
 
-function isFreshObservation(iso: string | null | undefined): boolean {
-  const ageHours = hoursSince(iso);
+export function isFreshObservation(iso: string | null | undefined, now = new Date()): boolean {
+  const ageHours = hoursSince(iso, now);
   if (ageHours === null) return false;
   return ageHours <= SAKURA_SPOT_OBSERVATION_FRESH_HOURS;
 }
@@ -271,35 +271,87 @@ function latestObservationTimestamp(observations: Map<string, { state: number; u
 // Observation filter_codes 0-6 correspond to the state values returned:
 //   0=pre-bloom, 1=first bloom, 2=30%, 3=70%, 4=full bloom,
 //   5=petals falling, 6=hazakura (green leaves).
-// Past-season prefectures (e.g. Tokyo by mid-April) return 400 for all codes —
-// those failures are silently swallowed below and we fall back to jr_data.
-async function fetchPrefObservations(prefCode: string): Promise<Map<string, { state: number; updated: string }>> {
-  const map = new Map<string, { state: number; updated: string }>();
+async function fetchPrefObservations(prefCode: string): Promise<SpotObservationMap> {
   try {
-    const results = await Promise.allSettled(
-      [0, 1, 2, 3, 4, 5, 6].map(async (fc) => {
-        const url = `${NKISHOU_SPOTS_API}?type=sakura&filter_mode=observation&filter_code=${fc}&area_mode=pref&area_code=${prefCode}`;
-        const res = await safeFetch(url);
-        const data = await res.json();
-        const rl = data?.result_list;
-        const updated: string = rl?.update_datetime ?? "";
-        for (const spot of rl?.data ?? []) {
-          if (spot.code) {
-            map.set(String(spot.code), { state: parseInt(String(spot.state), 10), updated });
-          }
-        }
-      })
-    );
-    // Log any failures silently (observation fetch is best-effort)
-    for (const r of results) {
-      if (r.status === "rejected") {
-        logger.info(`Spot observation fetch failed (non-critical): ${r.reason}`);
-      }
-    }
-  } catch {
-    // Observation layer is enhancement-only; forecast data is always the base
+    const all = await getSpotObservations("sakura");
+    return new Map([...all].filter(([code]) => code.startsWith(prefCode)));
+  } catch (e) {
+    logger.warn(`Sakura spot observations unavailable: ${e}`);
+    return new Map();
   }
+}
+
+// ─── Spot observation reports (sakura + koyo) ────────────────────────────────
+// area_mode=pref answers 400 for prefectures with many spots (Kyoto, Nagano,
+// Hokkaido), so reports are fetched per region and keyed by spot code.
+
+export type SpotObservationMap = Map<string, { state: number; updated: string }>;
+
+const NKISHOU_REGION_CODES = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"] as const;
+const OBSERVATION_STATES: Record<"sakura" | "koyo", readonly number[]> = {
+  sakura: [0, 1, 2, 3, 4, 5, 6],
+  koyo: [0, 1, 2, 3, 4],
+};
+// n-kishou answers 400 (error 1001) when a region has no spots in that state.
+const EMPTY_STATE_ERROR = /API error 400/;
+
+export function parseRegionObservations(data: any, into: SpotObservationMap): void {
+  const rl = data?.result_list;
+  const updated: string = rl?.update_datetime ?? "";
+  for (const pref of rl?.data ?? []) {
+    for (const spot of pref?.map_spot ?? []) {
+      if (spot.code) into.set(String(spot.code), { state: parseInt(String(spot.state), 10), updated });
+    }
+  }
+}
+
+async function fetchSpotObservations(type: "sakura" | "koyo"): Promise<SpotObservationMap> {
+  const map: SpotObservationMap = new Map();
+  const requests = NKISHOU_REGION_CODES.flatMap((region) =>
+    OBSERVATION_STATES[type].map(async (state) => {
+      const url = `${NKISHOU_SPOTS_API}?type=${type}&filter_mode=observation&filter_code=${state}&area_mode=region&area_code=${region}`;
+      try {
+        parseRegionObservations(await (await safeFetch(url)).json(), map);
+      } catch (e: any) {
+        if (!EMPTY_STATE_ERROR.test(e?.message ?? "")) throw e;
+      }
+    })
+  );
+  await Promise.all(requests);
   return map;
+}
+
+// Reports live outside the daily-flushed cache: visitors always get the last good set
+// while the scheduled refresh (startup + 09:00 JST) replaces it in the background.
+type ObservationType = "sakura" | "koyo";
+const observationStore = new Map<ObservationType, { map: SpotObservationMap; fetchedAt: number }>();
+const observationsInflight = new Map<ObservationType, Promise<SpotObservationMap>>();
+
+export function refreshSpotObservations(type: ObservationType): Promise<SpotObservationMap> {
+  let pending = observationsInflight.get(type);
+  if (pending) return pending;
+  pending = fetchSpotObservations(type)
+    .then((map) => {
+      observationStore.set(type, { map, fetchedAt: Date.now() });
+      logger.info(`Spot reports refreshed (${type}): ${map.size} spots`);
+      return map;
+    })
+    .catch((e) => {
+      const last = observationStore.get(type);
+      if (!last) throw e;
+      logger.warn(`Spot report refresh failed (${type}): ${e}. Keeping last good reports from ${new Date(last.fetchedAt).toISOString()}`);
+      return last.map;
+    })
+    .finally(() => observationsInflight.delete(type));
+  observationsInflight.set(type, pending);
+  return pending;
+}
+
+export function getSpotObservations(type: ObservationType): Promise<SpotObservationMap> {
+  const last = observationStore.get(type);
+  if (!last) return refreshSpotObservations(type);
+  if (Date.now() - last.fetchedAt > TTL.SPOTS) void refreshSpotObservations(type); // keeps last good on failure
+  return Promise.resolve(last.map);
 }
 
 export async function getSakuraForecast(): Promise<SakuraForecastResult> {

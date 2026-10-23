@@ -31,8 +31,9 @@ import {
   type SakuraCity,
   type SakuraSpot,
   type SakuraSpotResult,
+  refreshSpotObservations,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, formatDate as formatKoyoDate, type KoyoSpotResult } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
@@ -46,14 +47,12 @@ import {
 } from "./lib/site-config.js";
 import {
   DATE_RANGE_INPUT_HINT,
-  DAY_MS,
   currentJstMonth,
   currentJstYear,
   daysFromTodayJst,
   formatIsoDateJst,
   isoYearInJst,
   monthFromDateInputJst,
-  parseDateInputJst,
   parseDateRangeInputJst,
   todayJstIsoDate,
 } from "./lib/dates.js";
@@ -358,8 +357,6 @@ const SAKURA_TYPICAL_TIMING = SITE_CONFIG.seasonalTiming.sakura;
 const KOYO_TYPICAL_TIMING_GUIDE = SITE_CONFIG.seasonalTiming.koyoGuide;
 const KOYO_TYPICAL_TIMING_SHORT = SITE_CONFIG.seasonalTiming.koyoShort;
 const KOYO_EXACT_SPOTS_NEXT_STEP = SITE_CONFIG.toolGuidance.koyoExactSpotsNextStep;
-const KOYO_VIEWING_WINDOW_BEFORE_PEAK_DAYS = SITE_CONFIG.koyo.viewingWindowBeforePeakDays;
-const KOYO_VIEWING_WINDOW_AFTER_PEAK_DAYS = SITE_CONFIG.koyo.viewingWindowAfterPeakDays;
 const KOYO_FILTER_ALIASES: Record<string, readonly string[]> = SITE_CONFIG.koyo.filterAliases;
 const TOP_KOYO_PREFS = SITE_CONFIG.koyo.topPrefectures;
 
@@ -497,7 +494,7 @@ async function formatSakuraNowAnswer(options: {
     }
     const matches = findBestRegions(forecast, range.startDate, range.endDate);
     let output = `# Sakura forecast for ${options.start_date} to ${options.end_date}\n`;
-    output += `Source: ${forecast.source}. Checked against ${forecast.totalCities} JMC observation cities. Today in Japan: ${today}.\n\n`;
+    output += `Source: ${forecast.source}. Checked against ${forecast.totalCities} JMA observation cities. Today in Japan: ${today}.\n\n`;
     if (!matches.length) {
       output += `No standard Somei-Yoshino observation city has a peak viewing window overlapping those dates. For January-February early blossoms, use kawazu_forecast. For exact parks after choosing an area, use sakura_spots.\n`;
       return output;
@@ -526,7 +523,7 @@ async function formatSakuraNowAnswer(options: {
   const pastSeason = sortByClosestDate(entries.filter((entry) => entry.delta !== null && entry.delta < -14));
 
   let output = `# Sakura forecast now\n`;
-  output += `Source: ${forecast.source}. Today in Japan: ${today}. Coverage: ${cities.length} JMC observation ${cities.length === 1 ? "city" : "cities"}.\n\n`;
+  output += `Source: ${forecast.source}. Today in Japan: ${today}. Coverage: ${cities.length} JMA observation ${cities.length === 1 ? "city" : "cities"}.\n\n`;
 
   if (bestNow.length) {
     output += `## Best viewing now or very soon\n`;
@@ -575,7 +572,7 @@ async function buildSakuraForecastMarkdown(outputConfig: OutputConfig = DEFAULT_
   const today = todayJstIsoDate();
   let output = await formatSakuraNowAnswer({ outputConfig });
 
-  output += `\n\n## All JMC observation cities\n`;
+  output += `\n\n## All JMA observation cities\n`;
   output += `This section is intentionally crawlable for AI search and web search. It lists the latest bloom and full-bloom dates available from Japan Meteorological Corporation for ${forecast.totalCities} observation cities. Today in Japan: ${today}.\n\n`;
   for (const region of forecast.regions) {
     output += `### ${region.nameEn || region.name}\n`;
@@ -623,21 +620,6 @@ function matchesKoyoFilter(
     city.prefNameEn,
   ].map((value) => value.toLowerCase());
   return terms.some((term) => haystack.some((value) => value.includes(term)));
-}
-
-function koyoViewingWindowOverlaps(
-  city: { maple?: { forecast: string | null } | null; ginkgo?: { forecast: string | null } | null },
-  startDate: Date,
-  endDate: Date,
-): boolean {
-  const peakDates = [city.maple?.forecast, city.ginkgo?.forecast]
-    .map((date) => parseDateInputJst(date ?? null))
-    .filter((date): date is Date => Boolean(date));
-  if (!peakDates.length) return false;
-  const timestamps = peakDates.map((date) => date.getTime());
-  const windowStart = new Date(Math.min(...timestamps) - KOYO_VIEWING_WINDOW_BEFORE_PEAK_DAYS * DAY_MS);
-  const windowEnd = new Date(Math.max(...timestamps) + KOYO_VIEWING_WINDOW_AFTER_PEAK_DAYS * DAY_MS);
-  return startDate <= windowEnd && endDate >= windowStart;
 }
 
 function koyoNoMatchText(startDate: string, endDate: string): string {
@@ -1609,7 +1591,7 @@ Use the japan-seasons-mcp tools based on the travel month:
             output += `## ${TOP_KOYO_PREFS[i].label}\n`;
             for (const spot of topSpots) {
               output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-              output += `- **${spot.status}**\n`;
+              output += koyoStatusLines(spot);
               output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
               output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
               output += coordinateLine(spot.lat, spot.lon, outputConfig);
@@ -1663,7 +1645,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     "koyo_best_dates",
     {
       title: "Best Autumn Leaves Dates for Trip",
-      description: "Use this when the user gives autumn travel dates and wants the best cities during that window. Returns cities whose maple or ginkgo viewing windows overlap the trip, based on forecast peak dates. Do not use this for general climate questions or for exact park recommendations without dates; use koyo_spots when the prefecture is already known.",
+      description: "Use this when the user gives autumn travel dates and wants the best cities during that window. Returns cities whose maple or ginkgo viewing windows overlap the trip, based on JMC forecasts of each city's JMA colouring date (the day JMA's reference tree turns). Do not use this for general climate questions or for exact park recommendations without dates; use koyo_spots when the prefecture is already known.",
       inputSchema: {
         start_date: z.string().describe("Trip start date in YYYY-MM-DD format, for example '2026-11-20'. The tool checks whether each city's koyo window overlaps this date.").meta({ title: "Trip Start Date" }),
         end_date: z.string().describe("Trip end date in YYYY-MM-DD format, for example '2026-11-27'. Must be on or after start_date.").meta({ title: "Trip End Date" }),
@@ -1698,8 +1680,8 @@ Use the japan-seasons-mcp tools based on the travel month:
         output += `${matches.length} cities with autumn colour in your window.\nUse koyo_spots to find specific parks and temples.\n\n`;
         for (const m of matches) {
           output += `### ${m.name} (${m.pref})\n`;
-          if (m.mapleDate) output += `- 🍁 Maple peak: ${formatKoyoOutputDate(m.mapleDate, outputConfig)}\n`;
-          if (m.ginkgoDate) output += `- 🟡 Ginkgo peak: ${formatKoyoOutputDate(m.ginkgoDate, outputConfig)}\n`;
+          if (m.mapleDate) output += `- 🍁 Maple colouring date (JMC forecast): ${formatKoyoOutputDate(m.mapleDate, outputConfig)}\n`;
+          if (m.ginkgoDate) output += `- 🟡 Ginkgo colouring date (JMC forecast): ${formatKoyoOutputDate(m.ginkgoDate, outputConfig)}\n`;
           output += "\n";
         }
         return { content: [{ type: "text", text: output }] };
@@ -2121,13 +2103,18 @@ function renderSakuraSpotsMarkdown(result: SakuraSpotResult, outputConfig: Outpu
   return output;
 }
 
+function koyoStatusLines(spot: KoyoSpot): string {
+  const report = spot.phaseSource === "report" ? `- Spot report (JMC): **${spot.reportStatus}**\n` : "";
+  return `${report}- Forecast: ${spot.status}\n`;
+}
+
 function renderKoyoSpotsMarkdown(result: KoyoSpotResult, outputConfig: OutputConfig): string {
   let output = `# Autumn Leaves — ${result.prefecture}\nSource: ${result.source}\nTotal spots: ${result.spots.length}\n\n`;
   const freshnessNote = priorSeasonKoyoSpotNote(result.spots);
   if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
   for (const spot of result.spots) {
     output += `### ${spot.name}${spot.nameReading ? ` (${spot.nameReading})` : ""}\n`;
-    output += `- **${spot.status}**\n`;
+    output += koyoStatusLines(spot);
     output += `- ${spot.leafType}${spot.popularity > 0 ? ` | ${"★".repeat(spot.popularity)}` : ""}\n`;
     output += `- Best: ${formatKoyoOutputDate(spot.bestStart, outputConfig)} → peak ${formatKoyoOutputDate(spot.bestPeak, outputConfig)} → end ${formatKoyoOutputDate(spot.bestEnd, outputConfig)}\n`;
     output += coordinateLine(spot.lat, spot.lon, outputConfig);
@@ -2483,10 +2470,14 @@ async function startHttpServer() {
     logger.info(`Rate limit: ${RATE_LIMIT_MAX} req/min per IP, max ${MAX_SESSIONS} sessions`);
   });
 
+  // Spot reports are refreshed on the same schedule; a failed refresh keeps the last good set.
+  const warmSpotReports = () => Promise.all((["koyo", "sakura"] as const).map((type) =>
+    refreshSpotObservations(type).catch((e: any) => logger.warn(`Spot report warm-up failed (${type}): ${e.message}`))));
+
   // Re-warm forecasts + spots automatically after each daily 9 AM JST cache flush.
   onDailyFlush(() => {
     logger.info("Post-flush re-warm starting…");
-    Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()])
+    Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast(), warmSpotReports()])
       .then(() => warmSpotsCache())
       .catch((e: any) => logger.error(`Post-flush re-warm failed: ${e.message}`));
   });
@@ -2497,7 +2488,7 @@ async function startHttpServer() {
     try {
       logger.info("Cache warm-up: forecasts + all-spots…");
       // Forecasts first (fast — single API call each)
-      await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast()]);
+      await Promise.all([getSakuraForecast(), getKoyoForecast(), getKawazuForecast(), warmSpotReports()]);
       logger.info("Forecasts ready — warming all-spots (background)…");
       // All-spots in background: 47 upstream requests each, takes ~30s on first deploy
       warmSpotsCache().catch((e: any) => logger.error(`all-spots warm-up failed: ${e.message}`));
