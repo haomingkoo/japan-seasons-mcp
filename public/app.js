@@ -37,6 +37,64 @@ const C = {
   pinkLight:   '#fdf2f8',
 };
 
+// ── Koyo status: phase comes from the API (fresh JMC spot report first, forecast dates otherwise) ──
+const KOYO_PHASES = {
+  peak_now:      { label: 'Peak now',      color: C.koyoPeak,  hollow: false },
+  colouring_now: { label: 'Colouring now', color: C.koyoEarly, hollow: false },
+  forecast:      { label: 'Forecast',      color: C.koyoTurn,  hollow: true },
+  past:          { label: 'Past peak',     color: C.dormant,   hollow: false },
+};
+const KOYO_HOLLOW_STROKE = 2.5;
+
+function koyoMarkerStyle(spot) {
+  const p = KOYO_PHASES[spot.phase];
+  return p.hollow
+    ? { fillColor: 'white', color: p.color, weight: KOYO_HOLLOW_STROKE, fillOpacity: 1 }
+    : { fillColor: p.color, color: 'white', weight: 1.5, fillOpacity: 0.9 };
+}
+
+function koyoSwatchStyle(phase) {
+  const p = KOYO_PHASES[phase];
+  return p.hollow ? `background:white;border:2px solid ${p.color}` : `background:${p.color}`;
+}
+
+function koyoPhaseSource(spot) {
+  return spot.phaseSource === 'report'
+    ? `JMC spot report: ${esc(spot.reportStatus)}`
+    : 'No current spot report, forecast dates only';
+}
+
+function koyoPopupHtml(spot) {
+  return `<b>${esc(spot.name)}</b><br><b style="color:${C.koyoPeak}">${KOYO_PHASES[spot.phase].label}</b> · ${koyoPhaseSource(spot)}<br>Forecast window: ${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)} (peak ${fmtDate(spot.bestPeak)})<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" style="color:${C.koyoPeak}">Google Maps →</a>`;
+}
+
+let koyoPhaseFilter = 'all';
+let koyoPrefView = null; // { data, name } while a prefecture is open
+
+function koyoPhaseVisible(spot) {
+  return koyoPhaseFilter === 'all' || spot.phase === koyoPhaseFilter;
+}
+
+function updateKoyoFilterCounts(spots) {
+  const counts = { all: spots.length };
+  for (const spot of spots) counts[spot.phase] = (counts[spot.phase] || 0) + 1;
+  document.querySelectorAll('#koyo-filters .filter-pill').forEach(btn => {
+    const phase = btn.dataset.phase;
+    btn.setAttribute('aria-pressed', String(phase === koyoPhaseFilter));
+    btn.querySelector('.koyo-swatch')?.setAttribute('style', koyoSwatchStyle(phase));
+    let count = btn.querySelector('.koyo-count');
+    if (!count) { count = document.createElement('span'); count.className = 'koyo-count'; btn.append(' ', count); }
+    count.textContent = counts[phase] || 0;
+  });
+}
+
+function setKoyoPhaseFilter(phase) {
+  koyoPhaseFilter = phase;
+  if (koyoPrefView) { renderKoyoPrefSpots(koyoPrefView.data, koyoPrefView.name); return; }
+  clearMarkers({ keepVersion: true });
+  loadAllKoyoSpotsOnMap();
+}
+
 // ── State ──
 let mode = 'sakura';
 let sakuraData = null;
@@ -61,7 +119,10 @@ function handleSpotClick(id) {
   if (d.action === 'flyToSpot') flyToSpot(d);
   if (d.action === 'loadPrefSpots') loadPrefSpots(d.prefCode, d.prefName);
   if (d.action === 'flyToFarm') mapInstance.flyTo([d.lat, d.lon], d.zoom || 14);
-  if (d.action === 'flyToKoyo') mapInstance.flyTo([d.lat, d.lon], d.zoom || 13);
+  if (d.action === 'flyToKoyo') {
+    mapInstance.flyTo([d.lat, d.lon], d.zoom || 13);
+    if (d.popup) L.popup().setLatLng([d.lat, d.lon]).setContent(d.popup).openOn(mapInstance);
+  }
   if (d.action === 'setMode') setMode(d.mode);
   if (d.action === 'loadKoyoSpots') loadKoyoSpots(d.prefCode, d.name);
 }
@@ -652,6 +713,7 @@ function setMode(m) {
   ['sakura','koyo','fruit','flowers','whatson','trip'].forEach(k => { const b = $(`btn-${k}`); if (b) b.classList.toggle('active', k === m); });
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
   if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.style.display = 'none'; }
+  $('koyo-filters').hidden = m !== 'koyo';
   const fn = $('footer-data-note'); if (fn) fn.innerHTML = FOOTER_NOTES[m] || '';
   if (m === 'sakura') loadSakura();
   if (m === 'trip') loadTripPlanner();
@@ -1120,6 +1182,7 @@ async function loadKoyo() {
   $('sidebar-content').innerHTML = skeletonHtml();
   updateLegend('koyo');
   clearMarkers();
+  koyoPrefView = null;
   const token = mapVersion;
   setMapPlaceholder(null);
   scheduleMapWork(() => loadAllKoyoSpotsOnMap({ token, expectedMode: 'koyo' }));
@@ -1175,40 +1238,45 @@ async function loadKoyoSpots(prefCode, name) {
   setMapPlaceholder(null);
   try {
     const data = await api(`/api/koyo/spots?pref=${prefCode}`);
-    clearMarkers();
-    const bounds = [];
-    for (const spot of data.spots) {
-      if (!spot.lat || !spot.lon) continue;
-      const color = spot.status.includes('Peak') ? C.koyoPeak : spot.status.includes('Turning') ? C.koyoEarly : C.dormant;
-      const marker = L.circleMarker([spot.lat, spot.lon], {
-        radius: 7, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
-      }).addTo(mapInstance);
-      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoPeak}">Open in Google Maps &rarr;</a>`);
-      markers.push(marker);
-      bounds.push([spot.lat, spot.lon]);
-    }
-    if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
-
-    $('sidebar-header').innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h2>${name}</h2><p>${data.spots.length} spots</p></div>
-        <button onclick="loadKoyo()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
-      </div>`;
-
-    let html = '';
-    for (const spot of data.spots) {
-      const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
-      html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToSpot',lat:spot.lat,lon:spot.lon,name:spot.name,bloomRate:0,fullRate:0,status:spot.status})})">
-        <h4>${spot.name} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${spot.nameRomaji}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
-        <div class="sub">${spot.leafType} &middot; Peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})
-          &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.koyoPeak}">Google Maps &rarr;</a>
-        </div>
-      </div>`;
-    }
-    $('sidebar-content').innerHTML = html;
+    koyoPrefView = { data, name };
+    renderKoyoPrefSpots(data, name);
   } catch (e) {
     $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
   }
+}
+
+function renderKoyoPrefSpots(data, name) {
+  clearMarkers({ keepVersion: true });
+  updateKoyoFilterCounts(data.spots);
+  const visible = data.spots.filter(koyoPhaseVisible);
+  const bounds = [];
+  for (const spot of visible) {
+    if (!spot.lat || !spot.lon) continue;
+    const marker = L.circleMarker([spot.lat, spot.lon], { radius: 7, ...koyoMarkerStyle(spot) }).addTo(mapInstance);
+    marker.bindPopup(koyoPopupHtml(spot));
+    markers.push(marker);
+    bounds.push([spot.lat, spot.lon]);
+  }
+  if (bounds.length) mapInstance.fitBounds(bounds, { padding: [30, 30] });
+
+  $('sidebar-header').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><h2>${esc(name)}</h2><p>${visible.length} of ${data.spots.length} spots${data.reportsAvailable ? '' : ' · JMC spot reports unavailable right now'}</p></div>
+      <button onclick="loadKoyo()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
+    </div>`;
+
+  let html = '';
+  for (const spot of visible) {
+    const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
+    html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon,popup:koyoPopupHtml(spot)})})">
+      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
+      <div class="sub"><span class="koyo-swatch" style="display:inline-block;vertical-align:-1px;${koyoSwatchStyle(spot.phase)}"></span> <b>${KOYO_PHASES[spot.phase].label}</b> · ${koyoPhaseSource(spot)}</div>
+      <div class="sub">${spot.leafType} &middot; Forecast peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})
+        &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${C.koyoPeak}">Google Maps &rarr;</a>
+      </div>
+    </div>`;
+  }
+  $('sidebar-content').innerHTML = html || `<div class="loading">No spots in this status. Choose All to see every spot.</div>`;
 }
 
 // ── Trip date sync ──
@@ -1274,9 +1342,8 @@ function updateLegend(type) {
   } else if (type === 'koyo') {
     body = `
       <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
-      <div class="legend-row"><div class="legend-dot" style="background:${C.koyoPeak}"></div> Peak colors</div>
-      <div class="legend-row"><div class="legend-dot" style="background:${C.koyoTurn}"></div> Turning</div>
-      <div class="legend-row"><div class="legend-dot" style="background:${C.dormant}"></div> Not yet / ended</div>`;
+      ${Object.entries(KOYO_PHASES).map(([phase, p]) => `<div class="legend-row"><div class="legend-dot" style="${koyoSwatchStyle(phase)}"></div> ${p.label}</div>`).join('')}
+      <div style="margin-top:4px;max-width:180px;font-size:11px;color:var(--gray-600)">Peak and colouring now come from JMC spot reports. Forecast means no colour reported yet.</div>`;
   } else if (type === 'flowers') {
     body = `
       <div style="font-weight:600;margin-bottom:4px">Seasonal Flowers</div>
@@ -1973,9 +2040,8 @@ async function searchTrip() {
 
     // Koyo markers (orange dots)
     for (const spot of nearbyKoyo) {
-      const col = spot.status?.includes('Peak') ? C.koyoPeak : spot.status?.includes('Turning') ? C.koyoTurn : C.koyoEarly;
-      const mk = L.circleMarker([spot.lat, spot.lon], { radius: 7, fillColor: col, color: 'white', weight: 1.5, fillOpacity: 0.9 });
-      mk.bindPopup(`<b>${spot.name}</b><br>${spot.status}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoPeak};font-size:12px">Google Maps →</a>`);
+      const mk = L.circleMarker([spot.lat, spot.lon], { radius: 7, ...koyoMarkerStyle(spot) });
+      mk.bindPopup(koyoPopupHtml(spot));
       mk.addTo(mapInstance);
       markers.push(mk);
       bounds.push([spot.lat, spot.lon]);
@@ -2057,7 +2123,7 @@ async function searchTrip() {
           const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
           html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon})})">
             <h4>${spot.name} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${spot.nameRomaji}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak};font-size:11px">${stars}</span>` : ''}</h4>
-            <div class="sub">${spot.dist}km · Peak: <strong>${fmtDate(spot.bestPeak)}</strong> &middot; ${spot.status}</div>
+            <div class="sub">${spot.dist}km · Peak: <strong>${fmtDate(spot.bestPeak)}</strong> &middot; ${KOYO_PHASES[spot.phase].label}</div>
           </div>`;
         });
         if (nearbyKoyo.length > 12) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbyKoyo.length - 12} more on map</div>`;
@@ -2429,13 +2495,14 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
   const token = options.token ?? mapVersion;
   try {
     if (!allKoyoSpotsData) {
-      allKoyoSpotsData = sessionGet('allKoyoSpots');
+      allKoyoSpotsData = sessionGet('allKoyoSpotsV2');
       if (!allKoyoSpotsData) {
         allKoyoSpotsData = await api('/api/koyo/all-spots');
-        sessionSet('allKoyoSpots', allKoyoSpotsData);
+        sessionSet('allKoyoSpotsV2', allKoyoSpotsData);
       }
     }
-    if (mode !== expectedMode || token !== mapVersion) return;
+    if (mode !== expectedMode || token !== mapVersion || koyoPrefView) return;
+    updateKoyoFilterCounts(allKoyoSpotsData.spots);
 
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 40,
@@ -2443,31 +2510,31 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
       showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
         const children = cluster.getAllChildMarkers();
-        let peak = 0, turning = 0;
-        children.forEach(m => {
-          if (m.options.koyoStatus?.includes('Peak')) peak++;
-          else if (m.options.koyoStatus?.includes('Turning')) turning++;
-        });
+        const counts = {};
+        children.forEach(m => { counts[m.options.koyoPhase] = (counts[m.options.koyoPhase] || 0) + 1; });
         const n = children.length;
-        const color = peak > n * 0.3 ? C.koyoPeak : turning > n * 0.3 ? C.koyoTurn : C.dormant;
-        const textColor = color === C.dormant ? '#333' : 'white';
+        // A cluster takes the colour of its most common phase.
+        const top = Object.keys(counts).reduce((a, b) => (counts[b] > counts[a] ? b : a));
+        const p = KOYO_PHASES[top];
+        const bg = p.hollow ? 'white' : p.color;
+        const border = p.hollow ? `${KOYO_HOLLOW_STROKE}px solid ${p.color}` : '2px solid white';
+        const textColor = top === 'peak_now' ? 'white' : top === 'forecast' ? C.koyoPeak : '#333';
         const size = Math.min(38 + n * 0.4, 58);
         return L.divIcon({
-          html: `<div style="background:${color};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
+          html: `<div style="background:${bg};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:${border};box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '',
           iconSize: [size, size],
         });
       }
     });
 
-    for (const spot of allKoyoSpotsData.spots) {
+    for (const spot of allKoyoSpotsData.spots.filter(koyoPhaseVisible)) {
       if (!spot.lat || !spot.lon) continue;
-      const color = spot.status?.includes('Peak') ? C.koyoPeak : spot.status?.includes('Turning') ? C.koyoTurn : C.dormant;
       const marker = L.circleMarker([spot.lat, spot.lon], {
-        radius: 6, fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.9,
-        koyoStatus: spot.status,
+        radius: 6, ...koyoMarkerStyle(spot),
+        koyoPhase: spot.phase,
       });
-      marker.bindPopup(`<b>${spot.name}</b><br>${spot.status || '—'}<br>Peak: ${fmtDate(spot.bestPeak)}<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.koyoPeak}">Google Maps →</a>`);
+      marker.bindPopup(koyoPopupHtml(spot));
       clusterGroup.addLayer(marker);
     }
 
