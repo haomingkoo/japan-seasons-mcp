@@ -46,10 +46,6 @@
     a { color: var(--accent); font-weight: 600; }
     a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     ul { padding-left: 1.2rem; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; background: var(--panel); }
-    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border: 1px solid var(--line); }
-    th { font-weight: 700; }
     code { font-size: 0.9em; }
     footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
   </style>
@@ -60,99 +56,49 @@
   <h1>Privacy</h1>
   <p class="muted">Last updated 25 October 2026</p>
 
-  <p>Japan in Seasons is a free map of Japanese seasonal forecasts, with a public REST API and an MCP server for AI assistants. It is run by Koo Haoming (individual, Singapore). This page explains what data the site and the API handle when you use them. It is written to the standard of Singapore's Personal Data Protection Act 2012 (PDPA).</p>
+  <p>Japan in Seasons is a free map of seasonal forecasts for Japan. It also has a public API and an MCP server for AI assistants. Koo Haoming runs it as an individual in Singapore. There are no accounts or sign-up forms. There are no cookies or ad trackers either.</p>
 
-  <h2>Short version</h2>
+  <h2>What we collect</h2>
   <ul>
-    <li>There are no accounts, sign-up forms, cookies or advertising trackers.</li>
-    <li>The server sees your IP address on every request. It uses it to rate-limit and to count visitors. It does not write it to disk or to its own logs.</li>
-    <li>Your browser loads map code, map tiles and a place-name lookup from third parties. Those services see your IP address.</li>
-    <li>"Near Me" location stays in your browser.</li>
+    <li>Your IP address, which our server sees on every request.</li>
+    <li>A session ID when an AI assistant connects to the MCP server.</li>
+    <li>The name of each MCP tool that gets called, such as <code>sakura_forecast</code>.</li>
+  </ul>
+  <p>The questions, dates and regions you send to a tool are used to answer that request. We do not store them.</p>
+  <p>"Near Me" uses your location inside your browser to find spots within 30 km. Your location is never sent to us or anyone else. The map also caches forecast data in your browser's local storage for an hour. That cache holds forecasts only.</p>
+
+  <h2>Why</h2>
+  <ul>
+    <li>We use your IP address to limit each visitor to 60 requests a minute. This keeps the free service up for everyone.</li>
+    <li>We also count how many different visitors use the site each day. To do that we keep a scrambled (salted hash) version of each IP address. Only the daily total is shown, on the <a href="/status">status page</a>.</li>
+    <li>Session IDs keep an AI assistant connected. Tool names tell us which tools people use.</li>
+  </ul>
+  <p>We do not sell your data or use it for marketing.</p>
+
+  <h2>Who sees it</h2>
+  <ul>
+    <li><strong>Cloudflare</strong> sits in front of the site and sees every request. Cloudflare Web Analytics: cookieless, aggregate page views, no input capture.</li>
+    <li><strong>Railway</strong> hosts our server. Railway keeps its own request logs under its own policy.</li>
+    <li><strong>unpkg</strong> sends your browser the map library.</li>
+    <li><strong>OpenStreetMap Germany</strong> sends your browser the map images. It sees which part of the map you are viewing.</li>
+    <li><strong>GSI</strong>, Japan's mapping agency, looks up the city when you open a spot. It gets that spot's coordinates. It never gets yours.</li>
+  </ul>
+  <p>Each of these services sees your IP address. Some are outside Singapore, including in Germany and Japan. Our server fetches forecast and weather data on its own. Those data providers never see you.</p>
+
+  <h2>How long</h2>
+  <ul>
+    <li>Rate-limit entries live in server memory and are gone within about five minutes.</li>
+    <li>The scrambled IP list is deleted at the end of each day (UTC) and whenever the server restarts. It is never written to disk.</li>
+    <li>MCP sessions end after 10 idle minutes.</li>
+    <li>Tool-call totals reset when the server restarts.</li>
   </ul>
 
-  <h2>What we collect and why</h2>
-  <div class="table-wrap">
-  <table>
-    <thead><tr><th>Data</th><th>Purpose</th><th>How long it is kept</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Your IP address</td>
-        <td>Rate limiting: each IP may make 60 requests per minute, to keep the free service available for everyone.</td>
-        <td>Held in server memory only. Each entry expires after one minute and is removed within about five minutes.</td>
-      </tr>
-      <tr>
-        <td>A salted hash of your IP address</td>
-        <td>Counting how many distinct visitors used the service today. Only the total number is shown on the <a href="/status">status page</a> and in the server's hourly log.</td>
-        <td>Held in memory only. The random salt and the list of hashes are discarded at the end of each day (UTC) and whenever the server restarts.</td>
-      </tr>
-      <tr>
-        <td>MCP session ID</td>
-        <td>Lets an AI assistant keep a connection to the MCP server.</td>
-        <td>In memory. Removed after 10 minutes of inactivity.</td>
-      </tr>
-      <tr>
-        <td>MCP tool names</td>
-        <td>Usage statistics: how often each tool (for example <code>sakura_forecast</code>) is called.</td>
-        <td>Totals in memory, reset on restart. The questions, dates and regions you send to a tool are used to answer that request and are not stored.</td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-  <p>We do not use your data for marketing, profiling or automated decisions, and we do not sell it.</p>
-
-  <h2>Data that stays on your device</h2>
-  <ul>
-    <li><strong>Near Me.</strong> If you press "Near Me", your browser asks for permission to share your location. The coordinates are used in your browser to find spots within 30 km. They are not sent to our server or to any third party.</li>
-    <li><strong>Browser storage.</strong> The map saves copies of forecast data in <code>localStorage</code> and <code>sessionStorage</code> so pages load faster. Each copy expires after one hour. It holds forecast data only, nothing about you. You can clear it in your browser settings.</li>
-  </ul>
-
-  <h2>Service providers and overseas transfers</h2>
-  <p>These services receive your IP address and normal request details (browser type, the page that made the request) when you use the site. Some of them are outside Singapore.</p>
-  <div class="table-wrap">
-  <table>
-    <thead><tr><th>Provider</th><th>What it does</th><th>What it receives</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Cloudflare</td>
-        <td>Sits in front of the site as a CDN and security proxy. Cloudflare Web Analytics: cookieless, aggregate page views, no input capture.</td>
-        <td>Every request to this site. Global network.</td>
-      </tr>
-      <tr>
-        <td>Railway</td>
-        <td>Hosts the server.</td>
-        <td>Every request that reaches the server, including in Railway's own platform request logs. [LAWYER REVIEW: confirm Railway's hosting region and log retention period.]</td>
-      </tr>
-      <tr>
-        <td>unpkg</td>
-        <td>Serves the Leaflet map library to your browser.</td>
-        <td>Your IP address when the map page loads.</td>
-      </tr>
-      <tr>
-        <td>OpenStreetMap Germany (<code>tile.openstreetmap.de</code>)</td>
-        <td>Serves the map images.</td>
-        <td>Your IP address and the map area you are viewing. Germany.</td>
-      </tr>
-      <tr>
-        <td>Geospatial Information Authority of Japan (GSI)</td>
-        <td>Looks up the city for a spot so the popup can link to the right Japan Meteorological Agency forecast.</td>
-        <td>Your IP address and the coordinates of the spot you opened, not your own location. Japan.</td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-  <p>Forecast and weather data come from the Japan Meteorological Corporation, the Japan Meteorological Agency (via <code>weather.tsukumijima.net</code>) and Open-Meteo. Our server fetches that data itself. Those providers do not receive your IP address or anything about you.</p>
-  <p>Links to other sites, such as GitHub, npm or tourism boards, take you to services with their own privacy policies.</p>
-  <p>[LAWYER REVIEW: confirm the wording needed under PDPA section 26 for the transfers to Cloudflare, Railway, unpkg, OpenStreetMap Germany and GSI.]</p>
-
-  <h2>Your rights</h2>
-  <p>Under the PDPA you can ask for access to personal data we hold about you, ask us to correct it, or withdraw consent to its use. Because we keep IP data only in memory for a short time, there is usually nothing left to access or correct by the time we receive a request. We will still reply and tell you what we hold. You can withdraw consent at any time by stopping use of the site and API. [LAWYER REVIEW: confirm whether a fixed response time should be stated here.]</p>
-
-  <h2>Use of the service</h2>
-  <p>Forecasts and spot information come from third-party sources and are provided as-is. They may be wrong or out of date. Check official sources before you travel. The code is MIT licensed.</p>
+  <h2>Your choices</h2>
+  <p>You can ask what data we hold about you, ask us to correct it, or withdraw your consent. Since we keep so little and only briefly, there is usually nothing left to find. We will still answer you. You can also clear the forecast cache in your browser settings, or simply stop using the site.</p>
+  <p>Forecasts come from third parties and may be wrong or out of date. Check official sources before you travel.</p>
 
   <h2>Contact</h2>
   <p>Questions or data requests: <a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a></p>
-  <p>We will update this page if what the service collects changes. The date at the top shows the last change.</p>
 
   <footer>
     Japan in Seasons &middot; <a href="/">Map</a> &middot; <a href="/status">Status</a> &middot; <a href="https://github.com/haomingkoo/japan-seasons-mcp" rel="noopener">GitHub</a>
