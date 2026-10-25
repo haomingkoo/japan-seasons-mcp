@@ -1,0 +1,34 @@
+# Japan in Seasons: design
+
+Inherits the kooexperience design core (`~/.agent-memory/design/DESIGN-core.md`). This file adds what is specific to Seasons.
+
+## Audience and job
+Travellers planning a Japan trip around cherry blossom, autumn leaves, flowers, fruit or festivals. The map is the product: the first screen is the map plus a list of what is in season, nothing above it but the header.
+
+## Mood
+A calm seasonal almanac on warm paper. The map carries the colour; the chrome stays quiet.
+
+## Tokens (public/app.css `:root`)
+- Paper `#f6f1e8` page, `#fffcf7` surface, `#f0e9dd` section heads and notes, hairline `#e3d9c9`.
+- Ink `#1f1c18`, secondary `#5a534b` (6.3:1 on the darkest surface). No lighter grey for text.
+- One accent at a time, set by `body[data-mode]`, or by `data-season` (from the month) on mixed views:
+  sakura `#b4325a`, koyo `#ad3b0c`, fruit `#2e6534`, flowers `#65489a`. All pass 4.5:1 on every surface and with white text.
+- Danger `#a1281f`, for errors only.
+- Type: Shippori Mincho (self-hosted, latin, 500/700) for the wordmark and headings; system sans for UI. Sizes 12, 13, 15, 20, 28 (40 on subpages).
+- Radius 6 controls, 10 cards and popups. One shadow (`--float`) for legend, popups and map notices.
+
+## Map
+- Tiles are OSM.de with a light desaturate and sepia filter so markers lead.
+- Markers are plain shapes: dots for spots, squares for festivals and Kawazu cherry. No emoji or glyph icons.
+- Cluster numbers pick white or ink with `inkOn()` so every count passes 4.5:1.
+- Leaflet attribution, zoom and popups are themed from the tokens.
+
+## Copy
+- Plain sentence case. No em dashes, no exclamation marks, no "JMC spot report" jargon in the UI.
+- Live counts (spots on the map, filter counts) come from the loaded data. Static copy uses `{{FLOWER_SPOT_COUNT}}`, `{{FESTIVAL_COUNT}}` and `{{FRUIT_FARM_COUNT}}` filled from `public/*.json`, and rounds upstream counts ("about 1,000").
+
+## States
+Every list has a skeleton while loading, `stateHtml()` for empty results, and `errorState()` with a retry button. Raw error text never reaches the page.
+
+## Chrome
+Header: wordmark, six season views (a select below 769px), Near me. Space is left after the season tabs for a future Explore link. Footer is the shared kooexperience footer; developer and MCP docs live at `/developers`.

@@ -5,54 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy | {{CONNECTOR_NAME}}</title>
   <meta name="description" content="What Japan in Seasons collects when you use the map, REST API or MCP server, who processes it, and how to contact us.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#f6f1e8">
   <link rel="canonical" href="{{SITE_URL}}/privacy">
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --text: #172033;
-      --muted: #667085;
-      --line: #d8dee8;
-      --accent: #0f766e;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f141c;
-        --panel: #161d28;
-        --text: #e6ebf2;
-        --muted: #9aa5b5;
-        --line: #2a3443;
-        --accent: #4fd1c5;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.6;
-    }
-    main {
-      width: min(760px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 44px;
-    }
-    h1 { margin: 0 0 4px; font-size: clamp(1.5rem, 3vw, 2rem); }
-    h2 { margin: 32px 0 8px; font-size: 1.15rem; }
-    p, li { color: var(--text); }
-    .muted { color: var(--muted); }
-    a { color: var(--accent); font-weight: 600; }
-    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    ul { padding-left: 1.2rem; }
-    code { font-size: 0.9em; }
-    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
-  </style>
+  <link rel="stylesheet" href="/app.css?v={{ASSET_VERSION}}">
 </head>
-<body>
-<main>
-  <p><a href="/">&larr; Back to the map</a></p>
+<body class="subpage" data-season="sakura">
+<header class="top-bar">
+  <a class="brand" href="/" aria-label="Japan in Seasons, back to the map">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(16 16.6)" fill="var(--accent)"><path id="petal" d="M0-1.6C-3.6-4.2-4.6-8.4-2.6-11.4L0-9.6 2.6-11.4C4.6-8.4 3.6-4.2 0-1.6Z"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/></g></svg>
+    <span class="brand-name">Japan in Seasons</span>
+  </a>
+  <a class="btn-secondary" href="/">Open the map</a>
+</header>
+<main class="page">
   <h1>Privacy</h1>
   <p class="muted">Last updated 25 October 2026</p>
 
@@ -99,10 +65,9 @@
 
   <h2>Contact</h2>
   <p>Questions or data requests: <a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a></p>
-
-  <footer>
-    Japan in Seasons &middot; <a href="/">Map</a> &middot; <a href="/status">Status</a> &middot; <a href="https://github.com/haomingkoo/japan-seasons-mcp" rel="noopener">GitHub</a>
-  </footer>
 </main>
+<footer class="site-footer">
+  <p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p>
+</footer>
 </body>
 </html>

@@ -272,6 +272,13 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/japan-seasonal-travel-mcp":  { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
   "/japan-seasonal-travel-mcp/": { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
   "/googlec3efc6b89b4ed154.html": { file: "googlec3efc6b89b4ed154.html", mime: "text/html; charset=utf-8" },
+  "/developers":   { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
+  "/developers/":  { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
+  "/terms":        { file: "terms.html",                    mime: "text/html; charset=utf-8" },
+  "/terms/":       { file: "terms.html",                    mime: "text/html; charset=utf-8" },
+  "/favicon.svg":  { file: "favicon.svg",                   mime: "image/svg+xml" },
+  "/fonts/shippori-mincho-latin-500.woff2": { file: "fonts/shippori-mincho-latin-500.woff2", mime: "font/woff2" },
+  "/fonts/shippori-mincho-latin-700.woff2": { file: "fonts/shippori-mincho-latin-700.woff2", mime: "font/woff2" },
 };
 const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 {
@@ -294,6 +301,9 @@ const SITE_TEMPLATE_REPLACEMENTS: Record<string, string> = {
   "{{KOYO_FORECAST_API_URL}}": `${SITE_URL}${SITE_CONFIG.koyoForecastApiPath}`,
   "{{CONNECTOR_NAME}}": SITE_CONFIG.connector.name,
   "{{CONNECTOR_DESCRIPTION}}": SITE_CONFIG.connector.description,
+  "{{FLOWER_SPOT_COUNT}}": String(STATIC_MCP.flowers?.spots?.length ?? ""),
+  "{{FESTIVAL_COUNT}}": String(STATIC_MCP.festivals?.spots?.length ?? ""),
+  "{{FRUIT_FARM_COUNT}}": (STATIC_MCP.farms?.spots?.length ?? 0).toLocaleString("en-US"),
 };
 
 function renderSiteTemplate(body: Buffer, mime: string): Buffer | string {
@@ -317,6 +327,7 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
     { loc: `${SITE_URL}/privacy`, priority: "0.3" },
+    { loc: `${SITE_URL}/terms`, priority: "0.3" },
     { loc: `${SITE_URL}/llms.txt`, priority: "0.5" },
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
