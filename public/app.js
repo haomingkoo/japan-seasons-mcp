@@ -751,7 +751,7 @@ function pushUrlState(params = {}) {
 const FOOTER_NOTES = {
   sakura:  `<b>Live data:</b> <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> — bloom % updated daily 9AM JST · weather hourly<br>`,
   koyo:    `<b>Live data:</b> <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> (JMC) — koyo forecasts and spot reports updated daily 9AM JST · weather hourly<br>`,
-  fruit:   `<b>Data:</b> Farm listings from Jalan &amp; Navitime — season windows are typical regional averages, confirm with farms before visiting<br>`,
+  fruit:   `<b>Data:</b> Farm listings from Jalan — season windows are typical regional averages, confirm with farms before visiting<br>`,
   flowers: `<b>Data:</b> Curated — typical annual bloom dates · actual timing varies by weather, always check official sites<br>`,
   whatson: `<b>Data:</b> Curated seasonal activities — typical dates only · always check official sites before visiting<br>`,
   trip:    `<b>Data:</b> Sakura &amp; koyo from <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> · other activities are curated typical dates<br>`,

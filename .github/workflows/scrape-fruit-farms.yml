@@ -22,33 +22,14 @@ jobs:
 
       - name: Install Playwright
         run: |
-          pip install playwright requests
+          pip install playwright
           playwright install chromium
 
-      - name: Scrape Navitime (base data)
-        run: python3 scrape-fruit-farms.py
-        timeout-minutes: 15
-
-      - name: Scrape Jalan (merge with existing)
+      # Navitime was dropped: its AWS WAF returns 403 to GitHub runners (and to any automated client).
+      # scrape-jalan.py exits non-zero without writing if any search is incomplete or the count drops.
+      - name: Scrape Jalan
         run: python3 scrape-jalan.py
-        timeout-minutes: 30
-
-      - name: Validate output (fail fast if scrape broke)
-        run: |
-          python3 -c "
-          import json, sys
-          d = json.load(open('public/fruit-farms.json'))
-          total = d.get('total', 0)
-          coords = d.get('with_coords', 0)
-          print(f'Total spots: {total}, with coords: {coords}')
-          if total < 50:
-              print('ERROR: Too few spots — scraper likely broke or was blocked')
-              sys.exit(1)
-          if coords < 30:
-              print('ERROR: Too few coordinates — coordinate extraction broke')
-              sys.exit(1)
-          print('Validation passed')
-          "
+        timeout-minutes: 20
 
       - name: Check if data changed
         id: check
