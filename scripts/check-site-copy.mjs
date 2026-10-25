@@ -30,6 +30,7 @@ const publicTemplates = [
   "public/autumn-leaves-forecast.html",
   "public/status.html",
   "public/privacy.html",
+  "public/terms.html",
   "public/llms.txt",
   "public/robots.txt",
 ];
@@ -55,7 +56,7 @@ const server = JSON.parse(read("server.json"));
 assert(server.remotes?.[0]?.url?.startsWith(MCP_ENDPOINT), "server.json remote URL must start with MCP_ENDPOINT");
 
 const connectorBlock = `Name: {{CONNECTOR_NAME}}\nDescription: {{CONNECTOR_DESCRIPTION}}\nConnector URL: {{MCP_ENDPOINT}}`;
-for (const path of ["public/index.html", "public/japan-seasonal-travel-mcp.html"]) {
+for (const path of ["public/japan-seasonal-travel-mcp.html"]) {
   assert(read(path).includes(connectorBlock), `${path} must render connector metadata from site config tokens`);
 }
 

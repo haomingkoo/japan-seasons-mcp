@@ -18,7 +18,7 @@ const C = {
   koyoPeak:    '#ea580c',  // = CSS --orange
   koyoTurn:    '#f97316',
   koyoEarly:   '#fdba74',
-  // Kawazu cherry (early-blooming variant — distinct magenta)
+  // Kawazu cherry (early-blooming variant, distinct magenta)
   kawazu:      '#db2777',
   // Fruit picking — blue for map markers (distinct from all sakura lifecycle colors)
   farmBlue:        '#2563eb',
@@ -33,8 +33,9 @@ const C = {
   greenBorder: '#bbf7d0',
   // Generic semantic
   gray:        '#a3a3a3',
-  error:       '#dc2626',
+  error:       '#a1281f',
   pinkLight:   '#fdf2f8',
+  flowers:     '#7c3aed',
 };
 
 // ── Koyo status: phase comes from the API (fresh JMC spot report first, forecast dates otherwise) ──
@@ -60,12 +61,12 @@ function koyoSwatchStyle(phase) {
 
 function koyoPhaseSource(spot) {
   return spot.phaseSource === 'report'
-    ? `JMC spot report: ${esc(spot.reportStatus)}`
-    : 'No current spot report, forecast dates only';
+    ? `Reported at the spot: ${esc(spot.reportStatus)}`
+    : 'No recent report from the spot';
 }
 
 function koyoPopupHtml(spot) {
-  return `<b>${esc(spot.name)}</b><br><b style="color:${C.koyoPeak}">${KOYO_PHASES[spot.phase].label}</b> · ${koyoPhaseSource(spot)}<br>Forecast window: ${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)} (peak ${fmtDate(spot.bestPeak)})<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" style="color:${C.koyoPeak}">Google Maps →</a>`;
+  return `<b>${esc(spot.name)}</b><br><b>${KOYO_PHASES[spot.phase].label}</b> · ${koyoPhaseSource(spot)}<br>Forecast window: ${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)} (peak ${fmtDate(spot.bestPeak)})<br><a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener">Open in Google Maps</a>`;
 }
 
 let koyoPhaseFilter = 'all';
@@ -96,11 +97,11 @@ async function applyKoyoDates() {
       api(`/api/koyo/best?start=${koyoDateRange.start}&end=${koyoDateRange.end}`).then(d => d.cities),
       (async () => { clearMarkers({ keepVersion: true }); await loadAllKoyoSpotsOnMap(); })(),
     ]);
-    if (!allKoyoSpotsData) throw new Error('Autumn leaves spots did not load. Please try again.');
+    if (!allKoyoSpotsData) throw new Error('koyo spots missing');
     koyoDateCities = cities;
     renderKoyoDateResults(cities);
   } catch (e) {
-    $('koyo-date-results').innerHTML = `<div class="loading" style="color:${C.error}">${esc(e.message)}</div>`;
+    $('koyo-date-results').innerHTML = errorState('Could not search those dates', 'applyKoyoDates()');
   }
 }
 
@@ -122,13 +123,13 @@ function renderKoyoDateResults(cities) {
   for (const spot of spots.slice(0, KOYO_DATE_RESULTS_SHOWN)) {
     const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
     html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon,popup:koyoPopupHtml(spot)})})">
-      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
+      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span class="muted" title="Popularity ${spot.popularity} of 3" aria-label="Popularity ${spot.popularity} of 3">${stars}</span>` : ''}</h4>
       <div class="sub">Forecast window ${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)} · peak <strong>${fmtDate(spot.bestPeak)}</strong></div>
       <div class="sub"><span class="koyo-swatch" style="display:inline-block;vertical-align:-1px;${koyoSwatchStyle(spot.phase)}"></span> Status today: ${KOYO_PHASES[spot.phase].label}</div>
     </div>`;
   }
   if (spots.length > KOYO_DATE_RESULTS_SHOWN) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-600)">+ ${spots.length - KOYO_DATE_RESULTS_SHOWN} more on the map</div>`;
-  if (!spots.length) html += `<div class="loading">No spots have a forecast viewing window in these dates. Try a wider range.</div>`;
+  if (!spots.length) html += stateHtml({ title: 'No spots in colour for these dates', body: 'Try a wider date range.' });
   html += `<div class="koyo-results-head">${cities.length} forecast cities in colour</div>`;
   html += `<div class="sub" style="padding:8px 16px">${cities.map(c => esc(c.nameEn || c.name)).join(', ') || 'None in these dates.'}</div>`;
   $('koyo-date-results').innerHTML = html;
@@ -217,7 +218,7 @@ function initMap() {
       const cachedCode = jmaCityCache.get(geoKey);
       if (cachedCode) {
         jmaLink.href = `https://www.jma.go.jp/bosai/forecast/#area_type=class20s&area_code=${cachedCode}`;
-        jmaLink.textContent = 'JMA city forecast →';
+        jmaLink.textContent = 'JMA city weather';
       } else {
         // GSI (Geospatial Info Authority of Japan) reverse geocoder — free, official
         fetch(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`)
@@ -228,7 +229,7 @@ function initMap() {
               const areaCode = muniCd + '00'; // JMA class20s = muniCd + "00"
               jmaCityCache.set(geoKey, areaCode);
               jmaLink.href = `https://www.jma.go.jp/bosai/forecast/#area_type=class20s&area_code=${areaCode}`;
-              jmaLink.textContent = 'JMA city forecast →';
+              jmaLink.textContent = 'JMA city weather';
             }
           })
           .catch(() => {}); // silently keep prefecture link on failure
@@ -243,7 +244,7 @@ function initMap() {
       return;
     }
 
-    el.innerHTML = '<div style="color:#ccc;font-size:11px;padding:4px 0">Loading weather…</div>';
+    el.innerHTML = '<div style="color:var(--ink-2);font-size:12px;padding:4px 0">Loading weather…</div>';
 
     try {
       // Route through our own server — caches responses for 1 hour, much faster on repeat
@@ -263,49 +264,72 @@ function initMap() {
       if (!dates.length) { el.innerHTML = ''; return; }
 
       // Current conditions row
-      const curIcon = wmoIcon(cw.weathercode ?? 0);
-      const curTemp = cw.temperature != null ? Math.round(cw.temperature) : null;
+            const curTemp = cw.temperature != null ? Math.round(cw.temperature) : null;
       const curDesc = wmoDesc(cw.weathercode ?? 0);
       const nowHtml = curTemp != null ? `
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #f1f5f9">
-          <span style="font-size:22px;line-height:1">${curIcon}</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--line)">
           <div>
-            <span style="font-size:15px;font-weight:700;color:#1e293b">${curTemp}°C</span>
-            <span style="font-size:11px;color:#64748b;margin-left:4px">${curDesc}</span>
+            <span style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">${curTemp}°C</span>
+            <span style="font-size:12px;color:var(--ink-2);margin-left:4px">${curDesc} now</span>
           </div>
         </div>` : '';
 
       // 3-day forecast cards
       const DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const cols = dates.slice(0, 3).map((date, i) => {
-        const icon = wmoIcon(codes[i] ?? 0);
-        const hi   = maxTemps[i] != null ? Math.round(maxTemps[i]) : '—';
-        const lo   = minTemps[i] != null ? Math.round(minTemps[i]) : '—';
+        const icon = wmoShort(codes[i] ?? 0);
+        const hi   = maxTemps[i] != null ? Math.round(maxTemps[i]) : '?';
+        const lo   = minTemps[i] != null ? Math.round(minTemps[i]) : '?';
         const rain = rainProb[i]  != null ? Math.round(rainProb[i]) : 0;
         const label = i === 0 ? 'Today' : DAY[new Date(date + 'T12:00:00+09:00').getDay()];
-        return `<div style="text-align:center;flex:1;background:#f8fafc;border-radius:5px;padding:4px 2px">
-          <div style="font-size:10px;color:#64748b;font-weight:500;margin-bottom:1px">${label}</div>
-          <div style="font-size:18px;line-height:1.3">${icon}</div>
-          <div style="font-weight:700;font-size:12px;color:#1e293b">${hi}°</div>
-          <div style="font-size:10px;color:#94a3b8">${lo}°</div>
-          ${rain > 10 ? `<div style="font-size:9px;color:#60a5fa;font-weight:500">${rain}%</div>` : ''}
+        return `<div style="text-align:center;flex:1;background:var(--surface-2);border-radius:6px;padding:4px 2px;font-variant-numeric:tabular-nums">
+          <div style="font-size:11px;color:var(--ink-2);font-weight:600">${label}</div>
+          <div style="font-size:11px;color:var(--ink)">${icon}</div>
+          <div style="font-weight:700;font-size:12px">${hi}° <span style="font-weight:400;color:var(--ink-2)">${lo}°</span></div>
+          ${rain > 10 ? `<div style="font-size:11px;color:var(--ink-2)">Rain ${rain}%</div>` : ''}
         </div>`;
       }).join('');
 
       const html = `
-        <div style="margin-top:6px;padding-top:5px;border-top:1px solid #f1f5f9">
+        <div>
           ${nowHtml}
           <div style="display:flex;gap:3px;margin-bottom:4px">${cols}</div>
         </div>`;
 
       weatherCache.set(key, { html, ts: Date.now() });
       el.innerHTML = html;
-    } catch { el.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:4px 0">Weather unavailable</div>'; }
+    } catch { el.innerHTML = '<div style="font-size:12px;color:var(--ink-2);padding:4px 0">Weather is unavailable right now.</div>'; }
   });
 }
 
 // ── Helpers ──
 const $ = id => document.getElementById(id);
+const NA = 'TBA';
+
+// Designed empty/error state. retry is an inline handler string.
+function stateHtml({ title, body = '', retry = '', retryLabel = 'Try again', error = false }) {
+  return `<div class="state${error ? ' error' : ''}" role="${error ? 'alert' : 'status'}">
+    <h3>${esc(title)}</h3>${body ? `<p>${body}</p>` : ''}
+    ${retry ? `<button type="button" onclick="${retry}">${esc(retryLabel)}</button>` : ''}
+  </div>`;
+}
+function errorState(title, retry) {
+  return stateHtml({ title, body: 'Check your connection and try again.', retry, error: true });
+}
+// White or ink, whichever reads at 4.5:1 on a marker fill.
+function inkOn(hex) {
+  const c = hex.replace('#', '');
+  const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * lin(parseInt(c.slice(0, 2), 16)) + 0.7152 * lin(parseInt(c.slice(2, 4), 16)) + 0.0722 * lin(parseInt(c.slice(4, 6), 16));
+  return 1.05 / (L + 0.05) >= 4.5 ? '#fff' : '#1f1c18';
+}
+function dotHtml(color) { return `<span class="dot" style="background:${color}" aria-hidden="true"></span>`; }
+function seasonForMonth(m) {
+  if (m >= 2 && m <= 5) return 'sakura';
+  if (m >= 9 && m <= 12) return 'koyo';
+  if (m >= 6 && m <= 8) return 'flowers';
+  return 'sakura';
+}
 
 function setMapPlaceholder(state = null) {
   const el = $('map-placeholder');
@@ -372,24 +396,23 @@ function sessionSet(key, data) {
 
 // ── Farm popup — single source, used in trip/fruit/whatson modes ──
 function farmPopupHtml(farm, m) {
-  const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && (m ? f.months.includes(m) : true))?.emoji || '🌿';
   const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
   return `<div style="min-width:170px">
     <b>${esc(farm.name)}</b><br>
-    <span style="font-size:11px;color:#666">${esc(farm.address||'')}</span><br>
+    <span style="font-size:12px;color:var(--ink-2)">${esc(farm.address||'')}</span><br>
     <span style="font-size:11px">${(farm.fruits||[]).map(esc).join(' · ')}</span>
     <div style="margin-top:6px">
-      <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
-      ${farm.url ? ` &middot; <a href="${esc(farm.url)}" target="_blank" style="color:#0369a1;font-size:12px">${esc(srcLabel)} →</a>` : ''}
+      <a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" rel="noopener">Google Maps</a>
+      ${farm.url ? ` &middot; <a href="${esc(farm.url)}" target="_blank" rel="noopener">View on ${esc(srcLabel)}</a>` : ''}
     </div>
   </div>`;
 }
 // JMC dates are JST calendar days; format in Tokyo time so viewers west of Japan do not see the previous day.
 const JST_MONTH_DAY = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' });
 function fmtDate(iso) {
-  if (!iso) return '—';
+  if (!iso) return NA;
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return '—';
+  if (isNaN(d.getTime())) return NA;
   return JST_MONTH_DAY.format(d);
 }
 function daysSince(iso) {
@@ -429,11 +452,11 @@ function sakuraPhaseColor(phase) {
 }
 
 function sakuraPhaseLabel(phase) {
-  if (phase === 'ended') return 'Ended — green leaves';
-  if (phase === 'falling') return 'Falling — petals scattering';
-  if (phase === 'past_peak') return 'Past peak — still some petals';
-  if (phase === 'peak') return 'Full bloom — best viewing!';
-  if (phase === 'blooming') return 'Blooming — near full bloom';
+  if (phase === 'ended') return 'Ended, green leaves';
+  if (phase === 'falling') return 'Petals falling';
+  if (phase === 'past_peak') return 'Past peak, some petals left';
+  if (phase === 'peak') return 'Full bloom, best viewing';
+  if (phase === 'blooming') return 'Blooming, near full bloom';
   if (phase === 'starting') return 'Starting to bloom';
   if (phase === 'bud_open') return 'Buds opening';
   if (phase === 'bud_swell') return 'Buds swelling';
@@ -505,18 +528,18 @@ function sakuraBadgeClass(phase) {
   return 'ended';
 }
 
-// WMO weather code → emoji (https://open-meteo.com/en/docs)
-function wmoIcon(code) {
-  if (code === 0) return '☀️';
-  if (code <= 2) return '⛅';
-  if (code <= 3) return '🌥️';
-  if (code <= 48) return '🌫️';
-  if (code <= 57) return '🌦️';
-  if (code <= 67) return '🌧️';
-  if (code <= 77) return '❄️';
-  if (code <= 82) return '🌦️';
-  if (code <= 86) return '🌨️';
-  return '⛈️';
+// WMO weather code → short label (https://open-meteo.com/en/docs)
+function wmoShort(code) {
+  if (code === 0) return 'Clear';
+  if (code <= 2) return 'Partly cloudy';
+  if (code <= 3) return 'Cloudy';
+  if (code <= 48) return 'Fog';
+  if (code <= 57) return 'Drizzle';
+  if (code <= 67) return 'Rain';
+  if (code <= 77) return 'Snow';
+  if (code <= 82) return 'Showers';
+  if (code <= 86) return 'Snow';
+  return 'Storms';
 }
 function wmoDesc(code) {
   if (code === 0) return 'Clear sky';
@@ -540,10 +563,10 @@ function sakuraDateOk(iso) {
 }
 // Full date line: confirmed = plain date, forecast = "(est.)" suffix
 function fmtDates(bloomForecast, bloomRate, fullBloomForecast, fullRate) {
-  const bDate = sakuraDateOk(bloomForecast) ? fmtDate(bloomForecast) : '—';
-  const fDate = sakuraDateOk(fullBloomForecast) ? fmtDate(fullBloomForecast) : '—';
-  const b = bloomRate >= 100 ? `Bloomed: ${bDate}` : `Bloom: ${bDate === '—' ? '—' : bDate + ' (est.)'}`;
-  const f = fullRate >= 100 ? `Full bloom: ${fDate}` : `Full bloom: ${fDate === '—' ? '—' : fDate + ' (est.)'}`;
+  const bDate = sakuraDateOk(bloomForecast) ? fmtDate(bloomForecast) : NA;
+  const fDate = sakuraDateOk(fullBloomForecast) ? fmtDate(fullBloomForecast) : NA;
+  const b = bloomRate >= 100 ? `Bloomed: ${bDate}` : `Bloom: ${bDate === NA ? NA : bDate + ' (est.)'}`;
+  const f = fullRate >= 100 ? `Full bloom: ${fDate}` : `Full bloom: ${fDate === NA ? NA : fDate + ' (est.)'}`;
   return `${b} · ${f}`;
 }
 
@@ -643,28 +666,20 @@ function applyBloomFilter(filter, el) {
   if (bloomFilters.size === 0) {
     let html = '';
     for (const region of sakuraData.regions) {
-      html += `<div style="padding:12px 16px;background:var(--gray-50);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.nameEn}</div>`;
+      html += `<div class="section-head">${region.nameEn}</div>`;
       for (const city of region.cities) {
-        const st = statusText(city.status);
-        html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'loadPrefSpots',prefCode:city.prefCode,prefName:city.prefName})})">
-          <h4>${city.cityName} <span style="font-weight:400;color:var(--gray-400)">${city.prefName}</span></h4>
-          <div class="sub">
-            <span class="badge ${st.cls}">${st.text}</span>
-            &nbsp; Bloom: ${sakuraDateOk(city.bloom.forecast) ? fmtDate(city.bloom.forecast) : '—'}${city.bloom.observation ? ' → '+fmtDate(city.bloom.observation) : ''}
-            &nbsp; Full: ${sakuraDateOk(city.fullBloom.forecast) ? fmtDate(city.fullBloom.forecast) : '—'}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}${avgDiffLabel(city.fullBloom?.forecast, city.fullBloom?.normal)}
-          </div>
-        </div>`;
+        html += cityRowHtml(city);
       }
     }
     $('sidebar-content').innerHTML = html;
   } else {
-    const labelMap = { peak:'🌺 Full Bloom', blooming:'🌸 Blooming', buds:'🌷 Budding', ended:'🍃 Past Peak' };
+    const labelMap = { peak:'Full bloom', blooming:'Blooming', buds:'Budding', ended:'Past peak' };
     const labels = [...bloomFilters].map(f => labelMap[f]).join(' + ');
     const filtered = allSpotsData.spots.filter(s => matchesBloomFilter(bloomCategory(s)));
     const listHtml = filtered.length
       ? filtered.slice(0, 80).map(s => spotCardHtml(s, s.prefecture || '')).join('')
-      : '<div class="loading">No spots found for this filter.</div>';
-    $('sidebar-content').innerHTML = `<div style="padding:10px 16px;font-size:0.82rem;color:var(--gray-600)">${filtered.length} spots — ${labels}</div>` + listHtml;
+      : stateHtml({ title: 'No spots at this stage', body: 'Choose All to see every spot.' });
+    $('sidebar-content').innerHTML = `<div class="section-head">${labels}: <span class="num">${filtered.length}</span> spots</div>` + listHtml;
   }
 }
 
@@ -713,6 +728,16 @@ function statusToRadius(status) {
   return sakuraPhaseRadius(cityStatusPhase(status));
 }
 
+function cityRowHtml(city) {
+  const st = statusText(city.status);
+  const day = (fc, obs) => obs ? fmtDate(obs) : (sakuraDateOk(fc) ? `${fmtDate(fc)} (forecast)` : NA);
+  return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'loadPrefSpots',prefCode:city.prefCode,prefName:city.prefName})})">
+    <h4>${esc(city.cityName)} <span style="font-weight:400;color:var(--ink-2)">${esc(city.prefName)}</span></h4>
+    <div class="sub"><span class="badge ${st.cls}">${esc(st.text)}</span></div>
+    <div class="sub num">${city.bloom?.observation ? 'Bloomed' : 'Bloom'} ${day(city.bloom?.forecast, city.bloom?.observation)} · Full bloom ${day(city.fullBloom?.forecast, city.fullBloom?.observation)}${avgDiffLabel(city.fullBloom?.forecast, city.fullBloom?.normal)}</div>
+  </div>`;
+}
+
 function statusText(status) {
   const phase = cityStatusPhase(status);
   const text = (status || 'Dormant').split('—')[0].trim();
@@ -748,22 +773,23 @@ function pushUrlState(params = {}) {
 }
 
 // ── Mode switching ──
+const JMC_LINK = '<a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Meteorological Corporation</a>';
 const FOOTER_NOTES = {
-  sakura:  `<b>Live data:</b> <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> — bloom % updated daily 9AM JST · weather hourly<br>`,
-  koyo:    `<b>Live data:</b> <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> (JMC) — koyo forecasts and spot reports updated daily 9AM JST · weather hourly<br>`,
-  fruit:   `<b>Data:</b> Farm listings from Jalan — season windows are typical regional averages, confirm with farms before visiting<br>`,
-  flowers: `<b>Data:</b> Curated — typical annual bloom dates · actual timing varies by weather, always check official sites<br>`,
-  whatson: `<b>Data:</b> Curated seasonal activities — typical dates only · always check official sites before visiting<br>`,
-  trip:    `<b>Data:</b> Sakura &amp; koyo from <a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Met Corp</a> · other activities are curated typical dates<br>`,
+  sakura:  `Forecasts from ${JMC_LINK}, updated daily at 9:00 Japan time.`,
+  koyo:    `Forecasts and spot reports from ${JMC_LINK}, updated daily at 9:00 Japan time.`,
+  fruit:   'Farms listed on Jalan. Seasons are regional averages, so check with the farm before you go.',
+  flowers: 'Typical bloom dates. Timing moves with the weather, so check the official site before you go.',
+  whatson: 'Typical dates. Check the official site before you go.',
+  trip:    `Cherry blossom and autumn leaves dates from ${JMC_LINK}. Other dates are typical.`,
 };
 
 const MODE_TITLES = {
-  sakura:  'Cherry Blossom — Japan in Seasons',
-  koyo:    'Autumn Leaves — Japan in Seasons',
-  fruit:   'Fruit Picking — Japan in Seasons',
-  flowers: 'Flowers — Japan in Seasons',
-  whatson: "What's On — Japan in Seasons",
-  trip:    'Plan My Trip — Japan in Seasons',
+  sakura:  'Japan in Seasons: cherry blossom forecast and spots',
+  koyo:    'Japan in Seasons: autumn leaves forecast and spots',
+  fruit:   'Japan in Seasons: fruit picking by month',
+  flowers: 'Japan in Seasons: seasonal flower spots',
+  whatson: 'Japan in Seasons: festivals and events by month',
+  trip:    'Japan in Seasons: plan a trip by date',
 };
 
 function setMode(m) {
@@ -772,9 +798,14 @@ function setMode(m) {
   mapInstance?.invalidateSize(); // koyo's phone layout changes the map height
   document.title = MODE_TITLES[m] || 'Japan in Seasons';
   setMapPlaceholder(null);
-  ['sakura','koyo','fruit','flowers','whatson','trip'].forEach(k => { const b = $(`btn-${k}`); if (b) b.classList.toggle('active', k === m); });
+  ['sakura','koyo','fruit','flowers','whatson','trip'].forEach(k => {
+    const b = $(`btn-${k}`);
+    if (!b) return;
+    b.classList.toggle('active', k === m);
+    if (k === m) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+  });
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
-  if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.style.display = 'none'; }
+  if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.hidden = true; }
   $('koyo-filters').hidden = m !== 'koyo';
   $('koyo-dates').hidden = m !== 'koyo';
   if (m === 'koyo' && matchMedia('(min-width: 769px)').matches) $('koyo-dates').open = true; // phones start collapsed
@@ -799,69 +830,69 @@ function handleModeSelect(val) {
 // Keep months in sync between both files when updating seasons.
 
 const FRUITS = [
-  { name:'Strawberry', ja:'いちご', emoji:'🍓', months:[12,1,2,3,4,5], peak:[2,3,4], color:'#ef4444',
+  { name:'Strawberry', ja:'いちご', months:[12,1,2,3,4,5], peak:[2,3,4], color:'#ef4444',
     regions:['Tochigi','Nagano','Chiba','Ibaraki','Hokkaido'], note:'Kyushu (Fukuoka) season ends ~April; May is Kanto & northern only' },
-  { name:'Melon', ja:'メロン', emoji:'🍈', months:[5,6,7,8], peak:[6,7], color:'#16a34a',
+  { name:'Melon', ja:'メロン', months:[5,6,7,8], peak:[6,7], color:'#16a34a',
     regions:['Hokkaido (Yubari)','Ibaraki','Kumamoto'], note:'Yubari King is Japan\'s most prized melon' },
-  { name:'Cherry', ja:'さくらんぼ', emoji:'🍒', months:[6,7], peak:[6,7], color:'#dc2626',
-    regions:['Yamagata','Hokkaido','Nagano','Aomori'], note:'Very short season — book farms early' },
-  { name:'Watermelon', ja:'すいか', emoji:'🍉', months:[6,7,8], peak:[7], color:'#16a34a',
+  { name:'Cherry', ja:'さくらんぼ', months:[6,7], peak:[6,7], color:'#dc2626',
+    regions:['Yamagata','Hokkaido','Nagano','Aomori'], note:'Very short season. Book farms early.' },
+  { name:'Watermelon', ja:'すいか', months:[6,7,8], peak:[7], color:'#16a34a',
     regions:['Kumamoto','Yamagata','Chiba'] },
-  { name:'Peach', ja:'もも', emoji:'🍑', months:[7,8,9], peak:[7,8], color:C.budOpen,
+  { name:'Peach', ja:'もも', months:[7,8,9], peak:[7,8], color:C.budOpen,
     regions:['Yamanashi','Fukushima','Nagano','Okayama'] },
-  { name:'Blueberry', ja:'ブルーベリー', emoji:'🫐', months:[7,8,9], peak:[7,8], color:'#6d28d9',
+  { name:'Blueberry', ja:'ブルーベリー', months:[7,8,9], peak:[7,8], color:'#6d28d9',
     regions:['Nagano','Chiba','Tokyo (suburbs)','Hokkaido'] },
-  { name:'Grape', ja:'ぶどう', emoji:'🍇', months:[8,9,10,11], peak:[9,10], color:'#7c3aed',
+  { name:'Grape', ja:'ぶどう', months:[8,9,10,11], peak:[9,10], color:'#7c3aed',
     regions:['Yamanashi','Nagano','Yamagata','Okayama'], note:'50+ varieties; shine muscat is very popular' },
-  { name:'Pear', ja:'なし', emoji:'🍐', months:[8,9,10], peak:[8,9], color:'#65a30d',
+  { name:'Pear', ja:'なし', months:[8,9,10], peak:[8,9], color:'#65a30d',
     regions:['Tottori','Chiba','Ibaraki','Nagano'], note:'Japanese pears are round and crisp' },
-  { name:'Fig', ja:'いちじく', emoji:'🍈', months:[8,9,10], peak:[9], color:'#a855f7',
+  { name:'Fig', ja:'いちじく', months:[8,9,10], peak:[9], color:'#a855f7',
     regions:['Aichi','Osaka','Hyogo'] },
-  { name:'Apple', ja:'りんご', emoji:'🍎', months:[9,10,11], peak:[10,11], color:'#dc2626',
+  { name:'Apple', ja:'りんご', months:[9,10,11], peak:[10,11], color:'#dc2626',
     regions:['Aomori','Nagano','Iwate','Yamagata'], note:'Aomori produces ~60% of Japan\'s apples' },
-  { name:'Persimmon', ja:'柿', emoji:'🟠', months:[10,11,12], peak:[10,11], color:'#ea580c',
+  { name:'Persimmon', ja:'柿', months:[10,11,12], peak:[10,11], color:'#ea580c',
     regions:['Nara','Wakayama','Gifu','Fukuoka'] },
-  { name:'Kiwi', ja:'キウイ', emoji:'🥝', months:[10,11,12], peak:[11], color:'#65a30d',
+  { name:'Kiwi', ja:'キウイ', months:[10,11,12], peak:[11], color:'#65a30d',
     regions:['Ehime','Kanagawa','Fukuoka'] },
-  { name:'Chestnut', ja:'栗', emoji:'🌰', months:[9,10,11], peak:[9,10], color:'#92400e',
+  { name:'Chestnut', ja:'栗', months:[9,10,11], peak:[9,10], color:'#92400e',
     regions:['Ibaraki','Kumamoto','Ehime','Aichi'], note:'Japan\'s most prized variety is Tanba (Kyoto/Hyogo)' },
-  { name:'Mikan', ja:'みかん', emoji:'🍊', months:[11,12,1], peak:[11,12], color:C.budOpen,
+  { name:'Mikan', ja:'みかん', months:[11,12,1], peak:[11,12], color:C.budOpen,
     regions:['Wakayama','Ehime','Shizuoka','Nagasaki'], note:'Japan\'s most popular winter citrus' },
 ];
 
 const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const FLOWER_TYPES = [
-  { type: 'plum',      emoji: '🌸', name: 'Plum Blossom', ja: '梅',        color: '#e11d48', sectionBg: '#fff1f2', peakLabel: 'Jan–Mar',
+  { type: 'plum',      name: 'Plum Blossom', ja: '梅',        color: '#e11d48', peakLabel: 'Jan–Mar',
     months: [1,2,3],   peak: [2],
-    note: 'Peak: mid-January (Atami) to March. Japan\'s first spring bloom — 4–6 weeks before cherry blossom.' },
-  { type: 'nanohana',  emoji: '🌼', name: 'Rapeseed',     ja: '菜の花',    color: '#ca8a04', sectionBg: '#fefce8', peakLabel: 'Feb–Apr',
+    note: 'Peak: mid-January (Atami) to March. Japan\'s first spring bloom, 4 to 6 weeks before cherry blossom.' },
+  { type: 'nanohana',  name: 'Rapeseed',     ja: '菜の花',    color: '#ca8a04', peakLabel: 'Feb–Apr',
     months: [2,3,4],   peak: [3],
     note: 'Peak: February–April. Golden rapeseed carpets river banks and hillsides across Japan. Okinawa blooms earliest in January.' },
-  { type: 'wisteria',  emoji: '💜', name: 'Wisteria',     ja: '藤',        color: '#7c3aed', sectionBg: '#f5f3ff', peakLabel: 'late Apr–early May',
+  { type: 'wisteria',  name: 'Wisteria',     ja: '藤',        color: '#7c3aed', peakLabel: 'late Apr–early May',
     months: [4,5],     peak: [4,5],
-    note: 'Peak: late April – early May. Famous spots often require timed entry tickets.' },
-  { type: 'iris',      emoji: '🌺', name: 'Iris',         ja: '菖蒲',      color: '#4f46e5', sectionBg: '#eef2ff', peakLabel: 'May–Jun',
+    note: 'Peak: late April to early May. Famous spots often need timed entry tickets.' },
+  { type: 'iris',      name: 'Iris',         ja: '菖蒲',      color: '#4f46e5', peakLabel: 'May–Jun',
     months: [5,6],     peak: [6],
     note: 'Peak: June (July in northern Tohoku). Traditional Japanese iris gardens are a quintessential early-summer experience.' },
-  { type: 'hydrangea', emoji: '💙', name: 'Hydrangea',    ja: '紫陽花',    color: '#2563eb', sectionBg: '#eff6ff', peakLabel: 'June',
+  { type: 'hydrangea', name: 'Hydrangea',    ja: '紫陽花',    color: '#2563eb', peakLabel: 'June',
     months: [6,7],     peak: [6],
-    note: 'Peak: June. Kamakura is the most famous destination with 10+ spots — visit on weekdays to avoid crowds.' },
-  { type: 'lavender',  emoji: '🪻', name: 'Lavender',     ja: 'ラベンダー', color: '#9333ea', sectionBg: '#faf5ff', peakLabel: 'July',
+    note: 'Peak: June. Kamakura has more than 10 spots. Weekdays are less crowded.' },
+  { type: 'lavender',  name: 'Lavender',     ja: 'ラベンダー', color: '#9333ea', peakLabel: 'July',
     months: [6,7],     peak: [7],
-    note: 'Peak: July in Hokkaido\'s Furano region — the most photogenic lavender fields in Asia. Farm Tomita is the iconic destination.' },
-  { type: 'sunflower', emoji: '🌻', name: 'Sunflower',    ja: 'ひまわり',  color: '#f59e0b', sectionBg: '#fffbeb', peakLabel: 'Jul–Aug',
+    note: 'Peak: July in Furano, Hokkaido. Farm Tomita is the best-known field.' },
+  { type: 'sunflower', name: 'Sunflower',    ja: 'ひまわり',  color: '#f59e0b', peakLabel: 'Jul–Aug',
     months: [7,8],     peak: [7,8],
-    note: 'Peak: late July–August. Hokkaido\'s Hokuryu village has 2.3 million sunflowers; Yamanashi fields face Mt. Fuji.' },
-  { type: 'cosmos',    emoji: '🌷', name: 'Cosmos',       ja: 'コスモス',  color: '#db2777', sectionBg: '#fdf2f8', peakLabel: 'Sep–Oct',
+    note: 'Peak: late July to August. Hokuryu in Hokkaido has the largest field; fields in Yamanashi face Mt Fuji.' },
+  { type: 'cosmos',    name: 'Cosmos',       ja: 'コスモス',  color: '#db2777', peakLabel: 'Sep–Oct',
     months: [9,10],    peak: [10],
-    note: 'Peak: October. Japan\'s beloved autumn flower — Showa Kinen Park and Hitachi Seaside Park each host 4.5 million plants.' },
+    note: 'Peak: October. Showa Kinen Park and Hitachi Seaside Park are the largest fields.' },
 ];
 
 const FESTIVAL_TYPES = [
-  { type: 'fireworks', emoji: '🎆', name: 'Fireworks', color: C.budOpen },
-  { type: 'matsuri',   emoji: '🏮', name: 'Festival',  color: '#dc2626' },
-  { type: 'winter',    emoji: '❄️', name: 'Winter',    color: '#0ea5e9' },
+  { type: 'fireworks', name: 'Fireworks', color: C.budOpen },
+  { type: 'matsuri',   name: 'Festival',  color: '#dc2626' },
+  { type: 'winter',    name: 'Winter',    color: '#0ea5e9' },
 ];
 
 // Season month ranges — single source of truth
@@ -898,7 +929,8 @@ function setFruitFilter(name) {
 }
 
 async function loadFruitPicking() {
-  $('sidebar-header').innerHTML = '<h2>Fruit Picking in Japan</h2><p>Loading farm directory...</p>';
+  $('sidebar-header').innerHTML = '<h2>Fruit picking</h2><p>Loading farms…</p>';
+  $('sidebar-content').innerHTML = skeletonHtml();
   clearMarkers();
   updateLegend('fruit');
 
@@ -906,7 +938,11 @@ async function loadFruitPicking() {
     try { farmDataCache = await api('/api/fruit/farms'); } catch {}
   }
   const farmCount = farmDataCache?.total ?? farmDataCache?.spots?.length ?? null;
-  $('sidebar-header').innerHTML = `<h2>Fruit Picking in Japan</h2><p>${farmCount ? `${farmCount} farms across Japan` : 'Farm directory across Japan'}</p>`;
+  $('sidebar-header').innerHTML = `<h2>Fruit picking</h2><p>${farmCount ? `${farmCount.toLocaleString('en-US')} farms across Japan` : 'Farms across Japan'}</p>`;
+  if (!farmDataCache) {
+    $('sidebar-content').innerHTML = errorState('Could not load the farm list', 'farmDataCache=null;loadFruitPicking()');
+    return;
+  }
 
   fruitSelectedMonth = new Date().getMonth() + 1;
   fruitFilter = null; // reset fruit filter on tab switch
@@ -930,7 +966,7 @@ function renderFruitMonth(m) {
         const n = cluster.getChildCount();
         const size = Math.min(36 + n * 0.5, 54);
         return L.divIcon({
-          html: `<div style="background:${C.green};color:white;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
+          html: `<div style="background:${C.green};color:${inkOn(C.green)};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '', iconSize: [size, size],
         });
       }
@@ -967,15 +1003,13 @@ function renderFruitMonth(m) {
         }
       }
 
-      // Icon: show 2 emojis + "+N" badge if more than 2 in-season fruits
+      // Icon: up to two fruit-colour dots
       const n = inSeasonFruits.length;
-      const emojis = inSeasonFruits.slice(0, 2).map(f => f.emoji).join('');
-      const extra = n > 2 ? `<span style="font-size:8px;font-weight:700;color:${C.greenDark};margin-left:1px">+${n-2}</span>` : '';
-      const sz = n > 1 ? 32 : 24;
-      const fs = n > 1 ? 11 : 13;
+      const dots = inSeasonFruits.slice(0, 2).map(f => `<span style="width:8px;height:8px;border-radius:50%;background:${f.color}"></span>`).join('');
+      const sz = n > 1 ? 26 : 22;
       const marker = L.marker([lat, lon], {
         icon: L.divIcon({
-          html: `<div style="background:white;border:2px solid ${C.green};border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;box-shadow:0 1px 4px rgba(0,0,0,0.2);gap:1px">${emojis}${extra}</div>`,
+          html: `<div title="${inSeasonFruits.map(f => f.name).join(', ')}" style="background:white;border:2px solid ${C.green};border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.2);gap:2px">${dots}</div>`,
           className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2],
         })
       });
@@ -985,11 +1019,11 @@ function renderFruitMonth(m) {
         const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
         return `${i > 0 ? `<div style="border-top:1px solid #eee;margin:8px 0"></div>` : ''}
           <b>${esc(farm.name)}</b><br>
-          <span style="font-size:11px;color:#666">${esc(farm.address||'')}</span><br>
-          <span style="font-size:11px">${(farm.fruits||[]).map(esc).join(' · ')}</span>
+          <span style="font-size:12px;color:var(--ink-2)">${esc(farm.address||'')}</span><br>
+          <span style="font-size:12px">${(farm.fruits||[]).map(esc).join(' · ')}</span>
           <div style="margin-top:4px">
-            <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
-            ${farm.url ? ` · <a href="${esc(farm.url)}" target="_blank" style="color:#0369a1;font-size:12px">${esc(srcLabel)} →</a>` : ''}
+            <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" rel="noopener">Google Maps</a>
+            ${farm.url ? ` · <a href="${esc(farm.url)}" target="_blank" rel="noopener">View on ${esc(srcLabel)}</a>` : ''}
           </div>`;
       }).join('');
       marker.bindPopup(`<div style="min-width:190px">${popupRows}</div>`);
@@ -1007,21 +1041,14 @@ function renderFruitMonth(m) {
     const hasInSeason = FRUITS.some(f => f.months.includes(mn));
     const isActive = mn === m;
     const isToday = mn === todayM;
-    return `<button onclick="renderFruitMonth(${mn})" style="
-      padding:4px 2px; border-radius:6px; border:1px solid ${isActive ? C.green : 'var(--gray-200)'};
-      background:${isActive ? C.green : 'white'}; color:${isActive ? 'white' : hasInSeason ? 'var(--gray-800)' : 'var(--gray-400)'};
-      font-size:0.72rem; font-weight:${isActive || isToday ? '600' : '400'}; cursor:pointer; text-align:center;
-      ${isToday && !isActive ? `border-color:${C.green};color:${C.green};` : ''}
-    ">${mo}</button>`;
+    return `<button type="button" class="month-btn${isActive ? ' active' : ''}${isToday ? ' is-today' : ''}${hasInSeason ? '' : ' is-quiet'}" aria-pressed="${isActive}" onclick="renderFruitMonth(${mn})">${mo}</button>`;
   }).join('');
 
   // Update header
   $('sidebar-header').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-      <h2 style="margin:0">Fruit Picking in Japan</h2>
-      <span style="font-size:0.78rem;color:var(--gray-400)">${markersAdded > 0 ? markersAdded+' farms on map · ' : ''}${farms.length || 0} total</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:2px">${monthPills}</div>`;
+    <h2>Fruit picking</h2>
+    <p><span class="num">${markersAdded.toLocaleString('en-US')}</span> of <span class="num">${(farms.length || 0).toLocaleString('en-US')}</span> farms have fruit in season in ${MO[m-1]}</p>
+    <div class="month-grid" role="group" aria-label="Month">${monthPills}</div>`;
 
   // Fruit list for selected month
   const inSeason = FRUITS.filter(f => f.months.includes(m));
@@ -1035,34 +1062,31 @@ function renderFruitMonth(m) {
     const isPeak = f.peak.includes(m);
     const farmCount = farms.filter(fm => fm.fruits?.includes(f.name)).length;
     const isActive = fruitFilter === f.name;
-    return `<div class="spot-item" onclick="setFruitFilter('${f.name}')" style="cursor:pointer;${isActive ? `background:${C.greenLight};border-left:3px solid ${C.green};padding-left:13px;` : ''}">
-      <h4>${f.emoji} ${f.name} <span style="font-weight:400;color:var(--gray-400)">${f.ja}</span>
-        ${isPeak ? `<span style="background:${C.greenSoft};color:${C.green};font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Peak</span>` : ''}
-        ${isActive ? `<span style="background:${C.green};color:white;font-size:0.72rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">Filtered ✕</span>` : ''}
-      </h4>
-      <div class="sub">Season: ${season} · Peak: ${peak}</div>
-      <div class="sub" style="margin-top:2px">Best regions: ${f.regions.join(', ')}</div>
-      ${farmCount ? `<div class="sub" style="margin-top:2px;color:${C.green}">${farmCount} farms in database${isActive ? ` — showing on map` : ' — click to filter'}</div>` : ''}
-      ${f.note ? `<div class="sub" style="margin-top:2px;color:var(--gray-400);font-style:italic">${f.note}</div>` : ''}
+    return `<div class="spot-item" role="button" tabindex="0" aria-pressed="${isActive}" onclick="setFruitFilter('${f.name}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setFruitFilter('${f.name}')}" style="${isActive ? 'background:var(--surface-2);' : ''}">
+      <h4>${dotHtml(f.color)}${f.name} <span style="font-weight:400;color:var(--ink-2)">${f.ja}</span>${isPeak ? ' <span class="badge ended">Peak</span>' : ''}</h4>
+      <div class="sub">Season ${season} · peak ${peak}</div>
+      <div class="sub">Best regions: ${f.regions.join(', ')}</div>
+      ${farmCount ? `<div class="sub"><span class="num">${farmCount}</span> farms${isActive ? ', shown on the map. Select again to show all.' : '. Select to show them on the map.'}</div>` : ''}
+      ${f.note ? `<div class="sub">${f.note}</div>` : ''}
     </div>`;
   }
 
   const isCurrentMonth = m === todayM;
-  let html = `<div style="margin:10px 16px;padding:10px 12px;background:${C.greenLight};border:1px solid ${C.greenBorder};border-radius:8px;font-size:0.8rem;color:${C.greenDark}">
-    🌱 Season windows are typical regional averages — confirm with farms before visiting.
-    ${scrapedAt ? `<br>Farm database: <b>${farmDataCache.total} spots</b> cached on ${scrapedAt}` : ''}
+  let html = `<div class="note">
+    Seasons are regional averages. Check with the farm before you go.
+    ${scrapedAt ? `<br><span class="muted">Farm list updated ${scrapedAt}.</span>` : ''}
   </div>`;
 
   if (inSeason.length) {
-    html += `<div style="padding:10px 16px;background:${C.greenSoft};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-bottom:1px solid ${C.greenBorder}">In Season — ${MO[m-1]}${isCurrentMonth ? ' (now)' : ''}</div>`;
+    html += `<div class="section-head">In season in ${MO[m-1]}${isCurrentMonth ? ' (this month)' : ''}</div>`;
     inSeason.forEach(f => html += fruitCard(f));
   }
   if (comingSoon.length) {
-    html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenDark};border-bottom:1px solid var(--gray-200)">Coming Up — ${MO[nextM-1]}/${MO[nextM2-1]}</div>`;
+    html += `<div class="section-head">Coming up in ${MO[nextM-1]} and ${MO[nextM2-1]}</div>`;
     comingSoon.forEach(f => html += fruitCard(f));
   }
   if (other.length) {
-    html += `<div style="padding:10px 16px;background:var(--gray-50);font-weight:600;font-size:0.85rem;color:var(--gray-400);border-bottom:1px solid var(--gray-200)">Other Seasons</div>`;
+    html += `<div class="section-head">Other months</div>`;
     other.forEach(f => html += fruitCard(f));
   }
 
@@ -1086,9 +1110,8 @@ function avgDiffLabel(forecastIso, normalIso) {
   if (isNaN(normalDate.getTime())) return '';
   const diff = Math.round((forecastDate - normalDate) / 86400000);
   if (Math.abs(diff) < 1) return '';
-  const sign = diff < 0 ? '−' : '+';
-  const col = diff < -3 ? C.peak : diff > 3 ? C.green : C.gray;
-  return `<span style="font-size:0.7rem;color:${col};margin-left:4px">${sign}${Math.abs(diff)}d vs avg</span>`;
+  const n = Math.abs(diff);
+  return ` · ${n} day${n === 1 ? '' : 's'} ${diff < 0 ? 'earlier' : 'later'} than average`;
 }
 
 // ── SAKURA ──
@@ -1103,7 +1126,7 @@ function addSakuraCityMarkers() {
       const marker = L.circleMarker(coords, {
         radius, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9,
       }).addTo(mapInstance);
-      marker.bindPopup(`<div style="min-width:180px"><b>${city.cityName}</b> (${city.prefName})<br><b>${city.status}</b><br><span style="font-size:11px;color:#888">Bloom: ${fmtDate(city.bloom?.forecast)} · Full: ${fmtDate(city.fullBloom?.forecast)}</span></div>`);
+      marker.bindPopup(`<div style="min-width:180px"><b>${city.cityName}</b> (${city.prefName})<br><b>${statusText(city.status).text}</b><br><span style="font-size:12px;color:var(--ink-2)">Bloom ${fmtDate(city.bloom?.forecast)} · Full bloom ${fmtDate(city.fullBloom?.forecast)}</span></div>`);
       marker.on('click', () => loadPrefSpots(city.prefCode, city.prefName));
       markers.push(marker);
     }
@@ -1111,14 +1134,14 @@ function addSakuraCityMarkers() {
 }
 
 async function loadSakura() {
-  $('sidebar-header').innerHTML = '<h2>Cherry Blossom Forecast</h2><p>48 cities &middot; 1,012 spots &middot; Click a city to see spots</p>';
+  $('sidebar-header').innerHTML = '<h2>Cherry blossom forecast</h2><p>Forecast cities by region. Select one to see its spots.<span id="sakura-spot-count"></span></p>';
   $('sidebar-content').innerHTML = skeletonHtml();
   updateLegend('sakura');
 
   // Show bloom filters, reset to 'all'
   bloomFilter = 'all'; bloomFilters.clear();
   const bf = $('bloom-filters');
-  if (bf) { bf.style.display = 'flex'; bf.querySelectorAll('.filter-pill').forEach((b,i) => b.classList.toggle('active', i===0)); }
+  if (bf) { bf.hidden = false; bf.querySelectorAll('.filter-pill').forEach((b,i) => b.classList.toggle('active', i===0)); }
 
   try {
     if (!sakuraData) sakuraData = await api('/api/sakura/forecast');
@@ -1129,17 +1152,9 @@ async function loadSakura() {
     // Render sidebar with regions
     let html = '';
     for (const region of sakuraData.regions) {
-      html += `<div style="padding:12px 16px;background:var(--gray-50);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.nameEn}</div>`;
+      html += `<div class="section-head">${region.nameEn}</div>`;
       for (const city of region.cities) {
-        const st = statusText(city.status);
-        html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'loadPrefSpots',prefCode:city.prefCode,prefName:city.prefName})})">
-          <h4>${city.cityName} <span style="font-weight:400;color:var(--gray-400)">${city.prefName}</span></h4>
-          <div class="sub">
-            <span class="badge ${st.cls}">${st.text}</span>
-            &nbsp; Bloom: ${sakuraDateOk(city.bloom.forecast) ? fmtDate(city.bloom.forecast) : '—'}${city.bloom.observation ? ' → '+fmtDate(city.bloom.observation) : ''}
-            &nbsp; Full: ${sakuraDateOk(city.fullBloom.forecast) ? fmtDate(city.fullBloom.forecast) : '—'}${city.fullBloom.observation ? ' → '+fmtDate(city.fullBloom.observation) : ''}${avgDiffLabel(city.fullBloom?.forecast, city.fullBloom?.normal)}
-          </div>
-        </div>`;
+        html += cityRowHtml(city);
       }
     }
     $('sidebar-content').innerHTML = html;
@@ -1148,15 +1163,15 @@ async function loadSakura() {
     // forecast list has had a chance to paint.
     scheduleMapWork(() => loadAllSpotsOnMap({ token, replaceExisting: true, expectedMode: 'sakura' }));
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
+    $('sidebar-content').innerHTML = errorState('Could not load the cherry blossom forecast', 'loadSakura()');
   }
 }
 
 async function loadPrefSpots(prefCode, prefName) {
   pushUrlState({ mode: 'sakura', pref: prefCode });
-  $('sidebar-header').innerHTML = `<h2>${esc(prefName)} Spots</h2><p>Cherry blossom viewing spots</p>`;
+  $('sidebar-header').innerHTML = `<h2>${esc(prefName)}</h2><p>Cherry blossom spots</p>`;
   $('sidebar-content').innerHTML = skeletonHtml();
-  const bf = $('bloom-filters'); if (bf) bf.style.display = 'none';
+  const bf = $('bloom-filters'); if (bf) bf.hidden = true;
 
   try {
     const data = await api(`/api/sakura/spots?pref=${prefCode}`);
@@ -1183,16 +1198,16 @@ async function loadPrefSpots(prefCode, prefName) {
     const observationUpdated = data.observationUpdated ? new Date(data.observationUpdated).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Tokyo'}) : null;
     $('sidebar-header').innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><h2>${prefName}</h2><p>${data.spots.length} spots &middot; Forecast: ${forecastUpdated}${observationUpdated ? ` &middot; Observations: ${observationUpdated}` : ''}</p></div>
-        <button onclick="loadSakura()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
+        <div><h2>${esc(prefName)}</h2><p><span class="num">${data.spots.length}</span> spots · forecast ${forecastUpdated}${observationUpdated ? ` · reports ${observationUpdated}` : ''}</p></div>
+        <button type="button" class="back-btn" onclick="loadSakura()">Back to all cities</button>
       </div>`;
 
     let html = '';
     if (data.jmaStation) {
       const jma = data.jmaStation;
-      html += `<div class="spot-item" style="background:var(--pink-light)">
-        <h4>JMA Station: ${jma.name}</h4>
-        ${bloomBar(jma.bloomRate, jma.fullRate, jma.fullForecast)}
+      html += `<div class="spot-item" style="background:var(--surface-2);cursor:default">
+        <h4>${esc(jma.name)} official observation tree</h4>
+        ${bloomBar(jma.bloomRate, jma.fullRate, jma.fullForecast) || '<div class="sub">Past full bloom for this season.</div>'}
       </div>`;
 
       // Load weather for this city
@@ -1201,9 +1216,10 @@ async function loadPrefSpots(prefCode, prefName) {
     for (const spot of data.spots) {
       html += spotCardHtml(spot);
     }
+    if (!data.spots.length) html += stateHtml({ title: 'No spots listed here yet', body: 'Try a neighbouring prefecture on the map.' });
     $('sidebar-content').innerHTML = html;
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
+    $('sidebar-content').innerHTML = errorState('Could not load these spots', `handleSpotClick(${reg({action:'loadPrefSpots',prefCode,prefName})})`);
   }
 }
 
@@ -1222,27 +1238,27 @@ function flyToSpot(spot) {
   const statusColor = phase ? sakuraPhaseColor(phase) : C.gray;
   const barHtml = bloomBar(spot);
   const forecastLine = hasSakuraTimelineData(spot?.bloomRate, spot?.fullRate, spot?.bloomForecast, spot?.fullBloomForecast)
-    ? `<div style="font-size:11px;color:#888">${spotForecastDates(spot)}</div>`
+    ? `<div style="font-size:12px;color:var(--ink-2)">${spotForecastDates(spot)}</div>`
     : '';
-  const statusNoteHtml = statusNote ? `<div style="font-size:11px;color:#888">${statusNote}</div>` : '';
+  const statusNoteHtml = statusNote ? `<div style="font-size:12px;color:var(--ink-2)">${statusNote}</div>` : '';
   L.popup().setLatLng([lat, lon])
     .setContent(`<div style="min-width:220px">
-      <b>${name}</b>
+      <b>${esc(name)}</b>
       ${barHtml}
-      <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
+      <div style="margin:4px 0;display:flex;align-items:center"><span class="dot" style="background:${statusColor}" aria-hidden="true"></span><b>${esc(liveStatus)}</b></div>
       ${statusNoteHtml}
       ${forecastLine}
-      <div class="popup-weather" data-lat="${lat}" data-lon="${lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:54px">
-        <div style="color:#ccc;font-size:11px">Loading weather…</div>
+      <div class="popup-weather" data-lat="${lat}" data-lon="${lon}" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line);min-height:54px">
+        <div style="color:var(--ink-2);font-size:12px">Loading weather…</div>
       </div>
-      <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" rel="noopener">Google Maps</a>
     </div>`)
     .openOn(mapInstance);
 }
 
 // ── KOYO ──
 async function loadKoyo() {
-  $('sidebar-header').innerHTML = '<h2>Autumn Leaves Forecast</h2><p>687 spots across Japan · Click a city to zoom in</p>';
+  $('sidebar-header').innerHTML = '<h2>Autumn leaves forecast</h2><p>Forecast cities by region. Select one to see its spots.<span id="koyo-spot-count"></span></p>';
   $('sidebar-content').innerHTML = skeletonHtml();
   updateLegend('koyo');
   clearMarkers();
@@ -1267,22 +1283,21 @@ async function loadKoyo() {
         }).format(new Date(data.lastUpdated))
       : null;
     const freshnessBanner = dataYear && dataYear < currentYear
-      ? `<div style="margin:12px 16px;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
-          🍂 <b>The ${currentYear} autumn leaves forecast has not appeared in the upstream JMC feed yet.</b><br>
-          The latest feed is dated ${lastUpdated || dataYear}, so the dates below are prior-season reference, not a ${currentYear} forecast.
-          This page will update when Japan Meteorological Corporation publishes the new feed.
+      ? `<div class="note">
+          <b>The ${currentYear} autumn leaves forecast is not out yet.</b><br>
+          The dates below are from last season's forecast (${lastUpdated || dataYear}). This list updates when Japan Meteorological Corporation publishes the new one.
         </div>`
       : '';
     let html = '<div id="koyo-date-results" aria-live="polite"></div>' + freshnessBanner + '<div id="koyo-city-list">';
     for (const region of data.regions) {
-      html += `<div style="padding:12px 16px;background:var(--orange-light);font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--gray-200)">${region.name}</div>`;
+      html += `<div class="section-head">${region.name}</div>`;
       for (const city of region.cities) {
-        const mapleDate = city.maple ? fmtDate(city.maple.forecast) : '—';
-        const ginkgoDate = city.ginkgo ? fmtDate(city.ginkgo.forecast) : '—';
+        const mapleDate = city.maple ? fmtDate(city.maple.forecast) : NA;
+        const ginkgoDate = city.ginkgo ? fmtDate(city.ginkgo.forecast) : NA;
         const prefCode = city.code.slice(0, 2);
         html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'loadKoyoSpots',prefCode:prefCode,name:city.prefNameEn||city.prefName||city.nameEn||city.name})})">
-          <h4>${city.nameEn||city.name} <span style="font-weight:400;color:var(--gray-400)">${city.prefNameEn||city.prefName||''}</span></h4>
-          <div class="sub">Maple: ${mapleDate}${city.maple ? ' · '+city.maple.normalDiffClass : ''} &nbsp; Ginkgo: ${ginkgoDate}</div>
+          <h4>${city.nameEn||city.name} <span style="font-weight:400;color:var(--ink-2)">${city.prefNameEn||city.prefName||''}</span></h4>
+          <div class="sub">Maple ${mapleDate}${city.maple ? ' ('+String(city.maple.normalDiffClass||'').toLowerCase()+')' : ''} · Ginkgo ${ginkgoDate}</div>
         </div>`;
       }
     }
@@ -1290,23 +1305,24 @@ async function loadKoyo() {
     if (koyoDateRange) await applyKoyoDates();
   } catch (e) {
     setMapPlaceholder({
-      title: 'Autumn leaves map unavailable',
-      body: 'We could not load the national koyo overview just now. Please try again in a moment.'
+      title: 'Autumn leaves forecast unavailable',
+      body: 'The forecast did not load. Try again in a moment.'
     });
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
+    $('sidebar-content').innerHTML = errorState('Could not load the autumn leaves forecast', 'loadKoyo()');
   }
 }
 
 async function loadKoyoSpots(prefCode, name) {
   pushUrlState({ mode: 'koyo', pref: prefCode });
-  $('sidebar-header').innerHTML = `<h2>${esc(name)} Spots</h2><p>Autumn leaves viewing spots</p>`;
+  $('sidebar-header').innerHTML = `<h2>${esc(name)}</h2><p>Autumn leaves spots</p>`;
+  $('sidebar-content').innerHTML = skeletonHtml();
   setMapPlaceholder(null);
   try {
     const data = await api(`/api/koyo/spots?pref=${prefCode}`);
     koyoPrefView = { data, name };
     renderKoyoPrefSpots(data, name);
   } catch (e) {
-    $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
+    $('sidebar-content').innerHTML = errorState('Could not load these spots', `handleSpotClick(${reg({action:'loadKoyoSpots',prefCode,name})})`);
   }
 }
 
@@ -1326,22 +1342,22 @@ function renderKoyoPrefSpots(data, name) {
 
   $('sidebar-header').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><h2>${esc(name)}</h2><p>${visible.length} of ${data.spots.length} spots${data.reportsAvailable ? '' : ' · JMC spot reports unavailable right now'}</p></div>
-      <button onclick="loadKoyo()" style="border:1px solid var(--gray-200);background:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem">&larr; Back</button>
+      <div><h2>${esc(name)}</h2><p><span class="num">${visible.length}</span> of <span class="num">${data.spots.length}</span> spots${data.reportsAvailable ? '' : ' · spot reports unavailable right now'}</p></div>
+      <button type="button" class="back-btn" onclick="loadKoyo()">Back to all cities</button>
     </div>`;
 
   let html = '';
   for (const spot of visible) {
     const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
     html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon,popup:koyoPopupHtml(spot)})})">
-      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak}">${stars}</span>` : ''}</h4>
+      <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span class="muted" title="Popularity ${spot.popularity} of 3" aria-label="Popularity ${spot.popularity} of 3">${stars}</span>` : ''}</h4>
       <div class="sub"><span class="koyo-swatch" style="display:inline-block;vertical-align:-1px;${koyoSwatchStyle(spot.phase)}"></span> <b>${KOYO_PHASES[spot.phase].label}</b> · ${koyoPhaseSource(spot)}</div>
       <div class="sub">${spot.leafType} &middot; Forecast peak: <strong>${fmtDate(spot.bestPeak)}</strong> (${fmtDate(spot.bestStart)} → ${fmtDate(spot.bestEnd)})
-        &nbsp;&middot;&nbsp; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${C.koyoPeak}">Google Maps &rarr;</a>
+        · <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Maps</a>
       </div>
     </div>`;
   }
-  $('sidebar-content').innerHTML = html || `<div class="loading">No spots in this status. Choose All to see every spot.</div>`;
+  $('sidebar-content').innerHTML = html || stateHtml({ title: 'No spots with this status', body: 'Choose All to see every spot.' });
 }
 
 // ── Trip date sync ──
@@ -1392,7 +1408,7 @@ function updateLegend(type) {
   let body = '';
   if (type === 'sakura') {
     body = `
-      <div style="font-weight:600;margin-bottom:4px">Bloom Lifecycle</div>
+      <div class="legend-title">Bloom stage</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.dormant}"></div> Dormant</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.bud}"></div> Bud stage</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.budSwell}"></div> Buds swelling</div>
@@ -1403,27 +1419,22 @@ function updateLegend(type) {
       <div class="legend-row"><div class="legend-dot" style="background:${sakuraPhaseColor('past_peak')}"></div> Past peak (some petals left)</div>
       <div class="legend-row"><div class="legend-dot" style="background:${sakuraPhaseColor('falling')}"></div> Falling petals</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.ended}"></div> Ended (green leaves)</div>
-      <div class="legend-row"><div style="background:${C.peak};color:white;width:12px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px">★</div> Kawazu cherry (early)</div>`;
+      <div class="legend-row"><div class="legend-square" style="background:${C.kawazu}"></div> Kawazu cherry (early variety)</div>`;
   } else if (type === 'koyo') {
     body = `
-      <div style="font-weight:600;margin-bottom:4px">Leaf Status</div>
+      <div class="legend-title">Leaf status</div>
       ${Object.entries(KOYO_PHASES).map(([phase, p]) => `<div class="legend-row"><div class="legend-dot" style="${koyoSwatchStyle(phase)}"></div> ${p.label}</div>`).join('')}
-      <div style="margin-top:4px;max-width:180px;font-size:11px;color:var(--gray-600)">Peak and colouring now come from JMC spot reports. Forecast means no colour reported yet.</div>`;
+      <div class="legend-note">"Now" means someone at the spot reported it in the last 2 days.</div>`;
   } else if (type === 'flowers') {
     body = `
-      <div style="font-weight:600;margin-bottom:4px">Seasonal Flowers</div>
-      <div class="legend-row"><span style="font-size:16px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
-      <div class="legend-row"><span style="font-size:16px">💜</span> Wisteria (Apr–May)</div>
-      <div class="legend-row"><span style="font-size:16px">💙</span> Hydrangea (Jun–Jul)</div>`;
+      <div class="legend-title">Flowers</div>
+      ${FLOWER_TYPES.map(ft => `<div class="legend-row"><div class="legend-dot" style="background:${ft.color}"></div> ${ft.name} (${ft.peakLabel})</div>`).join('')}
+      <div class="legend-note">Faded dots are out of season this month.</div>`;
   } else if (type === 'whatson') {
     body = `
-      <div style="font-weight:600;margin-bottom:4px">What's On</div>
-      <div class="legend-row"><span style="font-size:14px">🎆</span> Fireworks</div>
-      <div class="legend-row"><span style="font-size:14px">🏮</span> Matsuri</div>
-      <div class="legend-row"><span style="font-size:14px">❄️</span> Winter event</div>
-      <div class="legend-row"><span style="font-size:14px;color:#e11d48">🌸</span> Plum (Jan–Mar)</div>
-      <div class="legend-row"><span style="font-size:14px">💜</span> Wisteria</div>
-      <div class="legend-row"><span style="font-size:14px">💙</span> Hydrangea</div>
+      <div class="legend-title">Festivals and events</div>
+      ${FESTIVAL_TYPES.map(ft => `<div class="legend-row"><div class="legend-square" style="background:${ft.color}"></div> ${ft.name}</div>`).join('')}
+      <div class="legend-row"><div class="legend-dot" style="background:white;border:2px solid ${C.flowers}"></div> Flowers in season</div>
       <div class="legend-row"><div class="legend-dot" style="background:${C.farmBlue}"></div> Fruit farm</div>`;
   } else {
     el.style.display = 'none';
@@ -1431,7 +1442,7 @@ function updateLegend(type) {
   }
   el.style.display = '';
   el.className = 'legend';
-  el.innerHTML = `<button class="legend-toggle-btn" onclick="this.closest('.legend').classList.toggle('expanded')">Legend ▾</button><div class="legend-body">${body}</div>`;
+  el.innerHTML = `<button type="button" class="legend-toggle-btn" aria-expanded="false" onclick="const l=this.closest('.legend');l.classList.toggle('expanded');this.setAttribute('aria-expanded',l.classList.contains('expanded'));this.textContent=l.classList.contains('expanded')?'Hide legend':'Legend'">Legend</button><div class="legend-body">${body}</div>`;
 }
 
 // ── FLOWERS ──
@@ -1439,13 +1450,14 @@ let flowersCache = null;
 let flowersTypeFilter = 'all'; // 'all', 'wisteria', or 'hydrangea'
 
 async function loadFlowers() {
-  $('sidebar-header').innerHTML = '<h2>Seasonal Flowers</h2><p>80 curated spots across Japan</p>';
+  $('sidebar-header').innerHTML = '<h2>Seasonal flowers</h2><p>Loading spots…</p>';
+  $('sidebar-content').innerHTML = skeletonHtml();
   clearMarkers();
   updateLegend('flowers');
 
   if (!flowersCache) {
     try { flowersCache = await api('/api/flowers'); } catch (e) {
-      $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">Could not load flowers data</div>`;
+      $('sidebar-content').innerHTML = errorState('Could not load the flower spots', 'loadFlowers()');
       return;
     }
   }
@@ -1477,8 +1489,8 @@ function renderFlowers() {
     const opacity = isInSeason ? 1 : 0.45;
     const marker = L.marker([spot.lat, spot.lon], {
       icon: L.divIcon({
-        html: `<div style="background:white;border:2.5px solid ${ft.color};border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,0.25);opacity:${opacity}">${ft.emoji}</div>`,
-        className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+        html: `<div title="${ft.name}" style="background:${ft.color};border:2px solid white;border-radius:50%;width:16px;height:16px;box-shadow:0 1px 4px rgba(0,0,0,0.25);opacity:${opacity}"></div>`,
+        className: '', iconSize: [16, 16], iconAnchor: [8, 8],
       })
     });
 
@@ -1487,14 +1499,14 @@ function renderFlowers() {
       : '';
 
     marker.bindPopup(`<div style="min-width:220px">
-      <b>${spot.name}</b>
-      ${spot.nameJa ? `<span style="color:#888;font-size:12px;margin-left:4px">${spot.nameJa}</span>` : ''}
-      <div style="margin:6px 0 2px;font-size:12px;color:#555">${ft.emoji} ${ft.name} · ${spot.prefecture}</div>
-      ${peakLabel ? `<div style="font-size:12px;color:#555">Peak: <b>${peakLabel}</b></div>` : ''}
-      ${spot.note ? `<div style="font-size:11px;color:#777;margin-top:4px">${spot.note}</div>` : ''}
-      <div style="margin-top:8px;display:flex;gap:8px">
-        ${spot.url ? `<a href="${spot.url}" target="_blank" style="color:${ft.color};font-size:12px;font-weight:500">Official site →</a>` : ''}
-        <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
+      <b>${esc(spot.name)}</b>
+      ${spot.nameJa ? `<span style="color:var(--ink-2);font-size:12px;margin-left:4px">${esc(spot.nameJa)}</span>` : ''}
+      <div style="margin:6px 0 2px;font-size:12px;color:var(--ink-2)">${dotHtml(ft.color)}${ft.name} · ${esc(spot.prefecture)}</div>
+      ${peakLabel ? `<div style="font-size:12px">Peak <b>${peakLabel}</b></div>` : ''}
+      ${spot.note ? `<div style="font-size:12px;color:var(--ink-2);margin-top:4px">${esc(spot.note)}</div>` : ''}
+      <div style="margin-top:8px;display:flex;gap:12px">
+        ${spot.url ? `<a href="${esc(spot.url)}" target="_blank" rel="noopener">Official site</a>` : ''}
+        <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener">Google Maps</a>
       </div>
     </div>`);
     marker.addTo(mapInstance);
@@ -1511,25 +1523,25 @@ function renderFlowers() {
   let bannerHtml = '';
   if (inSeasonTypes.length > 0) {
     const primary = inSeasonTypes[0];
-    const typeList = inSeasonTypes.map(ft => `${ft.emoji} <b>${ft.name}</b>`).join(' · ');
-    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:${primary.sectionBg};border:1px solid ${primary.color}44;border-radius:8px;font-size:0.82rem;color:${primary.color}">
-      <div style="font-weight:600;margin-bottom:4px">${typeList} — in season now</div>
-      ${inSeasonTypes.map(ft => `<div style="color:${ft.color};margin-top:2px;font-size:0.79rem">${ft.emoji} ${ft.note}</div>`).join('')}
+    const typeList = inSeasonTypes.map(ft => `<b>${ft.name}</b>`).join(', ');
+    bannerHtml = `<div class="note">
+      <div style="margin-bottom:4px">In season now: ${typeList}</div>
+      ${inSeasonTypes.map(ft => `<div class="muted" style="margin-top:4px">${ft.note}</div>`).join('')}
     </div>`;
   } else {
     const nextFt = FLOWER_TYPES.find(ft => ft.months[0] > currentMonth) || FLOWER_TYPES[0];
-    bannerHtml = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem;color:var(--gray-600)">
-      🌷 <b>Off-season.</b> Flower seasons run January–October across 8 types.<br>
-      Next up: <b>${nextFt.emoji} ${nextFt.name} (${nextFt.peakLabel})</b><br>
-      <span style="color:var(--gray-400);font-size:0.77rem">Dates shown are typical averages — actual bloom shifts with weather each year. Check official sites before visiting.</span>
+    bannerHtml = `<div class="note">
+      <b>No flowers on this map are in season this month.</b><br>
+      Next: <b>${nextFt.name} (${nextFt.peakLabel})</b><br>
+      <span class="muted">Dates are typical averages and move with the weather each year.</span>
     </div>`;
   }
 
   // Type filter tabs — built from FLOWER_TYPES
-  const typeTabHtml = `<div style="display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--gray-200);flex-wrap:wrap">
-    ${[{type:'all',label:'All',color:'#555'}, ...FLOWER_TYPES.map(ft=>({type:ft.type,label:`${ft.emoji} ${ft.name}`,color:ft.color}))].map(({type,label,color}) => {
+  const typeTabHtml = `<div class="filter-row" role="group" aria-label="Flower type">
+    ${[{type:'all',label:'All'}, ...FLOWER_TYPES.map(ft=>({type:ft.type,label:ft.name,color:ft.color}))].map(({type,label,color}) => {
       const isActive = flowersTypeFilter === type;
-      return `<button onclick="flowersTypeFilter='${type}';renderFlowers()" style="padding:4px 12px;border-radius:20px;border:1px solid ${isActive ? color : 'var(--gray-200)'};background:${isActive ? color : 'white'};color:${isActive ? 'white' : 'var(--gray-600)'};font-size:0.78rem;cursor:pointer;font-weight:${isActive?'600':'400'}">${label}</button>`;
+      return `<button type="button" class="filter-pill" aria-pressed="${isActive}" onclick="flowersTypeFilter='${type}';renderFlowers()">${color && !isActive ? dotHtml(color).replace('margin-right:6px','') : ''}${label}</button>`;
     }).join('')}
   </div>`;
 
@@ -1541,16 +1553,13 @@ function renderFlowers() {
       : '';
     const isInSeason = ft && ft.months.includes(currentMonth);
     return `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToFarm',lat:spot.lat,lon:spot.lon})})" style="cursor:pointer">
-      <h4>${ft?.emoji || ''} ${spot.name}
-        <span style="font-weight:400;color:var(--gray-400);font-size:0.82rem">${spot.nameJa || ''}</span>
-        ${isInSeason ? `<span style="background:${C.greenLight};color:${C.green};font-size:0.7rem;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500">In season</span>` : ''}
-      </h4>
-      <div class="sub">${spot.prefecture} · ${spot.region}</div>
-      ${peakLabel ? `<div class="sub">Peak: <b>${peakLabel}</b></div>` : ''}
-      ${spot.note ? `<div class="sub" style="margin-top:2px;font-style:italic;color:var(--gray-400)">${spot.note}</div>` : ''}
+      <h4>${esc(spot.name)} <span style="font-weight:400;color:var(--ink-2)">${esc(spot.nameJa || '')}</span>${isInSeason ? ' <span class="badge ended">In season</span>' : ''}</h4>
+      <div class="sub">${esc(spot.prefecture)} · ${esc(spot.region)}</div>
+      ${peakLabel ? `<div class="sub">Peak <b>${peakLabel}</b></div>` : ''}
+      ${spot.note ? `<div class="sub">${esc(spot.note)}</div>` : ''}
       <div class="sub" style="margin-top:4px">
-        ${spot.url ? `<a href="${spot.url}" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;font-size:0.78rem">Official site →</a> &nbsp;` : ''}
-        <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom};font-size:0.78rem">Google Maps →</a>
+        ${spot.url ? `<a href="${esc(spot.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Official site</a> · ` : ''}
+        <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Maps</a>
       </div>
     </div>`;
   }
@@ -1563,30 +1572,26 @@ function renderFlowers() {
     const inSeason = typeSpots.filter(s => ft.months.includes(currentMonth));
     const offSeason = typeSpots.filter(s => !ft.months.includes(currentMonth));
 
-    const sectionBg = ft.sectionBg || '#f8fafc';
     const peakLabel = ft.peakLabel || '';
-    html += `<div style="padding:10px 16px;background:${sectionBg};font-weight:600;font-size:0.85rem;color:${ft.color};border-bottom:1px solid var(--gray-200)">
-      ${ft.emoji} ${ft.name} (${ft.ja}) — ${typeSpots.length} spots &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#666">Peak: ${peakLabel}</span>
+    html += `<div class="section-head">
+      ${dotHtml(ft.color)}${ft.name} (${ft.ja}): <span class="num">${typeSpots.length}</span> spots<span style="display:block;font-weight:400;color:var(--ink-2)">Peak ${peakLabel}</span>
     </div>`;
-    html += `<div style="padding:8px 16px 0;font-size:0.79rem;color:var(--gray-600);font-style:italic">${ft.note}</div>`;
+    html += `<div style="padding:8px 16px 0;font-size:13px;color:var(--ink-2)">${ft.note}</div>`;
 
     if (inSeason.length) {
-      html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:${C.green}">In season now (${inSeason.length})</div>`;
+      html += `<div style="padding:8px 16px 4px;font-size:13px;font-weight:600">In season now (${inSeason.length})</div>`;
       inSeason.forEach(s => html += flowerCard(s));
     }
     if (offSeason.length) {
       const label = ft.months[0] > currentMonth ? 'Coming up' : 'Past season';
-      html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:var(--gray-400)">${label} (${offSeason.length})</div>`;
+      html += `<div style="padding:8px 16px 4px;font-size:13px;font-weight:600;color:var(--ink-2)">${label} (${offSeason.length})</div>`;
       offSeason.forEach(s => html += flowerCard(s));
     }
   }
 
   $('sidebar-header').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <h2 style="margin:0">Seasonal Flowers</h2>
-      <span style="font-size:0.78rem;color:var(--gray-400)">${spots.length} curated spots</span>
-    </div>
-    <p style="margin-top:2px">8 types · Jan–Oct · ${spots.length} spots · Official links</p>`;
+    <h2>Seasonal flowers</h2>
+    <p><span class="num">${spots.length}</span> spots, ${FLOWER_TYPES.length} kinds of flower, each with its official site</p>`;
   $('sidebar-content').innerHTML = html;
 }
 
@@ -1663,9 +1668,9 @@ function renderFreetextTags() {
   const chipCities = new Set(QUICK_CITIES.map(c => c.toLowerCase()));
   const freeTags = [...selectedTripCities].filter(c => !chipCities.has(c));
   container.innerHTML = freeTags.map(c =>
-    `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#ede9fe;border:1px solid #a78bfa;border-radius:12px;font-size:0.78rem;color:#5b21b6">
+    `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 8px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;font-size:13px">
       ${c.charAt(0).toUpperCase()+c.slice(1)}
-      <button onclick="removeFreetextCity('${c}')" style="background:none;border:none;cursor:pointer;color:#7c3aed;font-size:0.85rem;line-height:1;padding:0 1px">×</button>
+      <button type="button" onclick="removeFreetextCity('${c}')" aria-label="Remove ${c}" style="background:none;border:none;color:var(--ink-2);font-size:16px;line-height:1;padding:2px 4px">×</button>
     </span>`
   ).join('');
 }
@@ -1694,7 +1699,7 @@ function addTypedCities() {
   }
   input.value = '';
   errEl.textContent = notFound.length
-    ? `Not found: ${notFound.join(', ')} — try a nearby city or check spelling`
+    ? `Not found: ${notFound.join(', ')}. Try a nearby city or check the spelling.`
     : '';
   renderFreetextTags();
 }
@@ -1723,42 +1728,43 @@ function selectTripMonth(m, el) {
 
 function loadTripPlanner() {
   selectedTripCities = new Set();
-  $('sidebar-header').innerHTML = '<h2>Plan My Trip</h2><p>What to expect during your travel dates</p>';
-  updateLegend('sakura');
+  $('sidebar-header').innerHTML = '<h2>Plan a trip</h2><p>Pick your dates and cities to see what will be in season.</p>';
+  updateLegend(KOYO_MONTHS.includes(new Date().getMonth() + 1) ? 'koyo' : 'sakura');
 
   // Default dates: today + 7 days
   const today = new Date();
   const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
   const fmt = d => d.toISOString().slice(0, 10);
   const chips = QUICK_CITIES.map(c =>
-    `<button class="city-chip" onclick="toggleCity('${c.toLowerCase()}',this)">${c}</button>`
+    `<button type="button" class="city-chip" onclick="toggleCity('${c.toLowerCase()}',this);this.setAttribute('aria-pressed',this.classList.contains('active'))" aria-pressed="false">${c}</button>`
   ).join('');
 
   $('sidebar-content').innerHTML = `
     <div style="padding:16px 16px 12px">
-      <div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:5px">Travel dates</div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
-        <input type="date" id="trip-start" value="${fmt(today)}" onchange="syncTripDates('start')" style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
-        <span style="color:var(--gray-400);font-size:0.82rem">to</span>
-        <input type="date" id="trip-end" value="${fmt(nextWeek)}" min="${fmt(today)}" onchange="syncTripDates('end')" style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px" id="trip-dates-label">Travel dates</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px" role="group" aria-labelledby="trip-dates-label">
+        <input type="date" id="trip-start" aria-label="Start date" value="${fmt(today)}" onchange="syncTripDates('start')" style="flex:1;min-width:0;min-height:36px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)">
+        <span style="color:var(--ink-2);font-size:13px">to</span>
+        <input type="date" id="trip-end" aria-label="End date" value="${fmt(nextWeek)}" min="${fmt(today)}" onchange="syncTripDates('end')" style="flex:1;min-width:0;min-height:36px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)">
       </div>
-      <div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:7px">Where are you going? <span style="color:var(--gray-400);font-weight:400">(optional — leave blank for Japan-wide)</span></div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Where are you going? <span style="color:var(--ink-2);font-weight:400">Optional. Leave blank for all of Japan.</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">${chips}</div>
       <div style="display:flex;gap:6px;margin-bottom:10px">
-        <input type="text" id="city-freetext" placeholder="Or type city name(s), comma-separated…" style="flex:1;padding:6px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.8rem;color:var(--gray-800)" onkeydown="if(event.key==='Enter')addTypedCities()">
-        <button onclick="addTypedCities()" style="padding:6px 10px;background:var(--gray-800);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Add</button>
+        <label for="city-freetext" class="sr-only">Other cities</label>
+        <input type="text" id="city-freetext" placeholder="Other cities, separated by commas" style="flex:1;min-width:0;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:14px" onkeydown="if(event.key==='Enter')addTypedCities()">
+        <button type="button" onclick="addTypedCities()" style="min-height:36px;padding:0 12px;background:var(--surface);color:var(--ink);border:1px solid var(--ink-2);border-radius:6px;font-size:14px;white-space:nowrap">Add</button>
       </div>
       <div id="city-freetext-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px"></div>
-      <div id="city-freetext-err" style="font-size:0.75rem;color:${C.error};min-height:16px;margin-bottom:4px"></div>
+      <div id="city-freetext-err" role="alert" style="font-size:13px;color:var(--danger);min-height:16px;margin-bottom:4px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-        <label style="font-size:0.82rem;color:var(--gray-600);white-space:nowrap">Radius:</label>
-        <select id="trip-radius" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem">
+        <label for="trip-radius" style="font-size:13px;color:var(--ink-2);white-space:nowrap">Within</label>
+        <select id="trip-radius" style="min-height:36px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:14px">
           <option value="15">15 km</option>
           <option value="30" selected>30 km</option>
           <option value="50">50 km</option>
           <option value="100">100 km</option>
         </select>
-        <button onclick="searchTrip()" style="flex:1;padding:8px;background:var(--pink);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500">Find experiences</button>
+        <button type="button" class="primary-btn" onclick="searchTrip()" style="flex:1">Show what's in season</button>
       </div>
     </div>
     <div id="trip-results"></div>`;
@@ -1767,9 +1773,9 @@ function loadTripPlanner() {
 async function searchTrip() {
   const startVal = $('trip-start')?.value;
   const endVal = $('trip-end')?.value;
-  if (!startVal || !endVal) { $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Pick both travel dates.</div>'; return; }
+  if (!startVal || !endVal) { $('trip-results').innerHTML = stateHtml({ title: 'Pick both travel dates', error: true }); return; }
   const startDate = new Date(startVal), endDate = new Date(endVal);
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) { $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Invalid dates — use the date picker.</div>'; return; }
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) { $('trip-results').innerHTML = stateHtml({ title: 'Those dates don\'t look right', body: 'Use the date picker to choose them.', error: true }); return; }
 
   const midMs = (startDate.getTime() + endDate.getTime()) / 2;
   const m = new Date(midMs).getMonth() + 1;
@@ -1838,7 +1844,7 @@ async function searchTrip() {
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
             const sz = Math.min(30 + Math.log2(n) * 5, 50);
-            return L.divIcon({ html: `<div style="background:${C.bloom};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)">${n}</div>`, className: '', iconSize: [sz, sz] });
+            return L.divIcon({ html: `<div style="background:${C.bloom};color:${inkOn(C.bloom)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
         for (const spot of allSpotsData.spots) {
@@ -1860,7 +1866,7 @@ async function searchTrip() {
           if (!coords) continue;
           const col = c.status?.includes('Full Bloom') ? C.bloom : c.status?.includes('Blooming') ? C.blooming : C.starting;
           const mk = L.circleMarker(coords, { radius: 10, fillColor: col, color: 'white', weight: 2, fillOpacity: 0.9 });
-          mk.bindPopup(`<b>${c.cityName}</b><br>${c.prefName}<br><span style="color:${C.peak}">${c.status||''}</span><br>Full bloom: ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : '—'}`);
+          mk.bindPopup(`<b>${c.cityName}</b><br>${c.prefName}<br>${esc(statusText(c.status).text)}<br>Full bloom ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : NA}`);
           mk.addTo(mapInstance);
           markers.push(mk);
           bounds.push(coords);
@@ -1877,14 +1883,12 @@ async function searchTrip() {
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
             const sz = Math.min(32 + n * 0.2, 48);
-            return L.divIcon({ html: `<div style="background:${C.farmBlue};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+            return L.divIcon({ html: `<div style="background:${C.farmBlue};color:${inkOn(C.farmBlue)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
         for (const farm of seasonFarms) {
-          const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
-          const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
           const mk = L.marker([farm.lat, farm.lon], {
-            icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] })
+            icon: L.divIcon({ html: `<div style="background:${C.farmBlue};border:2px solid white;border-radius:50%;width:14px;height:14px;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>`, className: '', iconSize: [14, 14], iconAnchor: [7, 7] })
           });
           mk.bindPopup(farmPopupHtml(farm, m));
           clusterGroup.addLayer(mk);
@@ -1894,35 +1898,35 @@ async function searchTrip() {
 
       // ── Sidebar (no-city) ──
       const seasonItems = [];
-      if (isSakuraSeason) seasonItems.push(`🌸 Cherry blossom${m >= 3 && m <= 4 ? ` <b style="color:${C.peak}">(peak season!)</b>` : ''}`);
-      if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
-      if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ` <b style="color:${C.koyoPeak}">(peak season!)</b>` : ''}`);
-      if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking');
+      if (isSakuraSeason) seasonItems.push(`Cherry blossom${m >= 3 && m <= 4 ? ' (peak season)' : ''}`);
+      if (inSeasonFruits.length) seasonItems.push(`Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
+      if (isKoyoSeason) seasonItems.push(`Autumn leaves${m >= 10 && m <= 11 ? ' (peak season)' : ''}`);
+      if (!seasonItems.length) seasonItems.push('Between the main seasons. Try the Festivals and Flowers views.');
 
       const spotCount = allSpotsData?.spots?.length || 0;
-      let html = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem">
-        <b>Japan-wide in ${MO[m-1]}:</b>${seasonItems.map(s=>`<div style="margin-top:4px">${s}</div>`).join('')}
-        ${isSakuraSeason && spotCount ? `<div style="margin-top:6px;color:var(--gray-400);font-size:0.78rem">${spotCount.toLocaleString()} spots on map — pick a city above to filter nearby</div>` : `<div style="margin-top:6px;color:var(--gray-400);font-size:0.78rem">Pick cities above to zoom in</div>`}
+      let html = `<div class="note">
+        <b>Across Japan in ${MO[m-1]}:</b>${seasonItems.map(s=>`<div style="margin-top:4px">${s}</div>`).join('')}
+        <div class="muted" style="margin-top:8px">${isSakuraSeason && spotCount ? `${spotCount.toLocaleString('en-US')} cherry blossom spots on the map. ` : ''}Pick cities above to narrow it down.</div>
       </div>`;
 
       if (isSakuraSeason && bestCities.length) {
-        html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Best cities to visit ${startVal} – ${endVal}</div>`;
+        html += `<div class="section-head">Best cherry blossom cities for ${fmtDate(startVal + 'T00:00:00+09:00')} to ${fmtDate(endVal + 'T00:00:00+09:00')}</div>`;
         bestCities.slice(0, 12).forEach(c => {
           const st = statusText(c.status);
           html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'loadPrefSpots',prefCode:c.prefCode,prefName:c.prefName})})">
             <h4>${c.cityName} <span style="font-weight:400;color:var(--gray-400)">${c.prefName}</span></h4>
-            <div class="sub"><span class="badge ${st.cls}">${st.text}</span> &nbsp; Full bloom: ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : '—'}</div>
+            <div class="sub"><span class="badge ${st.cls}">${esc(st.text)}</span> · Full bloom ${sakuraDateOk(c.fullBloom?.forecast) ? fmtDate(c.fullBloom.forecast) : NA}</div>
           </div>`;
         });
       }
       if (inSeasonFruits.length) {
-        html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-top:1px solid var(--gray-200);border-bottom:1px solid ${C.greenBorder}">🍎 Fruit Picking — ${seasonFarms.length} farms across Japan</div>`;
-        html += `<div style="padding:8px 16px;font-size:0.82rem;color:var(--gray-600)">Pick cities above to see nearby farms, or explore the map.</div>`;
+        html += `<div class="section-head">Fruit picking: ${seasonFarms.length.toLocaleString('en-US')} farms across Japan</div>`;
+        html += `<div style="padding:8px 16px;font-size:13px;color:var(--ink-2)">Pick cities above to see farms near them.</div>`;
       }
       if (isKoyoSeason) {
         // Same city rule as the koyo_best_dates MCP tool.
         const peakCities = tripKoyoForecast?.cities || [];
-        html += `<div style="padding:10px 16px;background:#fff7ed;font-weight:600;font-size:0.85rem;color:#92400e;border-top:1px solid var(--gray-200);border-bottom:1px solid #fed7aa">🍂 Autumn Leaves — peak cities for your dates</div>`;
+        html += `<div class="section-head">Autumn leaves: cities at peak on your dates</div>`;
         if (peakCities.length) {
           peakCities.slice(0, 10).forEach(c => {
             const name = c.nameEn || c.name;
@@ -1936,7 +1940,7 @@ async function searchTrip() {
             </div>`;
           });
         } else if (tripKoyoForecast) {
-          html += `<div style="padding:10px 16px;font-size:0.82rem;color:var(--gray-400)">No cities at peak during your dates. Adjust your window or explore the full Autumn Leaves forecast.</div>`;
+          html += stateHtml({ title: 'No cities at peak on these dates', body: 'Try other dates, or open the Autumn leaves view.' });
         }
       }
       $('trip-results').innerHTML = html;
@@ -1949,8 +1953,8 @@ async function searchTrip() {
     for (const city of resolved) {
       const pin = L.marker([city.lat, city.lon], {
         icon: L.divIcon({
-          html: `<div style="background:#3b82f6;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">📍</div>`,
-          className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+          html: `<div style="background:var(--ink);width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+          className: '', iconSize: [18, 18], iconAnchor: [9, 9],
         })
       }).addTo(mapInstance);
       pin.bindPopup(`<b>${city.name.charAt(0).toUpperCase()+city.name.slice(1)}</b>`);
@@ -2069,7 +2073,7 @@ async function searchTrip() {
         iconCreateFunction: cluster => {
           const n = cluster.getChildCount();
           const sz = Math.min(34 + n * 0.3, 52);
-          return L.divIcon({ html: `<div style="background:${clusterColor};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+          return L.divIcon({ html: `<div style="background:${clusterColor};color:${inkOn(clusterColor)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
         }
       });
       for (const spot of nearbySakura) {
@@ -2087,10 +2091,8 @@ async function searchTrip() {
 
     // Fruit markers
     for (const farm of nearbyFarms) {
-      const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
-      const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${emoji}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
+        icon: L.divIcon({ html: `<div style="background:${C.farmBlue};border:2px solid white;border-radius:50%;width:14px;height:14px;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>`, className: '', iconSize: [14, 14], iconAnchor: [7, 7] })
       });
       mk.bindPopup(farmPopupHtml(farm, m));
       mk.addTo(mapInstance);
@@ -2123,16 +2125,16 @@ async function searchTrip() {
         if (sakuraPastPeakCount) sakuraParts.push(`${sakuraPastPeakCount} just past peak`);
         if (sakuraOpeningCount) sakuraParts.push(`${sakuraOpeningCount} opening`);
         if (sakuraBudCount) sakuraParts.push(`${sakuraBudCount} coming soon`);
-        seasonItems.push(`🌸 Cherry blossom: ${nearbySakura.length} spots match your dates${sakuraParts.length ? ` (${sakuraParts.join(', ')})` : ''}`);
+        seasonItems.push(`Cherry blossom: ${nearbySakura.length} spots match your dates${sakuraParts.length ? ` (${sakuraParts.join(', ')})` : ''}`);
       } else {
-        seasonItems.push('🌿 Cherry blossom: mostly past peak for these cities and dates');
+        seasonItems.push('Cherry blossom: mostly past peak for these cities and dates');
       }
     }
-    if (inSeasonFruits.length) seasonItems.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
-    if (isKoyoSeason) seasonItems.push(`🍂 Autumn leaves${m >= 10 && m <= 11 ? ` <b style="color:${C.koyoPeak}">(peak season!)</b>` : ''}`);
-    if (!seasonItems.length) seasonItems.push('🌿 Off-peak season — great for fruit picking farms');
+    if (inSeasonFruits.length) seasonItems.push(`Fruit picking: ${inSeasonFruits.map(f=>f.name).join(', ')}`);
+    if (isKoyoSeason) seasonItems.push(`Autumn leaves${m >= 10 && m <= 11 ? ' (peak season)' : ''}`);
+    if (!seasonItems.length) seasonItems.push('Between the main seasons. Try the Festivals and Flowers views.');
 
-    let html = `<div style="margin:10px 16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;font-size:0.82rem">
+    let html = `<div class="note">
       <b>${MO[m-1]} near ${cityLabel}:</b>
       ${seasonItems.map(s=>`<div style="margin-top:4px">${s}</div>`).join('')}
     </div>`;
@@ -2146,72 +2148,72 @@ async function searchTrip() {
         if (sakuraOpeningCount) stateParts.push(`${sakuraOpeningCount} opening`);
         if (sakuraBudCount) stateParts.push(`${sakuraBudCount} coming soon`);
         const stateNote = stateParts.join(', ') || 'matched to your dates';
-        html += `<div style="padding:10px 16px;background:var(--pink-light);font-weight:600;font-size:0.85rem;color:var(--pink-dark);border-bottom:1px solid var(--gray-200)">🌸 Cherry Blossom — ${nearbySakura.length} spots that match your dates (${stateNote})</div>`;
+        html += `<div class="section-head">Cherry blossom: ${nearbySakura.length} spots match your dates (${stateNote})</div>`;
         nearbySakura.slice(0, 20).forEach(spot => {
           html += spotCardHtml(asTripSpot(spot), `${spot.dist}km from ${spot.city.charAt(0).toUpperCase()+spot.city.slice(1)}`);
         });
-        if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbySakura.length - 20} more spots on map</div>`;
+        if (nearbySakura.length > 20) html += `<div class="sub" style="padding:8px 16px">${nearbySakura.length - 20} more on the map</div>`;
       } else {
-        html += `<div style="padding:10px 16px;background:#f8fafc;font-weight:600;font-size:0.85rem;color:var(--gray-500);border-bottom:1px solid var(--gray-200)">🌿 Cherry Blossom — ended for ${cityLabel} in ${MO[m-1]}</div>`;
-        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">Cherry blossoms have finished by ${MO[m-1]} in this area — trees are green. Try Hokkaido for late-season bloom (peak early May).</div>`;
+        html += `<div class="section-head">Cherry blossom: over for ${cityLabel} in ${MO[m-1]}</div>`;
+        html += `<div style="padding:12px 16px;font-size:13px;color:var(--ink-2)">The trees here are green by ${MO[m-1]}. Hokkaido blooms last, usually in early May.</div>`;
       }
     }
 
     // Fruit section
     if (inSeasonFruits.length) {
-      html += `<div style="padding:10px 16px;background:${C.greenLight};font-weight:600;font-size:0.85rem;color:${C.greenMid};border-bottom:1px solid ${C.greenBorder};border-top:1px solid var(--gray-200)">🍎 Fruit Picking — ${nearbyFarms.length} farms within ${radiusKm}km</div>`;
+      html += `<div class="section-head">Fruit picking: ${nearbyFarms.length} farms within ${radiusKm} km</div>`;
       if (nearbyFarms.length) {
         nearbyFarms.slice(0, 15).forEach(farm => {
           const srcLabel = farm.source === 'jalan' ? 'Jalan' : 'Navitime';
           html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToFarm',lat:farm.lat,lon:farm.lon})})">
-            <h4>${farm.name}</h4>
-            <div class="sub">${farm.dist}km · ${(farm.fruits||[]).join(', ')}</div>
-            <div class="sub">${farm.address||''}${farm.url ? ` &middot; <a href="${farm.url}" target="_blank" onclick="event.stopPropagation()" style="color:#0369a1">${srcLabel} →</a>` : ''}</div>
+            <h4>${esc(farm.name)}</h4>
+            <div class="sub">${farm.dist} km · ${(farm.fruits||[]).map(esc).join(', ')}</div>
+            <div class="sub">${esc(farm.address||'')}${farm.url ? ` · <a href="${esc(farm.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View on ${srcLabel}</a>` : ''}</div>
           </div>`;
         });
-        if (nearbyFarms.length > 15) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbyFarms.length - 15} more farms on map</div>`;
+        if (nearbyFarms.length > 15) html += `<div class="sub" style="padding:8px 16px">${nearbyFarms.length - 15} more on the map</div>`;
       } else {
-        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No fruit farms within ${radiusKm}km for ${MO[m-1]}. Try a larger radius.</div>`;
+        html += stateHtml({ title: `No farms within ${radiusKm} km in ${MO[m-1]}`, body: 'Try a larger distance.' });
       }
     }
 
     // Koyo section
     if (isKoyoSeason) {
-      html += `<div style="padding:10px 16px;background:#fff7ed;font-weight:600;font-size:0.85rem;color:#92400e;border-top:1px solid var(--gray-200);border-bottom:1px solid #fed7aa">🍂 Autumn Leaves — ${nearbyKoyo.length} spots within ${radiusKm}km</div>`;
+      html += `<div class="section-head">Autumn leaves: ${nearbyKoyo.length} spots within ${radiusKm} km</div>`;
       if (nearbyKoyo.length) {
         nearbyKoyo.slice(0, 12).forEach(spot => {
           const stars = spot.popularity > 0 ? '★'.repeat(spot.popularity) : '';
           html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:spot.lat,lon:spot.lon})})">
-            <h4>${spot.name} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--gray-600)">${spot.nameRomaji}</span>` : ''} ${stars ? `<span style="color:${C.koyoPeak};font-size:11px">${stars}</span>` : ''}</h4>
-            <div class="sub">${spot.dist}km · Peak: <strong>${fmtDate(spot.bestPeak)}</strong> &middot; ${KOYO_PHASES[spot.phase].label}</div>
+            <h4>${esc(spot.name)} ${spot.nameRomaji ? `<span style="font-weight:400;color:var(--ink-2)">${esc(spot.nameRomaji)}</span>` : ''} ${stars ? `<span class="muted" aria-label="Popularity ${spot.popularity} of 3">${stars}</span>` : ''}</h4>
+            <div class="sub">${spot.dist} km · peak <strong>${fmtDate(spot.bestPeak)}</strong> · ${KOYO_PHASES[spot.phase].label}</div>
           </div>`;
         });
-        if (nearbyKoyo.length > 12) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${nearbyKoyo.length - 12} more on map</div>`;
+        if (nearbyKoyo.length > 12) html += `<div class="sub" style="padding:8px 16px">${nearbyKoyo.length - 12} more on the map</div>`;
       } else {
-        html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No autumn leaves spots in database for this area. Try a nearby city.</div>`;
+        html += stateHtml({ title: 'No autumn leaves spots near here', body: 'Try a nearby city.' });
       }
     }
 
     $('trip-results').innerHTML = html;
   } catch (e) {
-    $('trip-results').innerHTML = `<div style="padding:16px;color:${C.error}">${e.message}</div>`;
+    $('trip-results').innerHTML = errorState('Could not check these dates', 'searchTrip()');
   }
 }
 
 // ── Find Near Me (geolocation) ──
 async function findNearMe() {
   if (!navigator.geolocation) {
-    $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Location access is not supported by this browser.</div>';
+    $('sidebar-content').innerHTML = stateHtml({ title: 'This browser can\'t share your location', body: 'Search for a city instead.', error: true });
     return;
   }
 
-  $('btn-nearme').textContent = 'Locating...';
+  $('btn-nearme-label').textContent = 'Locating…';
   navigator.geolocation.getCurrentPosition(async (pos) => {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
-    $('btn-nearme').textContent = 'Near Me';
+    $('btn-nearme-label').textContent = 'Near me';
 
-    $('sidebar-header').innerHTML = `<h2>Spots Near You</h2><p>Within 30km of your location</p>`;
+    $('sidebar-header').innerHTML = `<h2>Near you</h2><p>Cherry blossom spots within 30 km</p>`;
     $('sidebar-content').innerHTML = skeletonHtml();
     updateLegend('sakura');
 
@@ -2254,28 +2256,28 @@ async function findNearMe() {
       mapInstance.setView([lat, lon], 12);
 
       // Sidebar
-      $('sidebar-header').innerHTML = `<h2>Spots Near You</h2><p>${nearby.length} spots within 30km</p>`;
+      $('sidebar-header').innerHTML = `<h2>Near you</h2><p><span class="num">${nearby.length}</span> cherry blossom spots within 30 km</p>`;
       let html = '';
       for (const spot of nearby) {
-        html += spotCardHtml(spot, `${spot.distance}km away`);
+        html += spotCardHtml(spot, `${spot.distance} km away`);
       }
       if (nearby.length === 0) {
-        html = '<div style="padding:20px;text-align:center;color:var(--gray-400)">No sakura spots within 30km. Are you in Japan?</div>';
+        html = stateHtml({ title: 'No cherry blossom spots within 30 km', body: 'The map covers Japan only. Search for a city to look elsewhere.' });
       }
       $('sidebar-content').innerHTML = html;
     } catch (e) {
-      $('sidebar-content').innerHTML = `<div class="loading" style="color:${C.error}">${e.message}</div>`;
+      $('sidebar-content').innerHTML = errorState('Could not load nearby spots', 'findNearMe()');
     }
   }, (err) => {
-    $('btn-nearme').textContent = 'Near Me';
-    $('sidebar-content').innerHTML = '<div class="loading" style="color:var(--error)">Could not get your location. Check that location access is enabled for this site.</div>';
+    $('btn-nearme-label').textContent = 'Near me';
+    $('sidebar-content').innerHTML = stateHtml({ title: 'Could not get your location', body: 'Allow location access for this site, then try again.', retry: 'findNearMe()', error: true });
   }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
 // ── Shared spot popup/card HTML builders ──
 
 function spotPopupHtml(spot) {
-  const displayName = spot.nameRomaji ? `${esc(spot.name)} <span style="color:#888">${esc(spot.nameRomaji)}</span>` : esc(spot.name);
+  const displayName = spot.nameRomaji ? `${esc(spot.name)} <span style="color:var(--ink-2)">${esc(spot.nameRomaji)}</span>` : esc(spot.name);
   const phase = sakuraSpotPhase(spot);
   const liveStatus = spotLiveStatus(spot);
   const barsHtml = bloomBar(spot);
@@ -2293,15 +2295,15 @@ function spotPopupHtml(spot) {
   return `<div style="min-width:220px">
     <b>${displayName}</b>
     ${barsHtml}
-    <div style="margin:4px 0"><b style="color:${statusColor}">${liveStatus}</b></div>
-    ${statusNote ? `<div style="font-size:11px;color:#888">${esc(statusNote)}</div>` : ''}
-    <span style="font-size:11px;color:#888">${esc(spotForecastDates(spot))}</span>
-    <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px solid #eee;min-height:60px">
-      <div style="color:#ccc;font-size:11px">Loading weather…</div>
+    <div style="margin:4px 0;display:flex;align-items:center"><span class="dot" style="background:${statusColor}" aria-hidden="true"></span><b>${esc(liveStatus)}</b></div>
+    ${statusNote ? `<div style="font-size:12px;color:var(--ink-2)">${esc(statusNote)}</div>` : ''}
+    <span style="font-size:12px;color:var(--ink-2)">${esc(spotForecastDates(spot))}</span>
+    <div class="popup-weather" data-lat="${spot.lat}" data-lon="${spot.lon}" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line);min-height:60px">
+      <div style="color:var(--ink-2);font-size:12px">Loading weather…</div>
     </div>
-    <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
-      <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
-      <a href="${jmaUrl}" target="_blank" class="jma-city-link" data-lat="${spot.lat}" data-lon="${spot.lon}" style="font-size:10px;color:#94a3b8">JMA forecast →</a>
+    <div style="margin-top:4px;display:flex;gap:12px;align-items:center">
+      <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener">Google Maps</a>
+      <a href="${jmaUrl}" target="_blank" rel="noopener" class="jma-city-link" data-lat="${spot.lat}" data-lon="${spot.lon}">JMA weather</a>
     </div>
   </div>`;
 }
@@ -2319,7 +2321,7 @@ function spotCardHtml(spot, extra) {
     ${bloomBar(spot)}
     <div class="sub" style="margin-top:4px">
       ${extraText}${esc(spotForecastDates(spot))}
-      &middot; <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom}">Maps</a>
+      · <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Maps</a>
     </div>
   </div>`;
 }
@@ -2330,9 +2332,10 @@ async function loadWeatherCard(cityName) {
     const data = await api(`/api/weather?city=${encodeURIComponent(cityName)}`);
     const weatherDiv = document.createElement('div');
     weatherDiv.className = 'spot-item';
-    weatherDiv.style.background = '#f0f9ff';
-    let whtml = '<h4 style="color:#0369a1">Weather Forecast</h4>';
-    for (const day of data.forecasts) {
+    weatherDiv.style.cssText = 'background:var(--surface-2);cursor:default';
+    let whtml = '<h4>Weather</h4>';
+    const DAY_LABELS = ['Today', 'Tomorrow', 'Day after'];
+    for (const [i, day] of data.forecasts.entries()) {
       const temp = day.temperature;
       const maxC = temp?.max?.celsius;
       const rain = day.chanceOfRain;
@@ -2341,10 +2344,9 @@ async function loadWeatherCard(cityName) {
         parseInt(rain?.T12_18, 10) || 0,
         parseInt(rain?.T18_24, 10) || 0
       );
-      const rainIcon = rainHigh >= 50 ? '🌧' : rainHigh >= 20 ? '🌦' : '☀️';
-      whtml += `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.82rem">
-        <span>${rainIcon} ${day.dateLabel} ${day.date?.slice(5)}</span>
-        <span>${esc(day.telop || '')} ${maxC ? maxC+'°C' : ''} ${rainHigh > 0 ? '<span style="color:#0369a1">'+rainHigh+'%</span>' : ''}</span>
+      whtml += `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:13px;font-variant-numeric:tabular-nums">
+        <span>${DAY_LABELS[i] || esc(day.date?.slice(5) || '')}</span>
+        <span>${maxC ? 'High '+esc(maxC)+'°C' : ''}${maxC && rainHigh > 0 ? ' · ' : ''}${rainHigh > 0 ? '<span style="color:var(--ink-2)">rain '+rainHigh+'%</span>' : ''}</span>
       </div>`;
     }
     weatherDiv.innerHTML = whtml;
@@ -2359,8 +2361,8 @@ async function loadWeatherCard(cityName) {
     // Weather is supplementary — show a minimal card so the space doesn't silently vanish
     const weatherDiv = document.createElement('div');
     weatherDiv.className = 'spot-item';
-    weatherDiv.style.cssText = 'background:#f8fafc;';
-    weatherDiv.innerHTML = '<h4 style="color:#0369a1">Weather Forecast</h4><div style="font-size:11px;color:#94a3b8;padding:4px 0">Weather unavailable</div>';
+    weatherDiv.style.cssText = 'background:var(--surface-2);cursor:default';
+    weatherDiv.innerHTML = '<h4>Weather</h4><div class="sub">Weather is unavailable right now.</div>';
     const firstSpot = $('sidebar-content').querySelector('.spot-item:nth-child(2)');
     if (firstSpot) $('sidebar-content').insertBefore(weatherDiv, firstSpot);
     else $('sidebar-content').appendChild(weatherDiv);
@@ -2381,6 +2383,8 @@ async function loadAllSpotsOnMap(options = {}) {
     }
     if (mode !== expectedMode || token !== mapVersion) return;
     if (options.replaceExisting) clearMarkers({ keepVersion: true });
+    const sc = $('sakura-spot-count');
+    if (sc) sc.textContent = ` ${allSpotsData.spots.length.toLocaleString('en-US')} spots on the map.`;
 
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 40,
@@ -2404,17 +2408,18 @@ async function loadAllSpotsOnMap(options = {}) {
         // Color by majority status
         const n = childMarkers.length;
         let color, textColor;
-        if (ended > n * 0.5) { color = C.ended; textColor = C.greenDark; }      // green — mostly ended
-        else if (peak > n * 0.3) { color = C.peak; textColor = 'white'; }       // deep pink — peak
+        if (ended > n * 0.5) { color = C.ended; textColor = C.greenDark; }      // mostly ended
+        else if (peak > n * 0.3) { color = C.peak; textColor = 'white'; }       // peak
         else if (falling + pastPeak > n * 0.3) {
           color = falling >= pastPeak ? C.falling : sakuraPhaseColor('past_peak');
           textColor = C.peak;
         }
-        else if (blooming > n * 0.3) { color = C.bloom; textColor = 'white'; }   // pink — blooming
-        else if (buds > n * 0.3) { color = C.budOpen; textColor = 'white'; }       // orange — buds
+        else if (blooming > n * 0.3) { color = C.bloom; textColor = 'white'; }   // blooming
+        else if (buds > n * 0.3) { color = C.budOpen; textColor = 'white'; }       // buds
         else if (ended > 0 && (peak > 0 || pastPeak > 0 || blooming > 0)) { color = C.falling; textColor = C.peak; } // mixed late-season
         else { color = C.dormant; textColor = '#333'; }                             // dormant
 
+        textColor = inkOn(color);
         const size = Math.min(38 + n * 0.4, 58);
         return L.divIcon({
           html: `<div style="background:${color};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
@@ -2438,7 +2443,7 @@ async function loadAllSpotsOnMap(options = {}) {
     }
     mapInstance.addLayer(clusterGroup);
 
-    // Also load Kawazu cherry spots with distinct markers (★ star, magenta)
+    // Kawazu cherry spots get distinct square markers
     try {
       const kawazu = await api('/api/kawazu');
       if (mode !== expectedMode || token !== mapVersion) return;
@@ -2449,23 +2454,23 @@ async function loadAllSpotsOnMap(options = {}) {
         const kawazuColor = kPhase === 'ended' ? C.ended : C.kawazu;
         const m = L.marker([spot.lat, spot.lon], {
           icon: L.divIcon({
-            html: `<div style="background:${kawazuColor};color:white;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)" title="Kawazu Cherry">★</div>`,
-            className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+            html: `<div style="background:${kawazuColor};width:14px;height:14px;border-radius:3px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25)" title="Kawazu cherry"></div>`,
+            className: '', iconSize: [14, 14], iconAnchor: [7, 7],
           })
         });
         const kStatus = spotStatusWithDate(spot.bloomRate, spot.fullRate, spot.fullBloomForecast) || 'Kawazu Cherry';
         m.bindPopup(
-          `<div style="min-width:200px"><b>${spot.name}</b> ${spot.nameRomaji || ''}<br>` +
-          `<em style="color:${C.kawazu}">Kawazu Cherry (河津桜)</em><br>` +
+          `<div style="min-width:200px"><b>${esc(spot.name)}</b> ${esc(spot.nameRomaji || '')}<br>` +
+          `<span>Kawazu cherry (河津桜), an early variety</span><br>` +
           `<b>${kStatus}</b><br>` +
-          `<span style="font-size:11px;color:#888">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>` +
-          `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a></div>`
+          `<span style="font-size:12px;color:var(--ink-2)">${fmtDates(spot.bloomForecast, spot.bloomRate, spot.fullBloomForecast, spot.fullRate)}</span><br>` +
+          `<a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}" target="_blank" rel="noopener">Google Maps</a></div>`
         );
         if (mode !== expectedMode || token !== mapVersion) return;
         m.addTo(mapInstance);
         markers.push(m);
       }
-    } catch {} // Kawazu is bonus — don't break main view
+    } catch {} // Kawazu is optional; never break the main view
 
   } catch (e) {
     if (mode !== expectedMode || token !== mapVersion) return;
@@ -2492,7 +2497,8 @@ function filterSidebar(query) {
 
   // If empty, restore the current view
   if (!q) {
-    document.querySelectorAll('.spot-item').forEach(el => el.style.display = '');
+    document.querySelectorAll('.spot-item, #sidebar-content .section-head').forEach(el => el.style.display = '');
+    $('search-empty')?.remove();
     return;
   }
 
@@ -2503,11 +2509,20 @@ function filterSidebar(query) {
     return;
   }
 
-  // Otherwise filter what's visible in sidebar
-  document.querySelectorAll('.spot-item').forEach(el => {
+  localFilter(q);
+}
+
+function localFilter(q) {
+  let shown = 0;
+  document.querySelectorAll('#sidebar-content .spot-item').forEach(el => {
     const text = el.textContent.toLowerCase().replace(/[\s\-]/g, '');
-    el.style.display = fuzzyMatch(text, q) ? '' : 'none';
+    const hit = fuzzyMatch(text, q);
+    el.style.display = hit ? '' : 'none';
+    if (hit) shown++;
   });
+  document.querySelectorAll('#sidebar-content .section-head').forEach(el => { el.style.display = shown ? '' : 'none'; });
+  $('search-empty')?.remove();
+  if (!shown) $('sidebar-content').insertAdjacentHTML('afterbegin', `<div id="search-empty">${stateHtml({ title: 'No matches', body: 'Check the spelling, or try a city or prefecture name.' })}</div>`);
 }
 
 function globalSpotSearch(q) {
@@ -2517,16 +2532,12 @@ function globalSpotSearch(q) {
   }).slice(0, 50); // limit to 50 results
 
   if (matches.length === 0) {
-    // Fall back to sidebar filter
-    document.querySelectorAll('.spot-item').forEach(el => {
-      const text = el.textContent.toLowerCase().replace(/[\s\-]/g, '');
-      el.style.display = fuzzyMatch(text, q) ? '' : 'none';
-    });
+    localFilter(q);
     return;
   }
 
   // Show results in sidebar
-  $('sidebar-header').innerHTML = `<h2>Search: "${q}"</h2><p>${matches.length} spots found${matches.length>=50?' (showing first 50)':''}</p>`;
+  $('sidebar-header').innerHTML = `<h2>Results for "${esc(q)}"</h2><p>${matches.length >= 50 ? 'First 50 cherry blossom spots' : `<span class="num">${matches.length}</span> cherry blossom spots`}</p>`;
   let html = '';
   for (const spot of matches) {
     html += spotCardHtml(spot, spot.prefecture || '');
@@ -2563,6 +2574,8 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
     }
     if (mode !== expectedMode || token !== mapVersion || koyoPrefView) return;
     updateKoyoFilterCounts(allKoyoSpotsData.spots.filter(koyoInDateRange));
+    const kc = $('koyo-spot-count');
+    if (kc) kc.textContent = ` ${allKoyoSpotsData.spots.length.toLocaleString('en-US')} spots on the map.`;
     if (clusterGroup) mapInstance.removeLayer(clusterGroup); // a filter change can overlap the initial load
 
     clusterGroup = L.markerClusterGroup({
@@ -2579,7 +2592,7 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
         const p = KOYO_PHASES[top];
         const bg = p.hollow ? 'white' : p.color;
         const border = p.hollow ? `${KOYO_HOLLOW_STROKE}px solid ${p.color}` : '2px solid white';
-        const textColor = top === 'peak_now' ? 'white' : top === 'forecast' ? C.koyoPeak : '#333';
+        const textColor = p.hollow ? '#8a2f0a' : inkOn(p.color);
         const size = Math.min(38 + n * 0.4, 58);
         return L.divIcon({
           html: `<div style="background:${bg};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:${border};box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
@@ -2602,6 +2615,7 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
     mapInstance.addLayer(clusterGroup);
   } catch (e) {
     console.error('loadAllKoyoSpotsOnMap', e);
+    if (mode === expectedMode) setMapPlaceholder({ title: 'Spots did not load', body: 'The forecast list still works. Reload the page to try the map again.' });
   }
 }
 
@@ -2610,7 +2624,8 @@ let festivalsCache = null;
 let whatsOnMonth = new Date().getMonth() + 1;
 
 async function loadWhatsOn() {
-  $('sidebar-header').innerHTML = '<h2>What\'s On in Japan</h2><p>Festivals, fireworks & seasonal events</p>';
+  $('sidebar-header').innerHTML = '<h2>Festivals and events</h2><p>Loading this month…</p>';
+  $('sidebar-content').innerHTML = skeletonHtml();
   clearMarkers();
   updateLegend('whatson');
 
@@ -2652,22 +2667,22 @@ function renderWhatsOn(m) {
   // Festival markers
   for (const f of festivals) {
     if (!f.lat || !f.lon) continue;
-    const ft = FESTIVAL_TYPES.find(t => t.type === f.type) || { emoji: '📅', color: '#64748b' };
+    const ft = FESTIVAL_TYPES.find(t => t.type === f.type) || { name: 'Event', color: '#64748b' };
     const marker = L.marker([f.lat, f.lon], {
       icon: L.divIcon({
-        html: `<div style="background:${ft.color};color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)">${ft.emoji}</div>`,
-        className: '', iconSize: [30, 30], iconAnchor: [15, 15],
+        html: `<div title="${ft.name}" style="background:${ft.color};width:18px;height:18px;border-radius:4px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)"></div>`,
+        className: '', iconSize: [18, 18], iconAnchor: [9, 9],
       })
     });
     marker.bindPopup(`<div style="min-width:210px">
-      <b>${f.name}</b>
-      ${f.nameJa ? `<span style="color:#888;font-size:12px;margin-left:4px">${f.nameJa}</span>` : ''}
-      <div style="margin:5px 0 2px;font-size:12px;color:#555">${ft.emoji} ${f.prefecture} · ${f.typicalDate}</div>
-      ${f.attendance ? `<div style="font-size:11px;color:#777">Attendance: ~${f.attendance.toLocaleString()}</div>` : ''}
-      ${f.note ? `<div style="font-size:11px;color:#777;margin-top:4px">${f.note}</div>` : ''}
-      <div style="margin-top:8px;display:flex;gap:8px">
-        ${f.url ? `<a href="${f.url}" target="_blank" style="color:${ft.color};font-size:12px;font-weight:500">Official site →</a>` : ''}
-        <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lon}" target="_blank" style="color:${C.bloom};font-size:12px">Google Maps</a>
+      <b>${esc(f.name)}</b>
+      ${f.nameJa ? `<span style="color:var(--ink-2);font-size:12px;margin-left:4px">${esc(f.nameJa)}</span>` : ''}
+      <div style="margin:4px 0 2px;font-size:12px;color:var(--ink-2)">${ft.name} · ${esc(f.prefecture)} · ${esc(f.typicalDate)}</div>
+      ${f.attendance ? `<div style="font-size:12px;color:var(--ink-2)">About ${f.attendance.toLocaleString('en-US')} visitors</div>` : ''}
+      ${f.note ? `<div style="font-size:12px;color:var(--ink-2);margin-top:4px">${esc(f.note)}</div>` : ''}
+      <div style="margin-top:8px;display:flex;gap:12px">
+        ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">Official site</a>` : ''}
+        <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lon}" target="_blank" rel="noopener">Google Maps</a>
       </div>
     </div>`);
     marker.addTo(mapInstance);
@@ -2681,11 +2696,11 @@ function renderWhatsOn(m) {
     if (!ft) continue;
     const marker = L.marker([s.lat, s.lon], {
       icon: L.divIcon({
-        html: `<div style="background:white;border:2px solid ${ft.color};border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 3px rgba(0,0,0,0.2)">${ft.emoji}</div>`,
-        className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+        html: `<div title="${ft.name}" style="background:white;border:3px solid ${ft.color};border-radius:50%;width:14px;height:14px;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>`,
+        className: '', iconSize: [14, 14], iconAnchor: [7, 7],
       })
     });
-    marker.bindPopup(`<div style="min-width:180px"><b>${s.name}</b><br><div style="font-size:12px;color:#555;margin-top:4px">${ft.emoji} ${ft.name} · ${s.prefecture}</div>${s.peakStart ? `<div style="font-size:12px">Peak: <b>${s.peakStart.slice(0,5).replace('-','/')}–${s.peakEnd.slice(0,5).replace('-','/')}</b></div>` : ''}${s.url ? `<a href="${s.url}" target="_blank" style="color:${ft.color};font-size:12px;font-weight:500">Official site →</a>` : ''}</div>`);
+    marker.bindPopup(`<div style="min-width:180px"><b>${esc(s.name)}</b><br><div style="font-size:12px;color:var(--ink-2);margin-top:4px">${ft.name} · ${esc(s.prefecture)}</div>${s.peakStart ? `<div style="font-size:12px">Peak <b>${s.peakStart.slice(0,5).replace('-','/')}–${s.peakEnd.slice(0,5).replace('-','/')}</b></div>` : ''}${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">Official site</a>` : ''}</div>`);
     marker.addTo(mapInstance);
     markers.push(marker);
   }
@@ -2697,13 +2712,12 @@ function renderWhatsOn(m) {
       iconCreateFunction: cluster => {
         const n = cluster.getChildCount();
         const sz = Math.min(30 + n * 0.3, 46);
-        return L.divIcon({ html: `<div style="background:${C.farmBlue};color:white;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
+        return L.divIcon({ html: `<div style="background:${C.farmBlue};color:${inkOn(C.farmBlue)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
       }
     });
     for (const farm of farms) {
-      const emoji = FRUITS.find(f => farm.fruits?.includes(f.name) && f.months.includes(m))?.emoji || '🌿';
       const mk = L.marker([farm.lat, farm.lon], {
-        icon: L.divIcon({ html: `<div style="background:white;border:2px solid ${C.farmBlue};border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">${emoji}</div>`, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
+        icon: L.divIcon({ html: `<div style="background:${C.farmBlue};border:2px solid white;border-radius:50%;width:12px;height:12px;box-shadow:0 1px 3px rgba(0,0,0,0.15)"></div>`, className: '', iconSize: [12, 12], iconAnchor: [6, 6] })
       });
       mk.bindPopup(farmPopupHtml(farm, m));
       clusterGroup.addLayer(mk);
@@ -2720,12 +2734,7 @@ function renderWhatsOn(m) {
     const hasAnything = hasFestival || hasFruit || hasFlower;
     const isActive = mn === m;
     const isToday = mn === todayM;
-    return `<button onclick="renderWhatsOn(${mn})" style="
-      padding:4px 2px; border-radius:6px; border:1px solid ${isActive ? '#0ea5e9' : 'var(--gray-200)'};
-      background:${isActive ? '#0ea5e9' : 'white'}; color:${isActive ? 'white' : hasAnything ? 'var(--gray-800)' : 'var(--gray-400)'};
-      font-size:0.72rem; font-weight:${isActive || isToday ? '600' : '400'}; cursor:pointer; text-align:center;
-      ${isToday && !isActive ? 'border-color:#0ea5e9;color:#0ea5e9;' : ''}
-    ">${mo}</button>`;
+    return `<button type="button" class="month-btn${isActive ? ' active' : ''}${isToday ? ' is-today' : ''}${hasAnything ? '' : ' is-quiet'}" aria-pressed="${isActive}" onclick="renderWhatsOn(${mn})">${mo}</button>`;
   }).join('');
 
   // ── Season context banner ──
@@ -2738,22 +2747,18 @@ function renderWhatsOn(m) {
   const isWinterEvent = m === 1 || m === 2;
 
   let seasonCues = [];
-  if (isPlum) seasonCues.push('🌸 Plum blossom' + (m === 2 ? ' — peak!' : ''));
-  if (isSakuraSeason) seasonCues.push('🌸 Cherry blossom' + (m === 4 ? ' — peak nationwide!' : ''));
-  if (isWisteria) seasonCues.push('💜 Wisteria');
-  if (isHydrangea) seasonCues.push('💙 Hydrangea');
-  if (isFireworksSeason) seasonCues.push('🎆 Fireworks season');
-  if (isKoyoSeason) seasonCues.push('🍂 Autumn leaves');
-  if (isWinterEvent) seasonCues.push('❄️ Winter festivals');
-  if (inSeasonFruits.length) seasonCues.push(`${inSeasonFruits[0].emoji} Fruit picking: ${inSeasonFruits.slice(0,3).map(f=>f.name).join(', ')}${inSeasonFruits.length > 3 ? '...' : ''}`);
-
-  const bannerColor = isFireworksSeason ? '#fff7ed' : isWinterEvent ? '#eff6ff' : isSakuraSeason ? '#fdf2f8' : isKoyoSeason ? '#fff7ed' : '#f8fafc';
-  const bannerBorder = isFireworksSeason ? '#fed7aa' : isWinterEvent ? '#bfdbfe' : isSakuraSeason ? '#fbcfe8' : isKoyoSeason ? '#fed7aa' : 'var(--gray-200)';
-  const bannerText = isFireworksSeason ? '#92400e' : isWinterEvent ? '#1e3a8a' : isSakuraSeason ? C.peak : isKoyoSeason ? '#92400e' : 'var(--gray-600)';
+  if (isPlum) seasonCues.push('Plum blossom' + (m === 2 ? ' (peak)' : ''));
+  if (isSakuraSeason) seasonCues.push('Cherry blossom' + (m === 4 ? ' (peak in most of Japan)' : ''));
+  if (isWisteria) seasonCues.push('Wisteria');
+  if (isHydrangea) seasonCues.push('Hydrangea');
+  if (isFireworksSeason) seasonCues.push('Fireworks');
+  if (isKoyoSeason) seasonCues.push('Autumn leaves');
+  if (isWinterEvent) seasonCues.push('Winter festivals');
+  if (inSeasonFruits.length) seasonCues.push(`Fruit picking: ${inSeasonFruits.slice(0,3).map(f=>f.name).join(', ')}${inSeasonFruits.length > 3 ? ' and more' : ''}`);
 
   const bannerHtml = seasonCues.length
-    ? `<div style="margin:10px 16px;padding:10px 12px;background:${bannerColor};border:1px solid ${bannerBorder};border-radius:8px;font-size:0.82rem;color:${bannerText}">
-        <b>${MO[m-1]}${m === todayM ? ' (now)' : ''}:</b> ${seasonCues.join(' &nbsp;·&nbsp; ')}
+    ? `<div class="note">
+        <b>${MO[m-1]}${m === todayM ? ' (this month)' : ''}:</b> ${seasonCues.join(' · ')}
        </div>`
     : '';
 
@@ -2762,7 +2767,7 @@ function renderWhatsOn(m) {
 
   // Festivals section
   if (festivals.length) {
-    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:#fef2f2;color:#991b1b;border-bottom:1px solid #fecaca">📅 Festivals & Events — ${festivals.length} this month</div>`;
+    html += `<div class="section-head">Festivals and events: ${festivals.length} in ${MO[m-1]}</div>`;
     const byType = {};
     for (const f of festivals) {
       if (!byType[f.type]) byType[f.type] = [];
@@ -2771,86 +2776,77 @@ function renderWhatsOn(m) {
     for (const ft of FESTIVAL_TYPES) {
       const group = byType[ft.type];
       if (!group) continue;
-      html += `<div style="padding:6px 16px;font-size:0.78rem;font-weight:600;color:${ft.color};background:white;border-bottom:1px solid var(--gray-100)">${ft.emoji} ${ft.name} (${group.length})</div>`;
+      html += `<div style="padding:8px 16px 4px;font-size:13px;font-weight:600;display:flex;align-items:center"><span class="dot" style="background:${ft.color};border-radius:2px" aria-hidden="true"></span>${ft.name} (${group.length})</div>`;
       for (const f of group) {
         const bigEvent = f.attendance >= 500000;
-        const biennialBadge = f.years ? `<span style="background:#fefce8;color:#854d0e;font-size:0.68rem;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:500">${f.years === 'odd' ? 'Odd years' : 'Even years'}</span>` : '';
+        const biennialBadge = f.years ? ` <span class="badge ended">${f.years === 'odd' ? 'Odd years only' : 'Even years only'}</span>` : '';
         html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToFarm',lat:f.lat,lon:f.lon,zoom:12})})" style="cursor:pointer">
-          <h4>${f.name}
-            ${bigEvent ? '<span style="background:#fef2f2;color:#991b1b;font-size:0.68rem;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:500">Major</span>' : ''}
-            ${biennialBadge}
-          </h4>
-          <div class="sub">${f.prefecture} · ${f.typicalDate}</div>
-          ${f.attendance ? `<div class="sub">Attendance: ~${f.attendance.toLocaleString()}</div>` : ''}
-          ${f.note ? `<div class="sub" style="font-style:italic;color:var(--gray-400);margin-top:2px">${f.note}</div>` : ''}
-          <div class="sub" style="margin-top:3px">
-            ${f.url ? `<a href="${f.url}" target="_blank" onclick="event.stopPropagation()" style="color:${ft.color};font-size:0.78rem">Official site →</a> &nbsp;` : ''}
-            <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom};font-size:0.78rem">Google Maps</a>
+          <h4>${esc(f.name)}${biennialBadge}</h4>
+          <div class="sub">${esc(f.prefecture)} · ${esc(f.typicalDate)}</div>
+          ${f.attendance ? `<div class="sub">About ${f.attendance.toLocaleString('en-US')} visitors${bigEvent ? ', one of the largest' : ''}</div>` : ''}
+          ${f.note ? `<div class="sub">${esc(f.note)}</div>` : ''}
+          <div class="sub" style="margin-top:4px">
+            ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Official site</a> · ` : ''}
+            <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Maps</a>
           </div>
         </div>`;
       }
     }
   } else {
-    html += `<div style="padding:12px 16px;font-size:0.82rem;color:var(--gray-400)">No major festivals in ${MO[m-1]}. Big seasons: Jul-Aug (fireworks), Oct-Nov (autumn matsuri), Jan-Feb (winter).</div>`;
+    html += stateHtml({ title: `No festivals listed for ${MO[m-1]}`, body: 'The busiest months are July and August for fireworks, October and November for autumn festivals, and January and February for winter events.' });
   }
 
   // Flowers section
   if (flowers.length) {
     const inSeasonFtypes = FLOWER_TYPES.filter(ft => ft.months.includes(m));
-    const primary = inSeasonFtypes[0] || { sectionBg: '#f5f3ff', color: '#7c3aed', emoji: '🌸', name: 'Flowers' };
-    const flowerLabel = inSeasonFtypes.map(ft => `${ft.emoji} ${ft.name}`).join(' · ');
-    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${primary.sectionBg};color:${primary.color};border-top:1px solid var(--gray-200);border-bottom:1px solid var(--gray-200)">
-      ${flowerLabel} — ${flowers.length} spots in season</div>`;
+    const flowerLabel = inSeasonFtypes.map(ft => ft.name).join(', ');
+    html += `<div class="section-head">${flowerLabel}: ${flowers.length} spots in season</div>`;
     flowers.slice(0, 6).forEach(s => {
       const ft = FLOWER_TYPES.find(f => f.type === s.type);
       html += `<div class="spot-item" onclick="handleSpotClick(${reg({action:'flyToKoyo',lat:s.lat,lon:s.lon})})" style="cursor:pointer">
-        <h4>${ft?.emoji || ''} ${s.name} <span style="font-weight:400;color:var(--gray-400);font-size:0.82rem">${s.nameJa||''}</span></h4>
-        <div class="sub">${s.prefecture} · ${s.region}</div>
-        ${s.peakStart ? `<div class="sub">Peak: <b>${s.peakStart.slice(0,5).replace('-','/')}–${s.peakEnd.slice(0,5).replace('-','/')}</b></div>` : ''}
-        <div class="sub" style="margin-top:3px">
-          ${s.url ? `<a href="${s.url}" target="_blank" onclick="event.stopPropagation()" style="color:${ft?.color};font-size:0.78rem">Official site →</a> &nbsp;` : ''}
-          <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}" target="_blank" onclick="event.stopPropagation()" style="color:${C.bloom};font-size:0.78rem">Google Maps</a>
+        <h4>${ft ? dotHtml(ft.color) : ''}${esc(s.name)} <span style="font-weight:400;color:var(--ink-2)">${esc(s.nameJa||'')}</span></h4>
+        <div class="sub">${esc(s.prefecture)} · ${esc(s.region)}</div>
+        ${s.peakStart ? `<div class="sub">Peak <b>${s.peakStart.slice(0,5).replace('-','/')}–${s.peakEnd.slice(0,5).replace('-','/')}</b></div>` : ''}
+        <div class="sub" style="margin-top:4px">
+          ${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Official site</a> · ` : ''}
+          <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Maps</a>
         </div>
       </div>`;
     });
-    if (flowers.length > 6) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${flowers.length - 6} more — <button onclick="setMode('flowers')" style="background:none;border:none;color:#7c3aed;cursor:pointer;font-size:0.78rem;padding:0">See all in Flowers tab</button></div>`;
+    if (flowers.length > 6) html += `<div class="sub" style="padding:8px 16px">${flowers.length - 6} more. <button type="button" onclick="setMode('flowers')" style="background:none;border:none;color:var(--accent);text-decoration:underline;font-size:13px;padding:0">See all flowers</button></div>`;
   }
 
   // Fruit section
   if (inSeasonFruits.length) {
-    html += `<div style="padding:10px 16px;font-weight:600;font-size:0.85rem;background:${C.greenLight};color:${C.greenMid};border-top:1px solid var(--gray-200);border-bottom:1px solid ${C.greenBorder}">
-      🍎 Fruit Picking — ${farms.length} farms on map</div>`;
+    html += `<div class="section-head">
+      Fruit picking: ${farms.length.toLocaleString('en-US')} farms on the map</div>`;
     inSeasonFruits.slice(0, 5).forEach(f => {
       const isPeak = f.peak.includes(m);
-      html += `<div class="spot-item" onclick="setMode('fruit');" style="cursor:pointer">
-        <h4>${f.emoji} ${f.name} <span style="font-weight:400;color:var(--gray-400)">${f.ja}</span>
-          ${isPeak ? `<span style="background:${C.greenSoft};color:${C.green};font-size:0.7rem;padding:1px 5px;border-radius:8px;margin-left:4px">Peak</span>` : ''}
-        </h4>
+      html += `<div class="spot-item" role="button" tabindex="0" onclick="setMode('fruit');" onkeydown="if(event.key==='Enter')setMode('fruit')">
+        <h4>${dotHtml(f.color)}${f.name} <span style="font-weight:400;color:var(--ink-2)">${f.ja}</span>${isPeak ? ' <span class="badge ended">Peak</span>' : ''}</h4>
         <div class="sub">Best regions: ${f.regions.slice(0,3).join(', ')}</div>
-        <div class="sub" style="margin-top:1px;color:${C.green};font-size:0.77rem">Click to explore ${farms.filter(fm => fm.fruits?.includes(f.name)).length} farms →</div>
+        <div class="sub">${farms.filter(fm => fm.fruits?.includes(f.name)).length} farms. Open in Fruit picking.</div>
       </div>`;
     });
-    if (inSeasonFruits.length > 5) html += `<div class="sub" style="padding:8px 16px;color:var(--gray-400)">+ ${inSeasonFruits.length - 5} more fruits — <button onclick="setMode('fruit')" style="background:none;border:none;color:${C.green};cursor:pointer;font-size:0.78rem;padding:0">See all in Fruit tab</button></div>`;
+    if (inSeasonFruits.length > 5) html += `<div class="sub" style="padding:8px 16px">${inSeasonFruits.length - 5} more fruits. <button type="button" onclick="setMode('fruit')" style="background:none;border:none;color:var(--accent);text-decoration:underline;font-size:13px;padding:0">See all fruit</button></div>`;
   }
 
   // Sakura/koyo cross-links
   if (isSakuraSeason) {
-    html += `<div style="margin:10px 16px;padding:10px 12px;background:var(--pink-light);border:1px solid #fbcfe8;border-radius:8px;font-size:0.82rem;color:#9d174d">
-      🌸 Cherry blossom season! Switch to the <b>Cherry Blossom</b> tab for live bloom data across 1,012 spots.
+    html += `<div class="note">
+      It's cherry blossom season. <button type="button" onclick="setMode('sakura')" style="background:none;border:none;color:var(--accent);text-decoration:underline;padding:0;font:inherit">Open the cherry blossom forecast</button>
     </div>`;
   }
   if (isKoyoSeason) {
-    html += `<div style="margin:10px 16px;padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:0.82rem;color:#92400e">
-      🍂 Autumn leaves season! Switch to the <b>Autumn Leaves</b> tab for forecasts and 687 viewing spots.
+    html += `<div class="note">
+      It's autumn leaves season. <button type="button" onclick="setMode('koyo')" style="background:none;border:none;color:var(--accent);text-decoration:underline;padding:0;font:inherit">Open the autumn leaves forecast</button>
     </div>`;
   }
 
   $('sidebar-header').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-      <h2 style="margin:0">What's On in Japan</h2>
-      <span style="font-size:0.78rem;color:var(--gray-400)">${MO[m-1]}${m === todayM ? ' — now' : ''}</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:2px">${monthPills}</div>`;
+    <h2>Festivals and events</h2>
+    <p>What's on in ${MO[m-1]}${m === todayM ? ', this month' : ''}</p>
+    <div class="month-grid" role="group" aria-label="Month">${monthPills}</div>`;
   $('sidebar-content').innerHTML = html;
 }
 
@@ -2870,7 +2866,8 @@ function detectSeasonMode() {
 // Read URL state on load
 (function() {
   try {
-    if (typeof L === 'undefined') throw new Error('Leaflet failed to load from CDN (unpkg.com). Check network/ad-blocker.');
+    document.body.dataset.season = seasonForMonth(new Date().getMonth() + 1);
+    if (typeof L === 'undefined') throw new Error('map library missing');
     const p = new URLSearchParams(location.search);
     const m = p.get('mode');
     if (m && ['sakura','koyo','fruit','flowers','whatson','trip'].includes(m)) {
@@ -2883,9 +2880,9 @@ function detectSeasonMode() {
     initMap(); setMode(detectSeasonMode());
   } catch (e) {
     const el = document.getElementById('sidebar-content');
-    if (el) el.innerHTML = '<div style="padding:16px;color:#dc2626;font-size:14px"><b>Error:</b> ' + e.message + '</div>';
+    if (el) el.innerHTML = stateHtml({ title: 'The map could not load', body: 'Check your connection. If you use a content blocker, allow unpkg.com for this site.', retry: 'location.reload()', retryLabel: 'Reload', error: true });
     const hdr = document.getElementById('sidebar-header');
-    if (hdr) hdr.innerHTML = '<h2 style="color:#dc2626">Failed to load</h2><p>See error below</p>';
+    if (hdr) hdr.innerHTML = '<h2>Japan in Seasons</h2><p>Something went wrong while loading.</p>';
     console.error('Init error:', e);
   }
 })();

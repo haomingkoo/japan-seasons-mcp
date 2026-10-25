@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#e8466b">
+  <meta name="theme-color" content="#f6f1e8">
 
-  <title>Japan in Seasons — Live Cherry Blossom, Autumn Leaves, Festivals & Flowers</title>
-  <meta name="description" content="Live Japan seasonal travel data: sakura (cherry blossom) forecasts, koyo (autumn leaves), festivals, flowers, fruit picking, and weather. 1,700+ GPS-tagged spots across all 47 prefectures, with JMC sakura and koyo forecasts, JMA weather, and curated travel datasets. Free, open-source, with an MCP server for AI assistants.">
+  <title>Japan in Seasons: where cherry blossoms, autumn leaves and festivals are on now</title>
+  <meta name="description" content="Live Japan seasonal travel data: sakura (cherry blossom) forecasts, koyo (autumn leaves), festivals, flowers, fruit picking, and weather. Daily forecasts from Japan Meteorological Corporation and mapped spots across all 47 prefectures. Free and open source.">
   <meta name="keywords" content="Japan travel, cherry blossom, sakura, autumn leaves, koyo, Japan festivals, matsuri, fruit picking, Japan Meteorological Agency, JMA, MCP server">
   <meta name="author" content="Haoming Koo">
 
   <link rel="canonical" href="{{SITE_URL}}/">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{SITE_URL}}/">
-  <meta property="og:title" content="Japan in Seasons — Live Cherry Blossom, Autumn Leaves, Festivals & Flowers">
-  <meta property="og:description" content="1,700+ GPS-tagged spots across all 47 prefectures. Live bloom forecasts from Japan Meteorological Corporation. Free, open-source, with an MCP server for AI assistants.">
+  <meta property="og:title" content="Japan in Seasons: cherry blossom, autumn leaves and festival map">
+  <meta property="og:description" content="A map of what is in season across Japan, with daily bloom and leaf forecasts from Japan Meteorological Corporation. Free and open source.">
   <meta property="og:image" content="{{SITE_URL}}/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -26,8 +26,8 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Japan in Seasons — Live Seasonal Travel Data">
-  <meta name="twitter:description" content="Live sakura, koyo, festivals, flowers, and weather for Japan. 1,700+ spots. Free + MCP for AI assistants.">
+  <meta name="twitter:title" content="Japan in Seasons: what is in season across Japan">
+  <meta name="twitter:description" content="Cherry blossom, autumn leaves, flowers, festivals and fruit picking across Japan, on one map.">
   <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
 
   <!-- JSON-LD: WebSite -->
@@ -54,13 +54,13 @@
   }
   </script>
 
-  <!-- JSON-LD: Dataset — helps Google Dataset Search and AI systems understand our data scope -->
+  <!-- JSON-LD: Dataset -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Dataset",
     "name": "Japan Seasonal Travel Dataset",
-    "description": "Live cherry blossom (sakura) bloom forecasts from JMC for 48 JMA observation cities, autumn leaves (koyo) timing, 46 festivals, 90 flower spots, 1,012 sakura viewing locations, and a 2,100-farm fruit directory. Across all 47 Japanese prefectures. Sakura and koyo forecasts and spot reports come from Japan Meteorological Corporation. Weather comes from Japan Meteorological Agency and Open-Meteo; static travel datasets include official source links.",
+    "description": "Live cherry blossom (sakura) bloom forecasts from JMC for 48 JMA observation cities, autumn leaves (koyo) timing, {{FESTIVAL_COUNT}} festivals, {{FLOWER_SPOT_COUNT}} flower spots, about 1,000 sakura viewing locations, and a {{FRUIT_FARM_COUNT}}-farm fruit directory. Across all 47 Japanese prefectures. Sakura and koyo forecasts and spot reports come from Japan Meteorological Corporation. Weather comes from Japan Meteorological Agency and Open-Meteo; static travel datasets include official source links.",
     "url": "{{SITE_URL}}/",
     "keywords": ["sakura", "cherry blossom", "koyo", "autumn leaves", "Japan travel", "matsuri", "festivals", "Japan Meteorological Agency", "JMA", "JMC"],
     "creator": {
@@ -87,7 +87,7 @@
   }
   </script>
 
-  <!-- JSON-LD: FAQPage — optimized for AI citation (Google AI Overviews, ChatGPT, Perplexity) -->
+  <!-- JSON-LD: FAQPage -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -147,74 +147,75 @@
 
   <link rel="preconnect" href="https://tile.openstreetmap.de">
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="dns-prefetch" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script data-cfasync="false" defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <script data-cfasync="false" defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link rel="preload" href="/fonts/shippori-mincho-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="app.css?v={{ASSET_VERSION}}">
-  <script>window.onerror=function(m,s,l){var el=document.getElementById('sidebar-content');if(el){el.innerHTML='<div style="padding:16px;color:red;font-size:14px"><b>JS Error:</b> '+m+'<br>at '+s+':'+l+'</div>';}}</script>
 </head>
 <body>
-
+<a class="sr-only" href="#sidebar-content">Skip to the list</a>
 <div class="app">
-  <div class="top-bar">
-    <div class="brand">
+  <header class="top-bar">
+    <a class="brand" href="/" aria-label="Japan in Seasons, home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(16 16.6)" fill="var(--accent)"><path id="petal" d="M0-1.6C-3.6-4.2-4.6-8.4-2.6-11.4L0-9.6 2.6-11.4C4.6-8.4 3.6-4.2 0-1.6Z"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/></g></svg>
       <h1>Japan in Seasons</h1>
-      <span class="brand-by">by <a href="https://kooexperience.com" target="_blank" rel="noopener">Haoming Koo</a> &middot; <a href="https://github.com/haomingkoo/japan-seasons-mcp" target="_blank" rel="noopener">GitHub</a> &middot; <a class="install-cta" href="#install">🤖 Use in AI</a></span>
-    </div>
-    <div class="controls">
-      <button class="mode-btn" id="btn-sakura" onclick="setMode('sakura')" aria-label="Cherry Blossom mode">Cherry Blossom</button>
-      <button class="mode-btn koyo" id="btn-koyo" onclick="setMode('koyo')" aria-label="Autumn Leaves mode">Autumn Leaves</button>
-      <button class="mode-btn fruit" id="btn-fruit" onclick="setMode('fruit')" aria-label="Fruit Picking mode">Fruit Picking</button>
-      <button class="mode-btn flowers" id="btn-flowers" onclick="setMode('flowers')" aria-label="Flowers mode">🌷 Flowers</button>
-      <button class="mode-btn whatson" id="btn-whatson" onclick="setMode('whatson')" aria-label="What's On mode">📅 What's On</button>
-      <button class="mode-btn" id="btn-trip" onclick="setMode('trip')" aria-label="Plan My Trip">Plan My Trip</button>
-      <button class="mode-btn" onclick="findNearMe()" id="btn-nearme" title="Find seasonal spots near your current location" aria-label="Find seasonal spots near my location">Near Me</button>
-    </div>
-    <select class="mode-select" id="mode-select" onchange="handleModeSelect(this.value)" aria-label="Select mode">
-      <option value="sakura">🌸 Cherry Blossom</option>
-      <option value="koyo">🍁 Autumn Leaves</option>
-      <option value="fruit">🍓 Fruit Picking</option>
-      <option value="flowers">🌷 Flowers</option>
-      <option value="whatson">📅 What's On</option>
-      <option value="trip">🗓️ Plan My Trip</option>
-      <option value="nearme">📍 Near Me</option>
+    </a>
+    <nav class="controls" aria-label="Season">
+      <button type="button" class="mode-btn" id="btn-sakura" onclick="setMode('sakura')">Cherry blossom</button>
+      <button type="button" class="mode-btn" id="btn-koyo" onclick="setMode('koyo')">Autumn leaves</button>
+      <button type="button" class="mode-btn" id="btn-flowers" onclick="setMode('flowers')">Flowers</button>
+      <button type="button" class="mode-btn" id="btn-fruit" onclick="setMode('fruit')">Fruit picking</button>
+      <button type="button" class="mode-btn" id="btn-whatson" onclick="setMode('whatson')">Festivals and events</button>
+      <button type="button" class="mode-btn" id="btn-trip" onclick="setMode('trip')">Plan a trip</button>
+    </nav>
+    <label for="mode-select" class="sr-only">Season</label>
+    <select class="mode-select" id="mode-select" onchange="handleModeSelect(this.value)">
+      <option value="sakura">Cherry blossom</option>
+      <option value="koyo">Autumn leaves</option>
+      <option value="flowers">Flowers</option>
+      <option value="fruit">Fruit picking</option>
+      <option value="whatson">Festivals and events</option>
+      <option value="trip">Plan a trip</option>
     </select>
-  </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" id="btn-nearme" onclick="findNearMe()" aria-label="Show spots near my location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+        <span id="btn-nearme-label">Near me</span>
+      </button>
+    </div>
+  </header>
 
-  <div class="main">
+  <main class="main" id="main">
     <div class="map-container">
-      <div id="map"></div>
+      <div id="map" role="region" aria-label="Map of seasonal spots in Japan"></div>
       <div class="map-placeholder hidden" id="map-placeholder" aria-live="polite"></div>
       <div class="legend" id="legend"></div>
     </div>
-    <div class="sidebar">
+    <aside class="sidebar" aria-label="Spots and forecasts">
       <div class="sidebar-header" id="sidebar-header">
-        <h2>Loading...</h2>
-        <p>Select a region on the map or browse below</p>
+        <h2>Loading the forecast</h2>
+        <p>Pick a place on the map or in the list.</p>
       </div>
-      <div style="padding:8px 16px;border-bottom:1px solid var(--gray-200)">
-        <label for="search-box" class="sr-only">Search city or spot name</label>
-        <input type="text" id="search-box" placeholder="Search city or spot name..."
-          oninput="filterSidebar(this.value)"
-          style="width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.85rem">
+      <div class="sidebar-search">
+        <label for="search-box" class="sr-only">Search a city or spot</label>
+        <input type="search" id="search-box" placeholder="Search a city or spot" autocomplete="off" oninput="filterSidebar(this.value)">
       </div>
-      <div id="bloom-filters" style="display:none;padding:8px 12px;border-bottom:1px solid var(--gray-200);gap:4px;">
-        <button class="filter-pill active" data-filter="all" onclick="applyBloomFilter('all',this)">All</button>
-        <button class="filter-pill" data-filter="buds" onclick="applyBloomFilter('buds',this)">🌰 Budding</button>
-        <button class="filter-pill" data-filter="blooming" onclick="applyBloomFilter('blooming',this)">🌸 Blooming</button>
-        <button class="filter-pill" data-filter="peak" onclick="applyBloomFilter('peak',this)">🌺 Full Bloom</button>
-        <button class="filter-pill" data-filter="ended" onclick="applyBloomFilter('ended',this)">🍃 Past Peak</button>
+      <div id="bloom-filters" class="filter-row" role="group" aria-label="Filter cherry blossom spots by stage" hidden>
+        <button type="button" class="filter-pill active" data-filter="all" onclick="applyBloomFilter('all',this)">All</button>
+        <button type="button" class="filter-pill" data-filter="buds" onclick="applyBloomFilter('buds',this)">Budding</button>
+        <button type="button" class="filter-pill" data-filter="blooming" onclick="applyBloomFilter('blooming',this)">Blooming</button>
+        <button type="button" class="filter-pill" data-filter="peak" onclick="applyBloomFilter('peak',this)">Full bloom</button>
+        <button type="button" class="filter-pill" data-filter="ended" onclick="applyBloomFilter('ended',this)">Past peak</button>
       </div>
-      <div id="koyo-filters" class="koyo-filters" role="group" aria-label="Filter autumn leaves spots by status" hidden>
+      <div id="koyo-filters" class="filter-row" role="group" aria-label="Filter autumn leaves spots by status" hidden>
         <button type="button" class="filter-pill" data-phase="all" aria-pressed="true" onclick="setKoyoPhaseFilter('all')">All</button>
         <button type="button" class="filter-pill" data-phase="peak_now" aria-pressed="false" onclick="setKoyoPhaseFilter('peak_now')"><span class="koyo-swatch" data-phase="peak_now" aria-hidden="true"></span>Peak now</button>
         <button type="button" class="filter-pill" data-phase="colouring_now" aria-pressed="false" onclick="setKoyoPhaseFilter('colouring_now')"><span class="koyo-swatch" data-phase="colouring_now" aria-hidden="true"></span>Colouring now</button>
         <button type="button" class="filter-pill" data-phase="forecast" aria-pressed="false" onclick="setKoyoPhaseFilter('forecast')"><span class="koyo-swatch" data-phase="forecast" aria-hidden="true"></span>Forecast</button>
         <button type="button" class="filter-pill" data-phase="past" aria-pressed="false" onclick="setKoyoPhaseFilter('past')"><span class="koyo-swatch" data-phase="past" aria-hidden="true"></span>Past peak</button>
-        <p class="koyo-filter-note">"Now" means a JMC spot report from the last 48 hours. Forecast spots have no colour reported yet.</p>
+        <p class="filter-note">"Now" means someone at the spot reported that colour in the last 2 days. Forecast spots have no report yet.</p>
       </div>
       <details id="koyo-dates" class="koyo-dates" hidden>
         <summary>Search by travel dates</summary>
@@ -227,117 +228,72 @@
             <button type="submit" class="koyo-dates-go">Find spots in colour</button>
             <button type="button" class="koyo-dates-clear" id="koyo-dates-clear" onclick="clearKoyoDates()" hidden>Clear dates</button>
           </div>
-          <p class="koyo-dates-help">Matches spots whose JMC forecast viewing window overlaps your trip.</p>
+          <p class="koyo-dates-help">Shows spots whose forecast viewing window overlaps your trip.</p>
         </form>
       </details>
-      <div class="sidebar-content" id="sidebar-content" role="status" aria-live="polite">
-        <div class="loading">Loading forecast data...</div>
+      <div class="sidebar-content" id="sidebar-content" aria-live="polite" tabindex="-1">
+        <div class="loading">Loading the forecast…</div>
       </div>
-      <div class="footer-link">
-        <span id="footer-data-note"></span>
-        MCP: <code>{{MCP_ENDPOINT}}</code> &middot;
-        <a href="https://github.com/haomingkoo/japan-seasons-mcp" target="_blank" rel="noopener">GitHub</a> &middot;
-        <a href="https://www.npmjs.com/package/japan-seasons-mcp" target="_blank" rel="noopener">npm</a> &middot;
-        <a href="/privacy">Privacy</a><br>
-        Built by <a href="https://kooexperience.com" target="_blank" rel="noopener">Haoming Koo</a>
-      </div>
-    </div>
-  </div>
+      <div class="footer-link" id="footer-data-note"></div>
+    </aside>
+  </main>
 </div>
 
-<!-- Static content below the map. Crawlable by search engines and extractable by AI assistants. -->
-<main class="content">
+<!-- Crawlable copy below the map -->
+<div class="content">
   <section class="content-section" id="about">
-    <h2>Japan's four seasons, in live data</h2>
-    <p><strong>Japan in Seasons</strong> is a free, open-source travel companion that tracks live seasonal timing across Japan: <strong>cherry blossoms (sakura)</strong>, <strong>autumn leaves (koyo)</strong>, <strong>festivals (matsuri and fireworks)</strong>, <strong>seasonal flowers</strong> (plum, wisteria, hydrangea, lavender, sunflower, cosmos), and <strong>fruit picking</strong>. It covers 1,700+ GPS-tagged spots across all 47 prefectures, with forecasts updated daily at 09:00 JST.</p>
-    <p>Sakura and autumn leaves forecasts and daily spot reports come from the <strong>Japan Meteorological Corporation (JMC)</strong>, an independent forecaster. City dates are anchored to the <strong>Japan Meteorological Agency (JMA)</strong> observation trees, and weather comes from JMA and <strong>Open-Meteo</strong>. Flower, festival, and fruit-farm datasets are packaged with official URLs and GPS coordinates so AI answers can cite concrete source links instead of inventing places.</p>
+    <h2>What's in season, and where</h2>
+    <p class="lede">Japan in Seasons shows where cherry blossoms, autumn leaves, flowers and fruit are in season across Japan, and which festivals are on. Forecasts update every morning at 9:00 Japan time.</p>
+    <p>Cherry blossom and autumn leaves forecasts, and the daily reports from individual spots, come from the Japan Meteorological Corporation (JMC), an independent forecaster. City dates follow the official observation trees of the Japan Meteorological Agency (JMA). Weather comes from JMA and Open-Meteo. Each flower spot, festival and fruit farm links to its official page.</p>
   </section>
 
   <section class="content-section" id="stats">
-    <h2>What's in the dataset</h2>
+    <h2>What the map covers</h2>
     <ul>
-      <li><strong>48</strong> JMA sakura observation cities with JMC forecasts and JMA observed bloom dates</li>
-      <li><strong>1,012</strong> sakura viewing spots (parks, temples, riversides) across 47 prefectures</li>
-      <li><strong>Koyo (autumn leaves)</strong> forecasts per city with peak-window timing</li>
-      <li><strong>46</strong> curated festivals (matsuri, fireworks, winter events) with official URLs and GPS</li>
-      <li><strong>90</strong> flower spots across six categories (plum, wisteria, hydrangea, lavender, sunflower, cosmos)</li>
-      <li><strong>2,100+</strong> fruit farms with GPS, booking links, and seasonal fruit guide</li>
-      <li><strong>Short-range weather</strong> per spot (Open-Meteo) and per city (JMA)</li>
+      <li>Cherry blossom forecasts for 48 JMA observation cities, and about 1,000 viewing spots in parks, temples and along rivers</li>
+      <li>Autumn leaves forecasts for maple and ginkgo by city, and about 700 viewing spots</li>
+      <li>{{FLOWER_SPOT_COUNT}} flower spots: plum, rapeseed, wisteria, iris, hydrangea, lavender, sunflower and cosmos</li>
+      <li>{{FESTIVAL_COUNT}} festivals, fireworks shows and winter events</li>
+      <li>{{FRUIT_FARM_COUNT}} fruit-picking farms, with a month-by-month fruit guide</li>
+      <li>A three-day weather forecast for every spot</li>
     </ul>
-    <p>Focused forecast pages: <a href="/cherry-blossom-forecast">Japan cherry blossom forecast</a>, <a href="/autumn-leaves-forecast">Japan autumn leaves forecast</a>, and <a href="/japan-seasonal-travel-mcp">Japan seasonal travel MCP</a>.</p>
-  </section>
-
-  <section class="content-section" id="install">
-    <h2>Use it in Claude, ChatGPT, or any AI assistant</h2>
-    <p>Japan in Seasons supports both <strong>AI search</strong> and <strong>Model Context Protocol (MCP)</strong> tool use. AI search can find and cite the forecast pages. MCP tools only work after the endpoint is connected inside an MCP-capable client.</p>
-
-    <h3>For AI search and web browsing</h3>
-    <p>If ChatGPT, Perplexity, or another AI search product finds this site through web search, it should cite the crawlable forecast pages instead of trying to run MCP tools.</p>
-    <pre><code>{{SAKURA_FORECAST_TEXT_URL}}
-{{SAKURA_FORECAST_API_URL}}</code></pre>
-
-    <h3>Remote MCP endpoint (zero install)</h3>
-    <p>Point your MCP client, app, or connector at:</p>
-    <pre><code>{{MCP_ENDPOINT}}</code></pre>
-
-    <h3>ChatGPT app / connector metadata</h3>
-    <pre><code>Name: {{CONNECTOR_NAME}}
-Description: {{CONNECTOR_DESCRIPTION}}
-Connector URL: {{MCP_ENDPOINT}}</code></pre>
-    <p>If ChatGPT only found this page via search, it cannot call the MCP tools yet. Connect the endpoint first, then ask for current sakura dates, best blossom cities for travel dates, or exact parks by prefecture.</p>
-
-    <h3>Local install via npm</h3>
-    <pre><code>npx japan-seasons-mcp</code></pre>
-
-    <h3>Claude Desktop config</h3>
-    <pre><code>{
-  "mcpServers": {
-    "japan-seasons": {
-      "command": "npx",
-      "args": ["-y", "japan-seasons-mcp"]
-    }
-  }
-}</code></pre>
-
-    <h3>Best AI entry points</h3>
-    <p><code>japan_seasonal_answer</code> for broad seasonal travel questions, <code>sakura_now</code> for "how is the sakura forecast?" prompts with viewing spot suggestions, <code>koyo_now</code> for autumn leaves prompts, and <code>search</code> / <code>fetch</code> for retrieval and citation flows.</p>
-
-    <h3>Specialist tools</h3>
-    <p><code>sakura_forecast</code>, <code>sakura_best_dates</code>, <code>sakura_spots</code>, <code>kawazu_forecast</code>, <code>koyo_forecast</code>, <code>koyo_best_dates</code>, <code>koyo_spots</code>, <code>flowers_spots</code>, <code>festivals_list</code>, <code>fruit_seasons</code>, <code>fruit_farms</code>, <code>weather_forecast</code>.</p>
-
-    <p><a href="https://github.com/haomingkoo/japan-seasons-mcp#use-it-with-ai-assistants" target="_blank" rel="noopener">Full AI and MCP guide on GitHub →</a></p>
+    <p>Forecast pages: <a href="/cherry-blossom-forecast">cherry blossom forecast</a> and <a href="/autumn-leaves-forecast">autumn leaves forecast</a>. To use the data in Claude, ChatGPT or another AI assistant, see the <a href="/developers">developer guide</a>.</p>
   </section>
 
   <section class="content-section" id="faq">
-    <h2>Frequently asked questions</h2>
+    <h2>Questions</h2>
 
     <h3>When do cherry blossoms bloom in Japan?</h3>
-    <p>Cherry blossoms typically bloom between late March and early May. Timing varies by latitude: Okinawa and Kyushu bloom first in mid-to-late March, Tokyo and Kyoto around late March to early April, and northern Tohoku and Hokkaido in late April to early May. Full bloom (mankai) follows first bloom by roughly 5 to 7 days.</p>
+    <p>Usually between late March and early May, earlier in the south. Okinawa and Kyushu bloom first in mid to late March. Tokyo and Kyoto bloom in late March or early April, and Tohoku and Hokkaido in late April to early May. Full bloom (mankai) follows first bloom by about 5 to 7 days.</p>
 
-    <h3>When is the best time for autumn leaves (koyo) in Japan?</h3>
-    <p>Koyo peaks from mid-October in Hokkaido down to early December in Kyushu. Kyoto's famous maple spots typically peak in mid-to-late November. The best koyo viewing is the narrow window around each spot's peak, which shifts each year with temperature.</p>
+    <h3>When is the best time for autumn leaves in Japan?</h3>
+    <p>Leaves peak from mid-October in Hokkaido to early December in Kyushu. Kyoto's maples usually peak in mid to late November. Each spot's best window is short and moves each year with the temperature.</p>
 
-    <h3>What is the JMC bloom scale?</h3>
-    <p>JMC publishes a bloom rate (0–100%, progress to first bloom) and a full-bloom rate (0–100%, progress to mankai). A full-bloom rate of 90–100% is mankai — the optimal viewing window.</p>
+    <h3>What do the bloom percentages mean?</h3>
+    <p>JMC publishes two numbers from 0 to 100%. The bloom rate is progress towards first bloom. The full-bloom rate is progress towards mankai. A full-bloom rate of 90 to 100% is the best time to go.</p>
 
-    <h3>How accurate are Japan cherry blossom forecasts?</h3>
-    <p>Official JMC forecasts update weekly from January and are typically accurate to within 1 to 3 days of actual bloom. Japan in Seasons surfaces JMC forecast dates, actual observation dates when available, and long-term historical averages for each of 48 observation cities.</p>
+    <h3>How accurate are the cherry blossom forecasts?</h3>
+    <p>JMC forecasts update weekly from January and are usually within 1 to 3 days of the actual bloom. For each of the 48 observation cities the map shows the forecast date, the observed date once it happens, and the long-term average.</p>
 
-    <h3>Is Japan in Seasons free?</h3>
-    <p>Yes. Free and open-source under the MIT license. The interactive map, REST API, and MCP server are all free for personal and commercial use.</p>
+    <h3>Is it free?</h3>
+    <p>Yes. The map, the API and the MCP server are free to use, and the code is open source under the MIT licence.</p>
   </section>
 
   <section class="content-section" id="sources">
-    <h2>Data sources and attribution</h2>
+    <h2>Sources</h2>
     <ul>
-      <li><a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> — sakura and koyo forecasts and daily spot reports</li>
-      <li><a href="https://www.jma.go.jp/" target="_blank" rel="noopener">Japan Meteorological Agency (JMA)</a> — short-range weather per city</li>
-      <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — spot-level weather by latitude/longitude</li>
-      <li>Official tourism boards and festival organizer websites — matsuri dates, attendance, and links</li>
+      <li><a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a>: cherry blossom and autumn leaves forecasts, and daily spot reports</li>
+      <li><a href="https://www.jma.go.jp/" target="_blank" rel="noopener">Japan Meteorological Agency (JMA)</a>: city weather forecasts</li>
+      <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>: weather for each spot</li>
+      <li>Official tourism and organiser websites: festival dates and links</li>
     </ul>
-    <p class="attribution">Built by <a href="https://kooexperience.com" target="_blank" rel="noopener">Haoming Koo</a>. MIT licensed. <a href="https://github.com/haomingkoo/japan-seasons-mcp" target="_blank" rel="noopener">Source on GitHub</a> · <a href="https://www.npmjs.com/package/japan-seasons-mcp" target="_blank" rel="noopener">npm</a> · <a href="/privacy">Privacy</a>.</p>
+    <p>Source code is on <a href="https://github.com/haomingkoo/japan-seasons-mcp" target="_blank" rel="noopener">GitHub</a>.</p>
   </section>
-</main>
+</div>
+
+<footer class="site-footer">
+  <p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p>
+</footer>
 
 <script data-cfasync="false" defer src="app.js?v={{ASSET_VERSION}}"></script>
 </body>
