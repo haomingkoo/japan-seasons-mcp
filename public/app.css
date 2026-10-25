@@ -302,3 +302,6 @@ button { cursor: pointer; }
   .brand-mark { display: none; }
   .mode-select { font-size: 13px; }
 }
+a.btn-secondary { text-decoration: none; }
+/* Below 440px the season select needs the room; the bloom front stays linked from the page text. */
+@media (max-width: 440px) { .header-actions .explore-link { display: none; } }
