@@ -844,7 +844,7 @@ const SEARCH_DOCS = [
     title: "Cherry Blossom Viewing Spots",
     url: `${SITE_URL}/cherry-blossom-forecast#spots`,
     keywords: "sakura spots parks temples gps kyoto tokyo viewing locations current status coordinates",
-    summary: "1,012 JMC cherry blossom viewing spots with GPS coordinates, bloom percentages, reporter observations when fresh, and prefecture-level filtering.",
+    summary: "About 1,000 JMC cherry blossom viewing spots with GPS coordinates, bloom percentages, reporter observations when fresh, and prefecture-level filtering.",
   },
   {
     id: "kawazu",
@@ -858,7 +858,7 @@ const SEARCH_DOCS = [
     title: "Japan Autumn Leaves Forecast",
     url: `${SITE_URL}/autumn-leaves-forecast`,
     keywords: "koyo autumn leaves fall foliage momiji maple ginkgo kyoto nikko hokkaido forecast japan",
-    summary: "JMC koyo forecast for maple and ginkgo timing by city, with forecast maps, regional commentary, and 687 viewing spots.",
+    summary: "JMC koyo forecast for maple and ginkgo timing by city, with forecast maps, regional commentary, and about 700 viewing spots.",
   },
   {
     id: "flowers",
@@ -962,7 +962,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 **Late Mar – May** — Cherry blossom (sakura):
 - sakura_forecast → big picture, 48 cities
 - sakura_best_dates → match travel dates to bloom cities
-- sakura_spots → 1,012 specific parks/temples with bloom % and GPS
+- sakura_spots → about 1,000 specific parks/temples with bloom % and GPS
 - flowers_spots (type=wisteria) → wisteria season starts late Apr
 
 **Apr-May** — Wisteria (fuji):
@@ -988,7 +988,7 @@ Use the japan-seasons-mcp tools based on the travel month:
 **Oct-Dec** — Autumn leaves (koyo):
 - koyo_forecast → maple & ginkgo timing, 50+ cities
 - koyo_best_dates → match travel dates to colour cities (same as sakura_best_dates but for koyo)
-- koyo_spots → 687 viewing spots with peak windows
+- koyo_spots → about 700 viewing spots with peak windows
 
 ## Bloom scale (sakura, official JMC/JMA presentation)
 - ${SAKURA_BLOOM_RATE_SCALE_LINE}
@@ -2262,7 +2262,7 @@ async function startHttpServer() {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https:; worker-src 'self' blob:; connect-src 'self' https:; frame-ancestors 'none'");
 
     // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");

@@ -187,7 +187,7 @@ export async function handleApiRequest(
       return true;
     }
 
-    // GET /api/sakura/all-spots — load all 1,012 spots across Japan
+    // GET /api/sakura/all-spots — load every JMC sakura spot across Japan
     if (pathname === "/api/sakura/all-spots") {
       const cached = await getAllSpotsCache("sakura");
       if (cached) {
