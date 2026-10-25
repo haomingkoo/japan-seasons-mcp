@@ -12,6 +12,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
+import { DailyUniqueVisitors } from "./lib/unique-visitors.js";
 import { VERSION as SERVER_VERSION } from "./lib/version.js";
 import { handleApiRequest, warmSpotsCache } from "./api.js";
 import { onDailyFlush } from "./lib/cache.js";
@@ -262,6 +263,8 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/og-image.png":  { file: "og-image.png",                  mime: "image/png" },
   "/status":        { file: "status.html",                   mime: "text/html; charset=utf-8" },
   "/status/":       { file: "status.html",                   mime: "text/html; charset=utf-8" },
+  "/privacy":      { file: "privacy.html",                  mime: "text/html; charset=utf-8" },
+  "/privacy/":     { file: "privacy.html",                  mime: "text/html; charset=utf-8" },
   "/cherry-blossom-forecast":  { file: "cherry-blossom-forecast.html",  mime: "text/html; charset=utf-8" },
   "/cherry-blossom-forecast/": { file: "cherry-blossom-forecast.html",  mime: "text/html; charset=utf-8" },
   "/autumn-leaves-forecast":   { file: "autumn-leaves-forecast.html",   mime: "text/html; charset=utf-8" },
@@ -313,6 +316,7 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/autumn-leaves-forecast`, priority: "0.95" },
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
+    { loc: `${SITE_URL}/privacy`, priority: "0.3" },
     { loc: `${SITE_URL}/llms.txt`, priority: "0.5" },
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -2131,11 +2135,11 @@ const stats = {
   totalRequests: 0,
   totalToolCalls: 0,
   toolCalls: {} as Record<string, number>,
-  uniqueIps: new Set<string>(),
+  uniqueVisitorsToday: new DailyUniqueVisitors(),
 
   recordRequest(ip: string) {
     this.totalRequests++;
-    this.uniqueIps.add(ip);
+    this.uniqueVisitorsToday.add(ip);
   },
   recordToolCall(tool: string) {
     this.totalToolCalls++;
@@ -2147,7 +2151,7 @@ const stats = {
       uptime: Math.floor((Date.now() - new Date(this.startedAt).getTime()) / 1000),
       totalRequests: this.totalRequests,
       totalToolCalls: this.totalToolCalls,
-      uniqueUsers: this.uniqueIps.size,
+      uniqueUsers: this.uniqueVisitorsToday.count(),
       toolCalls: this.toolCalls,
     };
   },

@@ -29,6 +29,7 @@ const publicTemplates = [
   "public/cherry-blossom-forecast.html",
   "public/autumn-leaves-forecast.html",
   "public/status.html",
+  "public/privacy.html",
   "public/llms.txt",
   "public/robots.txt",
 ];
