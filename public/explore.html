@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ece6db">
+  <title>Bloom front: Japan cherry blossom and autumn leaves in 3D | Japan in Seasons</title>
+  <meta name="description" content="Scrub through the season and watch the cherry blossom front move north across a 3D map of Japan, or the autumn colour move south. Built on JMC forecasts and JMA observations.">
+  <link rel="canonical" href="{{SITE_URL}}/explore">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{SITE_URL}}/explore">
+  <meta property="og:title" content="Bloom front | Japan in Seasons">
+  <meta property="og:description" content="Watch the cherry blossom front move north across Japan. Drag the date.">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <link rel="stylesheet" href="/explore/explore.css?v={{ASSET_VERSION}}">
+</head>
+<body>
+<div id="app" class="app" data-season="sakura">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Bloom front</h1>
+      <p class="brand-sub" id="intro">Watch the bloom move north. Drag the date.</p>
+    </div>
+    <div class="seg season-seg" role="group" aria-label="Season">
+      <button type="button" data-season="sakura" aria-pressed="true">Cherry blossom</button>
+      <button type="button" data-season="koyo" aria-pressed="false">Autumn leaves</button>
+    </div>
+    <label class="region-pick">
+      <span class="sr-only">Region</span>
+      <select id="region" aria-label="Region">
+        <option value="japan">All Japan</option>
+        <option value="kyushu">Kyushu</option>
+        <option value="kansai">Kansai and Shikoku</option>
+        <option value="chubu">Chubu</option>
+        <option value="kanto">Kanto</option>
+        <option value="tohoku">Tohoku</option>
+        <option value="hokkaido">Hokkaido</option>
+      </select>
+    </label>
+    <a class="back-link" href="/">Back to the 2D map</a>
+  </header>
+
+  <div class="main">
+    <div class="left">
+      <div class="map-wrap" id="map-wrap">
+        <div id="map" role="region" aria-label="3D map of Japan with the bloom front. Use the date slider or arrow keys to change the date."></div>
+        <canvas id="static-map" class="static-map" hidden aria-hidden="true"></canvas>
+        <div id="map-status" class="map-status" role="status" aria-live="polite">Loading forecast data…</div>
+        <button id="compass" class="compass" type="button" aria-label="Reset view to north">
+          <span aria-hidden="true">N</span>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5"/><path class="needle" d="M20 7 L26 27 L20 23 L14 27 Z"/></svg>
+        </button>
+        <div id="cursor-tip" class="cursor-tip" hidden></div>
+        <div class="map-legend" id="map-legend" aria-hidden="true"></div>
+        <div class="map-controls">
+          <div class="scalebar" id="scalebar" aria-hidden="true"><span id="sb-label"></span><i id="sb-bar"></i></div>
+          <div class="seg dim-seg" role="group" aria-label="View">
+            <button type="button" data-dim="2d" aria-pressed="false">2D</button>
+            <button type="button" data-dim="3d" aria-pressed="true">3D</button>
+          </div>
+          <label class="exag">
+            <span class="sr-only">Vertical exaggeration</span>
+            <select id="exag" aria-label="Vertical exaggeration">
+              <option value="1">1×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2" selected>2×</option>
+              <option value="3">3×</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <section class="timeline" aria-label="Timeline">
+          <div class="tl-head">
+            <p class="tl-date"><span id="tl-date">Loading</span> <span class="tl-phase" id="tl-sub"></span></p>
+            <span class="tl-range" id="tl-range"></span>
+          </div>
+          <div class="tl-body">
+            <div class="tl-buttons">
+              <button id="btn-play" class="tl-btn" type="button" aria-label="Play">
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M5 3.2v9.6L12.5 8z"/></svg>
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="4" y="3.2" width="2.6" height="9.6" rx=".5"/><rect x="9.4" y="3.2" width="2.6" height="9.6" rx=".5"/></svg>
+              </button>
+              <button id="btn-step" class="tl-btn" type="button" aria-label="Jump to next event">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.2v9.6L10 8z"/><rect x="10.6" y="3.2" width="2.2" height="9.6" rx=".4"/></svg>
+              </button>
+              <label class="speed">
+                <span class="sr-only">Playback speed</span>
+                <select id="speed" aria-label="Playback speed">
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select>
+              </label>
+            </div>
+            <div class="tl-track-wrap">
+              <div class="tl-events" id="tl-events"></div>
+              <input type="range" id="tl-range-input" class="tl-input" min="0" max="1" step="any" value="0" aria-label="Date">
+              <div class="tl-axis" id="tl-axis" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+        <section class="charts" aria-label="Charts">
+          <figure class="chart">
+            <figcaption><span id="c1-title">Cities in bloom</span> <span class="muted" id="c1-sub">of 48 JMA cities</span></figcaption>
+            <svg id="chart-bloom" role="img" aria-label="Number of cities in bloom over the season"></svg>
+          </figure>
+          <figure class="chart">
+            <figcaption>Front speed <span class="muted" id="c2-sub">km per day northward</span></figcaption>
+            <svg id="chart-speed" role="img" aria-label="Speed of the front over the season"></svg>
+          </figure>
+          <figure class="chart">
+            <figcaption>This year vs average <span class="muted">by latitude</span></figcaption>
+            <svg id="chart-trend" role="img" aria-label="Each city's date this year compared with its JMA average, south to north"></svg>
+          </figure>
+        </section>
+      </div>
+    </div>
+
+    <aside class="sidebar" aria-label="Layers and details">
+      <div class="card">
+        <div class="side-tabs" role="tablist" aria-label="Panel">
+          <button type="button" role="tab" id="tab-layers" aria-controls="pane-layers" aria-selected="true">Layers</button>
+          <button type="button" role="tab" id="tab-events" aria-controls="pane-events" aria-selected="false" tabindex="-1">Key dates</button>
+          <button type="button" role="tab" id="tab-sources" aria-controls="pane-sources" aria-selected="false" tabindex="-1">Sources</button>
+        </div>
+        <div class="tab-pane" id="pane-layers" role="tabpanel" aria-labelledby="tab-layers">
+          <ul class="layer-list" id="layer-list"></ul>
+        </div>
+        <div class="tab-pane" id="pane-events" role="tabpanel" aria-labelledby="tab-events" hidden>
+          <ol class="event-list" id="event-list"></ol>
+        </div>
+        <div class="tab-pane" id="pane-sources" role="tabpanel" aria-labelledby="tab-sources" hidden>
+          <div class="sources">
+            <p><strong>Dates.</strong> City dates come from the Japan Meteorological Agency (JMA) observation trees once recorded, otherwise from the <a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> forecast. Spot dates are JMC forecasts. Averages are the normal dates published with the forecast. For autumn leaves, JMC gives only the difference from normal.</p>
+            <p><strong>Shading.</strong> Colour between spots is interpolated from the six nearest spots and cities. It fades out 28 km from the nearest one, so open sea and empty mountains stay plain. Each tree grove stands on a real JMC spot.</p>
+            <p><strong>Front speed</strong> is how fast the interpolated arrival line moves, averaged over a week.</p>
+            <p><strong>Terrain.</strong> <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles on AWS</a> (Mapzen, <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">sources</a>). Map drawn with MapLibre GL JS.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Overview</h2>
+        <dl class="overview" id="overview"></dl>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">At cursor <span class="muted" id="cursor-hint">hover the map</span></h2>
+        <div class="at-cursor" id="at-cursor" aria-live="polite"><p class="muted">Point at a city, a grove or any place on the map.</p></div>
+      </div>
+
+      <details class="card city-table-card">
+        <summary><span id="city-table-title">All cities</span></summary>
+        <div class="table-wrap">
+          <table class="city-table" id="city-table"></table>
+        </div>
+      </details>
+    </aside>
+  </div>
+</div>
+<noscript><p class="noscript">This view needs JavaScript. The <a href="/cherry-blossom-forecast">cherry blossom forecast</a> page lists every city as text.</p></noscript>
+<script type="module" src="/explore/explore.js?v={{ASSET_VERSION}}"></script>
+</body>
+</html>

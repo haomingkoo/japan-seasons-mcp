@@ -279,6 +279,11 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/favicon.svg":  { file: "favicon.svg",                   mime: "image/svg+xml" },
   "/fonts/shippori-mincho-latin-500.woff2": { file: "fonts/shippori-mincho-latin-500.woff2", mime: "font/woff2" },
   "/fonts/shippori-mincho-latin-700.woff2": { file: "fonts/shippori-mincho-latin-700.woff2", mime: "font/woff2" },
+  "/explore":  { file: "explore.html", mime: "text/html; charset=utf-8" },
+  "/explore/": { file: "explore.html", mime: "text/html; charset=utf-8" },
+  "/explore/explore.js":  { file: "explore/explore.js",  mime: "text/javascript; charset=utf-8" },
+  "/explore/explore.css": { file: "explore/explore.css", mime: "text/css; charset=utf-8" },
+  "/explore/maplibre-gl-worker.mjs": { file: "explore/maplibre-gl-worker.mjs", mime: "text/javascript; charset=utf-8" },
 };
 const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 {
@@ -324,6 +329,7 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/cherry-blossom-forecast`, priority: "0.95" },
     { loc: SAKURA_FORECAST_TEXT_URL, priority: "0.9" },
     { loc: `${SITE_URL}/autumn-leaves-forecast`, priority: "0.95" },
+    { loc: `${SITE_URL}/explore`, priority: "0.8" },
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
     { loc: `${SITE_URL}/privacy`, priority: "0.3" },
