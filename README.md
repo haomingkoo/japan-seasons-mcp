@@ -12,7 +12,7 @@
 [![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet.svg)](#use-it-with-ai-assistants)
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://seasons.kooexperience.com)
 [![japan-seasons-mcp MCP server](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp/badges/score.svg)](https://glama.ai/mcp/servers/haomingkoo/japan-seasons-mcp)
-[![smithery badge](https://smithery.ai/badge/haomingkoo/japan-seasons-mcp)](https://smithery.ai/server/haomingkoo/japan-seasons-mcp)
+[![LightNow capabilities](https://lightnow.ai/badge/io.github.haomingkoo/japan-seasons)](https://lightnow.ai/servers/io.github.haomingkoo/japan-seasons)
 
 [**Live map**](https://seasons.kooexperience.com) · [**Hosted MCP endpoint**](https://seasons.kooexperience.com/mcp) · [**npm**](https://www.npmjs.com/package/japan-seasons-mcp)
 
