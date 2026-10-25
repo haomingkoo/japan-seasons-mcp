@@ -20,6 +20,7 @@ precision highp float;
 uniform mat4 u_matrix;
 uniform float u_day;
 uniform float u_size;
+uniform float u_exag;
 uniform int u_kind;
 uniform vec4 u_ramp[8];
 in vec3 a_pos;
@@ -61,7 +62,7 @@ void main() {
   }
   float h = u_size * (0.75 + a_rand.x * 0.5);
   float w = h * 0.95;
-  vec3 world = vec3(a_merc.x + p.x * w * a_mpm, a_merc.y - p.y * w * a_mpm, (a_elev + p.z * h) * a_mpm);
+  vec3 world = vec3(a_merc.x + p.x * w * a_mpm, a_merc.y - p.y * w * a_mpm, (a_elev * u_exag + p.z * h) * a_mpm);
   gl_Position = u_matrix * vec4(world, 1.0);
 
   vec3 base = a_part > 0.5 ? ramp(v + (a_rand.y - 0.5) * 0.25) : vec3(0.33, 0.25, 0.2);
@@ -155,6 +156,7 @@ export class TreeLayer {
     this.kind = 'sakura';
     this.count = 0;
     this.visible = true;
+    this.exag = 1;
   }
 
   // All GL work happens inside render(): MapLibre caches GL bindings and only resets its cache
@@ -179,7 +181,7 @@ export class TreeLayer {
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
     this.prog = prog;
     this.u = {};
-    for (const n of ['u_matrix', 'u_day', 'u_size', 'u_kind', 'u_ramp']) this.u[n] = gl.getUniformLocation(prog, n);
+    for (const n of ['u_matrix', 'u_day', 'u_size', 'u_kind', 'u_ramp', 'u_exag']) this.u[n] = gl.getUniformLocation(prog, n);
 
     this.vao = gl.createVertexArray();
     gl.bindVertexArray(this.vao);
@@ -234,10 +236,12 @@ export class TreeLayer {
     if (!this.map || !this.trees || !this.elev) return false;
     let changed = false;
     const map = this.map;
-    const terrainOn = !!map.getTerrain();
+    const terrain = map.terrain;
+    // Store ground height without exaggeration; the shader applies the current value.
+    const k = terrain ? terrain.exaggeration || 1 : 1;
     for (let i = 0; i < this.trees.length; i++) {
       const t = this.trees[i];
-      const e = terrainOn ? (map.queryTerrainElevation([t.lon, t.lat]) ?? 0) : 0;
+      const e = terrain ? (map.queryTerrainElevation([t.lon, t.lat]) ?? 0) / k : 0;
       const v = Math.max(0, e);
       if (Math.abs(v - this.elev[i]) > 1) { this.elev[i] = v; changed = true; }
     }
@@ -269,6 +273,7 @@ export class TreeLayer {
     gl.uniformMatrix4fv(this.u.u_matrix, false, new Float32Array(args.defaultProjectionData.mainMatrix));
     gl.uniform1f(this.u.u_day, this.day - this.origin);
     gl.uniform1f(this.u.u_size, this.size);
+    gl.uniform1f(this.u.u_exag, this.map.terrain ? this.map.terrain.exaggeration || 1 : 0);
     gl.uniform1i(this.u.u_kind, this.kind === 'sakura' ? 0 : 1);
     gl.uniform4fv(this.u.u_ramp, TREE_RAMPS[this.kind].flat());
     gl.bindVertexArray(this.vao);

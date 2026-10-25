@@ -21,10 +21,11 @@ function frame(svg) {
 
 function monthTicks(start, end) {
   const ticks = [];
+  const long = end - start > 100;
   for (let d = start; d <= end; d++) {
     const date = new Date(d * 86400000);
     const day = date.getUTCDate();
-    if (day === 1 || day === 15) ticks.push(d);
+    if (day === 1 || (!long && day === 15)) ticks.push(d);
   }
   return ticks;
 }
@@ -135,40 +136,53 @@ export function speedChart(svg, speeds, season, onScrub) {
   };
 }
 
-// This year's date against the JMA average for each city, south to north.
-// Cities the front has reached by the cursor date are filled.
-export function trendChart(svg, season, onPick) {
+// Year-by-year dates for one place: dots per year, a running mean and a straight trend line.
+// `points` are { year, doy, substitute }, `running` is { year, doy }. Later dates sit lower.
+export function historyChart(svg, h, opts = {}) {
   const { W, H, m } = frame(svg);
-  m.l = 58;
-  const pts = season.cities.filter((c) => Number.isFinite(c.diff));
-  if (!pts.length) {
-    el('text', { x: W / 2, y: H / 2, class: 'axis-label', 'text-anchor': 'middle' }, svg).textContent = 'No average dates in this data';
-    return { setCursor() {} };
-  }
-  const lat0 = Math.floor(Math.min(...pts.map((c) => c.lat)));
-  const lat1 = Math.ceil(Math.max(...pts.map((c) => c.lat)));
-  const lim = Math.max(6, Math.ceil(Math.max(...pts.map((c) => Math.abs(c.diff))) / 3) * 3);
-  const x = (lat) => m.l + ((lat - lat0) / (lat1 - lat0)) * (W - m.l - m.r);
-  const y = (d) => m.t + ((d + lim) / (2 * lim)) * (H - m.t - m.b);
+  m.l = 46;
+  const pts = h.points;
+  const y0 = pts[0].year;
+  const y1 = Math.max(pts[pts.length - 1].year, opts.thisYear?.year ?? 0);
+  const vals = pts.map((p) => p.doy).concat(opts.thisYear ? [opts.thisYear.doy] : []);
+  // Clip the range to the middle 98% so one odd year does not flatten the rest.
+  const sorted = vals.slice().sort((a, b) => a - b);
+  const lo = Math.floor(sorted[Math.floor(sorted.length * 0.01)] - 3);
+  const hi = Math.ceil(sorted[Math.ceil(sorted.length * 0.99) - 1] + 3);
+  const x = (yr) => m.l + ((yr - y0) / Math.max(1, y1 - y0)) * (W - m.l - m.r);
+  const y = (d) => m.t + ((Math.min(hi, Math.max(lo, d)) - lo) / (hi - lo)) * (H - m.t - m.b);
   const g = el('g', {}, svg);
-  for (const v of [-lim, 0, lim]) {
-    el('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: v === 0 ? 'grid zero' : 'grid' }, g);
-    const t = v === 0 ? 'average' : `${Math.abs(v)}d ${v < 0 ? 'early' : 'late'}`;
-    el('text', { x: m.l - 5, y: y(v) + 3, class: 'axis-label', 'text-anchor': 'end' }, g).textContent = t;
+  const doyLabel = (d) => fmtDay(Date.UTC(2021, 0, 1) / 86400000 + d - 1);
+  const mid = Math.round((lo + hi) / 2);
+  for (const v of [lo + 2, mid, hi - 2]) {
+    el('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: 'grid' }, g);
+    el('text', { x: m.l - 5, y: y(v) + 3, class: 'axis-label', 'text-anchor': 'end' }, g).textContent = doyLabel(v);
   }
-  for (let lat = Math.ceil(lat0 / 2) * 2; lat <= lat1; lat += 2) {
-    el('text', { x: x(lat), y: H - m.b + 13, class: 'axis-label', 'text-anchor': 'middle' }, g).textContent = `${lat}°N`;
+  const span = y1 - y0;
+  const step = span > 600 ? 200 : span > 120 ? 50 : 20;
+  for (let yr = Math.ceil(y0 / step) * step; yr <= y1; yr += step) {
+    el('text', { x: x(yr), y: H - m.b + 13, class: 'axis-label', 'text-anchor': 'middle' }, g).textContent = String(yr);
   }
-  const dots = pts.map((c) => {
-    const d = el('circle', { cx: x(c.lat), cy: y(c.diff), r: 3.2, class: `dot ${season.kind}`, tabindex: -1 }, g);
-    const title = el('title', {}, d);
-    title.textContent = `${c.name}: ${c.diff === 0 ? 'same as average' : `${Math.abs(c.diff)} days ${c.diff < 0 ? 'earlier' : 'later'}`}`;
-    d.addEventListener('pointerenter', () => onPick?.(c));
-    return [c, d];
-  });
-  return {
-    setCursor(day) {
-      for (const [c, d] of dots) d.classList.toggle('reached', c.front <= day);
-    },
-  };
+  if (h.normal != null) {
+    el('line', { x1: m.l, x2: W - m.r, y1: y(h.normal), y2: y(h.normal), class: 'grid zero' }, g);
+  }
+  const r = pts.length > 300 ? 1.4 : 2.2;
+  for (const p of pts) el('circle', { cx: x(p.year), cy: y(p.doy), r, class: p.substitute ? 'yr alt' : 'yr' }, g);
+  if (h.running?.length) {
+    let d = '';
+    let prev = null;
+    for (const q of h.running) {
+      d += `${prev != null && q.year - prev <= 10 ? 'L' : 'M'}${x(q.year).toFixed(1)},${y(q.doy).toFixed(1)}`;
+      prev = q.year;
+    }
+    el('path', { d, class: `line ${opts.kind || ''}` }, g);
+  }
+  if (h.trend && opts.showTrend) {
+    const t = h.trend;
+    el('line', { x1: x(t.from), y1: y(t.intercept + t.slope * t.from), x2: x(t.to), y2: y(t.intercept + t.slope * t.to), class: 'trend' }, g);
+  }
+  if (opts.thisYear) {
+    el('circle', { cx: x(opts.thisYear.year), cy: y(opts.thisYear.doy), r: 4, class: opts.thisYear.forecast ? 'yr now forecast' : 'yr now' }, g);
+  }
+  return { setCursor() {} };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildKoyoSeason, buildSakuraSeason, defaultDay, fmtDay, fmtDiff, frontAt, isoToDay, phaseLabel, phaseValue,
+  buildKoyoSeason, buildSakuraSeason, cityHistory, defaultDay, fmtDay, fmtDiff, fmtDoy, frontAt, isoToDay, linearTrend, phaseLabel, phaseValue,
 } from './data.js';
 
 const iso = (d) => `${d}T00:00:00+09:00`;
@@ -97,5 +97,52 @@ describe('autumn leaves mapping', () => {
     expect(kyoto.diff).toBe(6);
     expect(fmtDiff(kyoto.diff)).toBe('6 days later than average');
     expect(season.spots[0].dates.map((d) => fmtDay(d))).toEqual(['Nov 10', 'Nov 20', 'Nov 27', 'Dec 5']);
+  });
+});
+
+describe('JMA history and stations the forecast leaves out', () => {
+  // 2026: Naha Jan 18 (day 18), full Feb 3 (day 34); normal Jan 16. Tokyo has 74 years.
+  const vals = (n, f) => Array.from({ length: n }, (_, i) => f(i));
+  const history = {
+    currentYear: 2026,
+    firstYear: 1953,
+    stations: { Naha: [26.2, 127.7], Tokyo: [35.69, 139.75] },
+    sakuraBloom: {
+      Naha: { values: [...vals(73, () => null), 18], substitute: [2026], normal: 16, species: 'Taiwan cherry (hikanzakura)' },
+      Tokyo: { values: vals(74, (i) => 95 - Math.round(i * 0.2)), substitute: [], normal: 83 },
+    },
+    sakuraFull: { Naha: { values: [...vals(73, () => null), 34], substitute: [], normal: 30 } },
+  };
+  const season = buildSakuraSeason(sakuraForecast, sakuraSpots, history);
+
+  it('adds Okinawa from this season\'s JMA observation, so the front starts in the south', () => {
+    const naha = season.cities.find((c) => c.name === 'Naha');
+    expect(fmtDay(naha.front)).toBe('Jan 18');
+    expect(fmtDay(naha.peak)).toBe('Feb 3');
+    expect(naha.diff).toBe(2);
+    expect(naha.jmaOnly).toBe(true);
+    expect(season.cities[0].name).toBe('Naha');
+    expect(season.events[0].label).toBe('First bloom: Naha, Taiwan cherry');
+    expect(season.start).toBeLessThan(isoToDay(iso('2026-01-18')));
+  });
+
+  it('skips stations when the history covers another year', () => {
+    const other = buildSakuraSeason(sakuraForecast, sakuraSpots, { ...history, currentYear: 2025 });
+    expect(other.cities.some((c) => c.name === 'Naha')).toBe(false);
+  });
+
+  it('reads a city history with a trend in days per decade', () => {
+    const h = cityHistory(history.sakuraBloom, 'Tokyo', 1953);
+    expect(h.points).toHaveLength(74);
+    expect(h.points[0]).toEqual({ year: 1953, doy: 95, substitute: false });
+    expect(h.trend.perDecade).toBeCloseTo(-2, 1);
+    expect(h.running[0].year).toBe(1957);
+    expect(cityHistory(history.sakuraBloom, 'Naha', 1953)).toBeNull();
+    expect(fmtDoy(83)).toBe('Mar 24');
+  });
+
+  it('fits a straight line exactly', () => {
+    const t = linearTrend([{ year: 2000, doy: 90 }, { year: 2010, doy: 85 }, { year: 2020, doy: 80 }]);
+    expect(t.perDecade).toBeCloseTo(-5);
   });
 });

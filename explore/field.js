@@ -1,7 +1,7 @@
 // Interpolated date field between JMC spots and JMA cities, painted into a canvas that
 // MapLibre drapes over the terrain. Rows are linear in Web Mercator so the image lines up.
 
-export const BOUNDS = { west: 128.2, east: 146.0, south: 30.2, north: 45.7 };
+export const BOUNDS = { west: 122.8, east: 146.0, south: 23.8, north: 45.7 };
 
 const RAD = Math.PI / 180;
 const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * RAD) / 2));

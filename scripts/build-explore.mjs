@@ -25,6 +25,7 @@ await build({
   bundle: true,
   minify: true,
   outfile: join(out, "explore.css"),
+  external: ["/fonts/*"],
   logLevel: "warning",
 });
 

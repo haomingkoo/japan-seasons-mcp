@@ -68,7 +68,23 @@ function sakuraDates(bloom, full) {
   return [bloom - 10, bloom, full, full + FULL_BLOOM_DAYS];
 }
 
-export function buildSakuraSeason(forecast, spotsPayload) {
+// Region names for JMA stations the forecast leaves out.
+const JMA_EXTRA_REGION = {
+  Naha: 'Okinawa', Ishigaki: 'Okinawa', Miyakojima: 'Okinawa', Minamidaito: 'Okinawa', Naze: 'Amami',
+  Wakkanai: 'Hokkaido', Asahikawa: 'Hokkaido', Abashiri: 'Hokkaido', Obihiro: 'Hokkaido', Kushiro: 'Hokkaido',
+};
+
+// Day number (days since 1970) for a day-of-year in a given year.
+export function doyToDay(year, doy) {
+  return Date.UTC(year, 0, 1) / DAY_MS + doy - 1;
+}
+
+export function historyValue(table, name, year, firstYear) {
+  const v = table?.[name]?.values?.[year - firstYear];
+  return Number.isFinite(v) ? v : null;
+}
+
+export function buildSakuraSeason(forecast, spotsPayload, history = null) {
   const cities = [];
   for (const region of forecast?.regions ?? []) {
     for (const c of region.cities ?? []) {
@@ -92,6 +108,31 @@ export function buildSakuraSeason(forecast, spotsPayload) {
         diff: normal == null ? null : bloom - normal,
         observed: bloomObs != null,
         peakObserved: fullObs != null,
+      });
+    }
+  }
+  // Cities the forecast leaves out (Okinawa, Amami, eastern and northern Hokkaido) come from
+  // this season's JMA observations, when the history file covers the same year.
+  const year = cities.length ? dayToDate(cities[0].front).getUTCFullYear() : null;
+  if (history && year === history.currentYear) {
+    const have = new Set(cities.map((c) => c.name));
+    for (const [name, region] of Object.entries(JMA_EXTRA_REGION)) {
+      if (have.has(name)) continue;
+      const b = historyValue(history.sakuraBloom, name, year, history.firstYear);
+      const f = historyValue(history.sakuraFull, name, year, history.firstYear);
+      const coords = history.stations?.[name];
+      if (b == null || !coords) continue;
+      const bloom = doyToDay(year, b);
+      const full = f != null && f >= b ? doyToDay(year, f) : bloom + 5;
+      const n = history.sakuraBloom[name].normal;
+      const normal = n != null ? doyToDay(year, n) : null;
+      cities.push({
+        name, region, lat: coords[0], lon: coords[1],
+        front: bloom, peak: full, dates: sakuraDates(bloom, full),
+        normal, normalPeak: null,
+        diff: normal == null ? null : bloom - normal,
+        observed: true, peakObserved: f != null,
+        jmaOnly: true, species: history.sakuraBloom[name].species || null,
       });
     }
   }
@@ -235,7 +276,9 @@ export function seasonEvents(season) {
   const byFront = cities.slice().sort((a, b) => a.front - b.front);
   if (kind === 'sakura') {
     const first = byFront[0];
-    events.push({ day: first.front, label: `First bloom: ${first.name}` });
+    events.push({ day: first.front, label: `First bloom: ${first.name}${first.species && !first.species.startsWith('Yoshino') ? `, ${first.species.split(' (')[0]}` : ''}` });
+    const yoshino = byFront.find((c) => !c.species || c.species.startsWith('Yoshino'));
+    if (yoshino && yoshino !== first) events.push({ day: yoshino.front, label: `First Yoshino cherry: ${yoshino.name}` });
     const tokyo = cityByName(season, 'Tokyo');
     if (tokyo) {
       events.push({ day: tokyo.front, label: 'Tokyo first bloom' });
@@ -273,4 +316,40 @@ export function defaultDay(season, today) {
 export function todayDay(now = new Date()) {
   // JST calendar day, matching how the API publishes dates.
   return Math.floor((now.getTime() + 9 * 3600000) / DAY_MS);
+}
+
+// Year-by-year dates for one city, with a least-squares trend and a 10-year running mean.
+// Values are days of the year (Jan 1 = 1). Returns null when there are too few years.
+export function cityHistory(table, name, firstYear) {
+  const row = table?.[name];
+  if (!row) return null;
+  const points = [];
+  row.values.forEach((v, i) => { if (Number.isFinite(v)) points.push({ year: firstYear + i, doy: v, substitute: row.substitute.includes(firstYear + i) }); });
+  if (points.length < 10) return null;
+  return { points, trend: linearTrend(points), running: runningMean(points, 10), normal: row.normal, species: row.species || null };
+}
+
+export function linearTrend(points) {
+  const n = points.length;
+  const mx = points.reduce((a, p) => a + p.year, 0) / n;
+  const my = points.reduce((a, p) => a + p.doy, 0) / n;
+  let sxy = 0;
+  let sxx = 0;
+  for (const p of points) { sxy += (p.year - mx) * (p.doy - my); sxx += (p.year - mx) ** 2; }
+  const slope = sxx ? sxy / sxx : 0;
+  return { slope, intercept: my - slope * mx, perDecade: slope * 10, from: points[0].year, to: points[n - 1].year };
+}
+
+// Mean of the years in the trailing window, only where at least half the window has data.
+export function runningMean(points, window) {
+  const out = [];
+  for (const p of points) {
+    const inWin = points.filter((q) => q.year > p.year - window && q.year <= p.year);
+    if (inWin.length >= window / 2) out.push({ year: p.year, doy: inWin.reduce((a, q) => a + q.doy, 0) / inWin.length });
+  }
+  return out;
+}
+
+export function fmtDoy(doy) {
+  return fmtDay(doyToDay(2021, doy));
 }

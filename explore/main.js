@@ -1,10 +1,11 @@
 import * as maplibregl from 'maplibre-gl';
 import {
-  buildKoyoSeason, buildSakuraSeason, defaultDay, fmtDay, fmtDiff, frontAt, phaseLabel, seasonSeries, todayDay,
+  buildKoyoSeason, buildSakuraSeason, cityHistory, defaultDay, doyToDay, fmtDay, fmtDiff, fmtDoy, frontAt, phaseLabel, seasonSeries, todayDay,
 } from './data.js';
+import HISTORY from './season-history.json';
 import { buildField, contour, corners, gridShape, meanLatitude, paintField, RAMPS, rampColor, sampleField } from './field.js';
 import { TreeLayer, placeTrees } from './trees.js';
-import { bloomChart, speedChart, trendChart } from './charts.js';
+import { bloomChart, historyChart, speedChart } from './charts.js';
 import { drawStaticMap } from './static-map.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,12 +17,29 @@ const hasWebGL2 = (() => {
 
 const TERRAIN_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 const SEA = '#c3cdcb';
-const FIELD_WIDTH = 520;
+// The colour field is repainted on the CPU every frame of playback; phones get a coarser grid.
+const FIELD_WIDTH = matchMedia('(max-width: 768px)').matches ? 460 : 680;
 const DAYS_PER_SECOND = 3;
-const TIER1 = new Set(['Kagoshima', 'Fukuoka', 'Hiroshima', 'Osaka', 'Tokyo', 'Niigata', 'Sendai', 'Aomori', 'Sapporo']);
-const TIER2 = new Set(['Kochi', 'Kyoto', 'Nagoya', 'Kanazawa', 'Akita', 'Hakodate', 'Kushiro', 'Matsue', 'Shizuoka']);
+const TIER1 = new Set(['Naha', 'Kagoshima', 'Fukuoka', 'Hiroshima', 'Osaka', 'Tokyo', 'Niigata', 'Sendai', 'Aomori', 'Sapporo']);
+const TIER2 = new Set(['Ishigaki', 'Naze', 'Miyakojima', 'Minamidaito', 'Kochi', 'Kyoto', 'Nagoya', 'Kanazawa', 'Akita', 'Hakodate', 'Kushiro', 'Asahikawa', 'Matsue', 'Shizuoka']);
+// The All Japan view turns the archipelago so it runs across the screen, Okinawa on the left
+// and Hokkaido on the right, and tilts it so the mountains read. Portrait screens look up it instead.
+const JAPAN_EXTENT = [[123.6, 24.0], [146.0, 45.6]];
+function japanCamera() {
+  const el = map.getContainer();
+  const landscape = el.clientWidth >= el.clientHeight;
+  const bearing = landscape ? -52 : 32;
+  const pitch = landscape ? 62 : 58;
+  if (landscape) {
+    // cameraForBounds ignores pitch, so the landscape view is fixed and scaled to the map width.
+    return { center: [135.6, 34.2], zoom: 4.8 + Math.log2(el.clientWidth / 1128), bearing, pitch };
+  }
+  const cam = map.cameraForBounds(JAPAN_EXTENT, { bearing, pitch, padding: { top: 90, bottom: 110, left: 24, right: 24 } });
+  return cam ? { center: cam.center, zoom: cam.zoom + 0.1, bearing, pitch } : null;
+}
 const REGIONS = {
   japan: [[128.8, 30.9], [145.9, 45.5]],
+  okinawa: [[123.6, 24.0], [131.6, 28.6]],
   kyushu: [[129.4, 31.0], [132.1, 34.0]],
   kansai: [[132.4, 32.9], [136.6, 35.8]],
   chubu: [[135.8, 34.5], [139.3, 37.7]],
@@ -33,20 +51,23 @@ const COPY = {
   sakura: {
     intro: 'Watch the bloom move north. Drag the date.',
     inBloom: 'in bloom', c1: 'Cities in bloom', c2: 'km per day northward',
-    front: 'First bloom', peak: 'Full bloom', wash: 'Sakura bloom', line: 'Bloom front today',
+    front: 'First bloom', peak: 'Full bloom', wash: 'Cherry blossom', line: 'Bloom front today',
+    history: 'first bloom', table: 'sakuraBloom',
     legend: ['Buds', 'Opening', 'Full bloom', 'In leaf'],
   },
   koyo: {
     intro: 'Watch the colour move south. Drag the date.',
     inBloom: 'in colour', c1: 'Cities in colour', c2: 'km per day southward',
     front: 'Colour starts', peak: 'Peak colour', wash: 'Autumn colour', line: 'Colour front today',
+    history: 'maple colour', table: 'mapleColour',
     legend: ['Green', 'Turning', 'Peak', 'Bare'],
   },
 };
 
 const state = {
   kind: 'sakura', season: null, field: null, day: 0, playing: false, speed: 1,
-  dim: reducedMotion ? '2d' : '3d', exag: 2, region: 'japan', hoverLock: null,
+  dim: reducedMotion ? '2d' : '3d', exag: 1.5, region: 'japan', hoverLock: null,
+  historyCity: 'Tokyo', historyKyoto: false,
   cache: {}, layers: { relief: 1, hillshade: 0.8, wash: 1, front: 1, trees: 1, deviation: 0 },
 };
 let map = null;
@@ -75,7 +96,7 @@ async function loadSeason(kind) {
     getJson(`${base}/forecast`),
     getJson(`${base}/all-spots`).catch(() => ({ spots: [] })),
   ]);
-  const season = kind === 'sakura' ? buildSakuraSeason(forecast, spots) : buildKoyoSeason(forecast, spots);
+  const season = kind === 'sakura' ? buildSakuraSeason(forecast, spots, HISTORY) : buildKoyoSeason(forecast, spots);
   if (!season.cities.length) throw new Error('The forecast has no city dates yet.');
   const points = season.spots.concat(season.cities);
   const field = buildField(points, FIELD_WIDTH);
@@ -165,8 +186,8 @@ function initMap() {
     fitBoundsOptions: { padding: 30 },
     minZoom: 3.8,
     maxZoom: 11.5,
-    maxPitch: 65,
-    maxBounds: [[118, 22], [156, 50]],
+    maxPitch: 75,
+    maxBounds: [[108, 14], [166, 56]],
     pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
     attributionControl: { compact: true, customAttribution: 'Forecasts: <a href="https://n-kishou.com/" target="_blank" rel="noopener">JMC</a>, JMA · Terrain: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen / AWS Terrain Tiles</a>' },
     canvasContextAttributes: { antialias: true },
@@ -189,6 +210,7 @@ function initMap() {
   });
   map.on('move', () => {
     updateTreeSize();
+    updateExaggeration();
     $('compass').querySelector('svg').style.transform = `rotate(${-map.getBearing()}deg)`;
   });
   let farQueued = false;
@@ -216,6 +238,22 @@ function updateTreeSize() {
   trees.size = Math.min(30000, Math.max(60, mpp * k));
 }
 
+// Mountains need more lift to read at national scale; ease back to the chosen value close up.
+function zoomExaggeration() {
+  const z = map.getZoom();
+  const t = Math.min(1, Math.max(0, (z - 5) / 5));
+  return state.exag * (10 - 9 * t * t * (3 - 2 * t));
+}
+
+let lastExag = 0;
+function updateExaggeration() {
+  if (!map?.terrain || state.dim !== '3d') return;
+  const e = zoomExaggeration();
+  if (Math.abs(e - lastExag) < 0.02) return;
+  lastExag = e;
+  map.terrain.exaggeration = e;
+}
+
 function updateScale() {
   const y = map.getContainer().clientHeight - 20;
   const a = map.unproject([20, y]);
@@ -229,6 +267,13 @@ function updateScale() {
 function fitRegion(region, animate = true) {
   state.region = region;
   const three = state.dim === '3d';
+  if (region === 'japan' && three) {
+    const cam = japanCamera();
+    if (!cam) return;
+    if (animate && !reducedMotion) map.flyTo({ ...cam, duration: 1600, essential: false });
+    else map.jumpTo(cam);
+    return;
+  }
   const pitch = three ? (region === 'japan' ? 42 : 55) : 0;
   const bearing = three ? (region === 'japan' ? 12 : 0) : 0;
   const cam = map.cameraForBounds(REGIONS[region], { padding: 24, pitch, bearing });
@@ -243,9 +288,13 @@ function applyDim(dim, animate = true) {
   document.querySelectorAll('.dim-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dim === dim)));
   $('exag').disabled = dim !== '3d';
   if (!styleReady) return;
-  if (dim === '3d') map.setTerrain({ source: 'dem-terrain', exaggeration: state.exag });
-  else map.setTerrain(null);
-  map.easeTo({ pitch: dim === '3d' ? 52 : 0, bearing: dim === '3d' ? map.getBearing() : 0, duration: animate && !reducedMotion ? 700 : 0 });
+  lastExag = 0;
+  if (dim === '3d') {
+    map.setTerrain({ source: 'dem-terrain', exaggeration: zoomExaggeration() });
+    updateExaggeration();
+  } else map.setTerrain(null);
+  const pitch = dim === '3d' ? (map.getZoom() < 6 ? 62 : 55) : 0;
+  map.easeTo({ pitch, bearing: dim === '3d' ? map.getBearing() : 0, duration: animate && !reducedMotion ? 700 : 0 });
   trees.refreshElevation();
 }
 
@@ -327,8 +376,9 @@ function onSeasonReady() {
       type: 'FeatureCollection',
       features: season.cities.filter((c) => Number.isFinite(c.diff)).map((c) => ({ type: 'Feature', properties: { diff: c.diff, name: c.name }, geometry: { type: 'Point', coordinates: [c.lon, c.lat] } })),
     });
-    const groves = placeTrees(season.spots.length ? season.spots : season.cities, season.spots.length ? 7 : 12);
-    trees.setTrees(groves, season.spots.length ? season.spots : season.cities, kind, season.start);
+    // Groves stand on forecast spots, plus JMA cities that have no spots nearby (Okinawa, Amami).
+    const grovePoints = season.spots.concat(season.cities.filter((c) => c.jmaOnly));
+    trees.setTrees(placeTrees(grovePoints, 7), grovePoints, kind, season.start);
     buildMarkers();
     updateTreeSize();
     updateScale();
@@ -336,8 +386,8 @@ function onSeasonReady() {
 
   charts.bloom = bloomChart($('chart-bloom'), series, season, COPY[kind], (d) => setDay(d));
   charts.speed = speedChart($('chart-speed'), speeds, season, (d) => setDay(d));
-  charts.trend = trendChart($('chart-trend'), season, (c) => showAt({ type: 'city', item: c }));
-  $('c1-sub').textContent = `of ${season.cities.length} JMA cities`;
+  renderHistory();
+  $('c1-sub').textContent = `of ${season.cities.length} forecast cities`;
 
   const params = new URLSearchParams(location.search);
   const want = Number(params.get('day'));
@@ -367,12 +417,17 @@ function setDay(day, force = false) {
   $('tl-sub').textContent = f.reached === 0
     ? (s.kind === 'sakura' ? 'No city has bloomed yet' : 'No city has started to colour yet')
     : `${f.opening + f.peak} of ${f.total} cities ${COPY[s.kind].inBloom}`;
-  renderOverview(f);
   for (const c of Object.values(charts)) c.setCursor(d);
-  updateMarkers(d);
-  document.querySelectorAll('.event-list button').forEach((b) => b.classList.toggle('past', Number(b.dataset.day) < d));
-  if (!state.hoverLock) showAt(f.nearest ? { type: 'city', item: f.nearest } : null);
-  else showAt(state.hoverLock);
+  // Text panels change once per whole day, so playback does not rebuild them every frame.
+  const whole = Math.floor(d);
+  if (force || whole !== setDay.lastWhole) {
+    setDay.lastWhole = whole;
+    renderOverview(f);
+    updateMarkers(d);
+    document.querySelectorAll('.event-list button').forEach((b) => b.classList.toggle('past', Number(b.dataset.day) < d));
+    if (!state.hoverLock) showAt(f.nearest ? { type: 'city', item: f.nearest } : null);
+    else showAt(state.hoverLock);
+  }
   if (!paintQueued) {
     paintQueued = true;
     requestAnimationFrame(() => { paintQueued = false; paintDay(); });
@@ -446,7 +501,7 @@ function buildMarkers() {
     el.addEventListener('mouseenter', () => { state.hoverLock = { type: 'city', item: c }; showAt(state.hoverLock); });
     el.addEventListener('mouseleave', () => { state.hoverLock = null; });
     el.addEventListener('click', (ev) => { ev.stopPropagation(); state.hoverLock = { type: 'city', item: c }; setDay(c.front); });
-    const marker = new maplibregl.Marker({ element: el, anchor: 'left', offset: [-9, 0], opacityWhenCovered: '0.25' }).setLngLat([c.lon, c.lat]).addTo(map);
+    const marker = new maplibregl.Marker({ element: el, anchor: 'left', offset: [-9, 0], opacityWhenCovered: '0.6' }).setLngLat([c.lon, c.lat]).addTo(map);
     return { city: c, el, marker };
   });
   updateMarkerLabels();
@@ -459,13 +514,39 @@ function updateMarkerLabels() {
     const n = m.city.name;
     m.el.classList.toggle('minor', z < 6.4 && !(TIER1.has(n) || (z >= 5.6 && TIER2.has(n))));
   }
+  updateFarLabels();
 }
 
-// Labels crowd together near the horizon when the map is tilted; hide the far ones.
+// Labels crowd near the horizon on a tilted map; hide the far ones, then drop any label that
+// would overlap a more important one (bigger cities first, then south to north).
 function updateFarLabels() {
   const h = map.getContainer().clientHeight;
-  const cut = map.getPitch() > 20 ? h * 0.2 : -1;
-  for (const m of markers) m.el.classList.toggle('far', map.project([m.city.lon, m.city.lat]).y < cut);
+  const cut = map.getPitch() > 20 ? h * 0.12 : -1;
+  const rank = (n) => (TIER1.has(n) ? 0 : TIER2.has(n) ? 1 : 2);
+  // Dots of labelled cities are obstacles, so a label never covers another named city.
+  const dots = new Map();
+  for (const m of markers) {
+    if (m.el.classList.contains('minor')) continue;
+    const p = map.project([m.city.lon, m.city.lat]);
+    if (p.y >= cut) dots.set(m, [p.x - 5, p.y - 5, p.x + 5, p.y + 5]);
+  }
+  const placed = [];
+  const order = markers.slice().sort((a, b) => rank(a.city.name) - rank(b.city.name) || a.city.lat - b.city.lat);
+  for (const m of order) {
+    const p = map.project([m.city.lon, m.city.lat]);
+    m.el.classList.toggle('far', p.y < cut);
+    m.el.classList.remove('crowded');
+    if (p.y < cut || m.el.classList.contains('minor')) continue;
+    if (!m.labelWidth) m.labelWidth = m.el.querySelector('.wp-label').offsetWidth;
+    const w = m.labelWidth || 7 * (m.city.name.length + 7);
+    const box = [p.x, p.y - 11, p.x + w + 14, p.y + 11];
+    const hit = (b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1];
+    if (placed.some(hit) || [...dots].some(([o, b]) => o !== m && hit(b))) {
+      m.el.classList.add('crowded');
+      continue;
+    }
+    placed.push(box);
+  }
 }
 
 function updateMarkers(d) {
@@ -506,13 +587,14 @@ function pickGrove(point) {
 function pickPlace(lngLat) {
   const dates = sampleField(state.field, lngLat.lng, lngLat.lat);
   const elev = map.getTerrain() ? map.queryTerrainElevation(lngLat) : null;
-  const meters = elev != null ? Math.max(0, elev / state.exag) : null;
+  const meters = elev != null ? Math.max(0, elev / (map.terrain?.exaggeration || 1)) : null;
   if (!dates && meters == null) return null;
   return { type: 'place', lngLat, dates, meters };
 }
 
 function clearHover() {
   $('cursor-tip').hidden = true;
+  for (const m of markers) m.el.classList.remove('under-tip');
 }
 
 function tipHtml(hit) {
@@ -521,25 +603,53 @@ function tipHtml(hit) {
   const d = state.day;
   if (hit.type === 'spot') {
     const sp = hit.item;
-    return `<b>${esc(sp.name)}</b>${sp.pref ? ` <span class="sub">${esc(sp.pref)}</span>` : ''}<br>${c.front} ${fmtDay(sp.dates[1])} · ${c.peak} ${fmtDay(sp.dates[2])}<br><span class="sub">${phaseLabel(s.kind, sp.dates, d)} on ${fmtDay(d)} · JMC spot forecast</span>`;
+    return `<b>${esc(sp.name)}</b>${sp.pref ? ` <span class="sub">${esc(sp.pref)}</span>` : ''}<br>${c.front} ${fmtDay(sp.dates[1])} · ${c.peak} ${fmtDay(sp.dates[2])}<br><span class="sub">${phaseLabel(s.kind, sp.dates, d)} on ${fmtDay(d)}, forecast for this spot</span>`;
   }
   if (hit.type === 'place') {
     const parts = [];
     if (hit.meters != null) parts.push(`${Math.round(hit.meters).toLocaleString('en')} m`);
     if (hit.dates) parts.push(`${c.front} about ${fmtDay(hit.dates[1])}`);
-    const second = hit.dates ? `<br><span class="sub">${phaseLabel(s.kind, hit.dates, d)} on ${fmtDay(d)} · interpolated</span>` : '<br><span class="sub">No spots nearby</span>';
+    const second = hit.dates ? `<br><span class="sub">${phaseLabel(s.kind, hit.dates, d)} on ${fmtDay(d)}, estimated from nearby spots</span>` : '<br><span class="sub">No forecast spots nearby</span>';
     return parts.join(' · ') + second;
   }
   return '';
 }
 
+// The card goes wherever it covers the fewest city labels; any label it still covers is hidden
+// until the card moves, so a date is never half-visible underneath it.
 function showTip(point, hit) {
   const tip = $('cursor-tip');
+  for (const m of markers) m.el.classList.remove('under-tip');
   if (!hit) { tip.hidden = true; return; }
   tip.innerHTML = tipHtml(hit);
-  tip.style.left = `${point.x}px`;
-  tip.style.top = `${point.y}px`;
   tip.hidden = false;
+  const wrap = $('map-wrap').getBoundingClientRect();
+  const w = tip.offsetWidth;
+  const h = tip.offsetHeight;
+  const gap = 14;
+  const labels = markers
+    .filter((m) => !['minor', 'far', 'crowded'].some((c) => m.el.classList.contains(c)))
+    .map((m) => ({ m, r: m.el.getBoundingClientRect() }))
+    .filter(({ r }) => r.width > 0);
+  const candidates = [
+    [point.x + gap, point.y - h / 2], [point.x - gap - w, point.y - h / 2],
+    [point.x - w / 2, point.y - gap - h], [point.x - w / 2, point.y + gap],
+    [point.x + gap, point.y - h - gap], [point.x - gap - w, point.y + gap],
+  ].map(([x, y]) => [Math.min(wrap.width - w - 6, Math.max(6, x)), Math.min(wrap.height - h - 6, Math.max(6, y))]);
+  const hits = ([x, y]) => labels.filter(({ r }) => {
+    const lx = r.left - wrap.left; const ly = r.top - wrap.top;
+    return lx < x + w && lx + r.width > x && ly < y + h && ly + r.height > y;
+  });
+  let best = candidates[0];
+  let bestHits = hits(best);
+  for (const c of candidates.slice(1)) {
+    if (!bestHits.length) break;
+    const ch = hits(c);
+    if (ch.length < bestHits.length) { best = c; bestHits = ch; }
+  }
+  for (const { m } of bestHits) m.el.classList.add('under-tip');
+  tip.style.left = `${best[0]}px`;
+  tip.style.top = `${best[1]}px`;
 }
 
 function showAt(hit) {
@@ -548,31 +658,37 @@ function showAt(hit) {
   if (!s) return;
   const c = COPY[s.kind];
   const d = state.day;
-  if (!hit) { box.innerHTML = '<p class="muted">Point at a city, a grove or any place on the map.</p>'; return; }
+  if (!hit) { box.innerHTML = '<p class="muted">Point at a city, a tree or any place on the map.</p>'; return; }
   if (hit.type === 'city') {
     const city = hit.item;
-    const src = city.observed ? 'observed by JMA' : 'JMC forecast';
+    const src = city.observed ? 'observed' : 'forecast';
+    if (HISTORY[COPY[s.kind].table]?.[city.name] && state.historyCity !== city.name && !state.historyKyoto) {
+      state.historyCity = city.name;
+      renderHistory();
+    }
     const normal = city.normal != null ? fmtDay(city.normal) : 'Not published';
     box.innerHTML = `<p class="name">${esc(city.name)} <span class="muted">${esc(city.region)}</span></p>
-      <dl><dt>${c.front}</dt><dd>${fmtDay(city.front)} <span class="muted">${s.kind === 'sakura' ? src : 'JMC forecast'}</span></dd>
+      <dl><dt>${c.front}</dt><dd>${fmtDay(city.front)} <span class="muted">${s.kind === 'sakura' ? src : 'forecast'}</span></dd>
       <dt>${c.peak}</dt><dd>${fmtDay(city.peak)}${city.peakObserved ? ' <span class="muted">observed</span>' : ''}</dd>
       <dt>Average</dt><dd>${s.kind === 'sakura' ? normal : (city.normal != null ? `${fmtDay(city.normal)} peak` : 'Not published')}</dd>
       <dt>vs average</dt><dd>${fmtDiff(city.diff)}</dd>
-      <dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, city.dates, d)}</dd></dl>`;
+      <dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, city.dates, d)}</dd>
+      ${city.species ? `<dt>Tree</dt><dd>${esc(city.species)}</dd>` : ''}</dl>
+      ${city.jmaOnly ? '<p class="muted">Not in the forecast. Dates are this year\'s weather station observations.</p>' : ''}`;
     return;
   }
   if (hit.type === 'spot') {
     const sp = hit.item;
     box.innerHTML = `<p class="name">${esc(sp.name)} <span class="muted">${esc(sp.nameJa || '')}</span></p>
       <dl><dt>${c.front}</dt><dd>${fmtDay(sp.dates[1])}</dd><dt>${c.peak}</dt><dd>${fmtDay(sp.dates[2])}</dd>
-      <dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, sp.dates, d)}</dd><dt>Source</dt><dd>JMC spot forecast</dd></dl>`;
+      <dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, sp.dates, d)}</dd><dt>Source</dt><dd>Forecast for this spot</dd></dl>`;
     return;
   }
   const ll = hit.lngLat;
   box.innerHTML = `<p class="name">${ll.lat.toFixed(2)}°N, ${ll.lng.toFixed(2)}°E</p>
     <dl>${hit.meters != null ? `<dt>Elevation</dt><dd>${Math.round(hit.meters).toLocaleString('en')} m</dd>` : ''}
-    ${hit.dates ? `<dt>${c.front}</dt><dd>about ${fmtDay(hit.dates[1])}</dd><dt>${c.peak}</dt><dd>about ${fmtDay(hit.dates[2])}</dd><dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, hit.dates, d)}</dd>` : '<dt>Dates</dt><dd>No spots nearby</dd>'}</dl>
-    ${hit.dates ? '<p class="muted">Interpolated from the nearest spots.</p>' : ''}`;
+    ${hit.dates ? `<dt>${c.front}</dt><dd>about ${fmtDay(hit.dates[1])}</dd><dt>${c.peak}</dt><dd>about ${fmtDay(hit.dates[2])}</dd><dt>On ${fmtDay(d)}</dt><dd>${phaseLabel(s.kind, hit.dates, d)}</dd>` : '<dt>Dates</dt><dd>No forecast spots nearby</dd>'}</dl>
+    ${hit.dates ? `<p class="muted">Estimated from the nearest forecast spots.</p>` : ''}`;
 }
 
 function esc(s) {
@@ -610,7 +726,8 @@ function renderAxis() {
   axis.innerHTML = '';
   for (let d = s.start; d <= s.end; d++) {
     const date = new Date(d * 86400000).getUTCDate();
-    if (date !== 1 && date !== 15) continue;
+    // Mid-month ticks only when there is room for them (about 60px per label).
+    if (date !== 1 && (date !== 15 || axis.clientWidth / ((s.end - s.start) / 15) < 60)) continue;
     const span = document.createElement('span');
     span.style.left = `${((d - s.start) / (s.end - s.start)) * 100}%`;
     span.textContent = fmtDay(d);
@@ -648,16 +765,16 @@ function renderCityTable() {
   const s = state.season;
   const c = COPY[s.kind];
   $('city-table-title').textContent = `All ${s.cities.length} cities`;
-  const rows = s.cities.slice().sort((a, b) => a.front - b.front).map((city) => `<tr><td>${esc(city.name)}</td><td>${fmtDay(city.front)}</td><td>${fmtDay(city.peak)}</td><td>${city.diff == null ? 'n/a' : `${city.diff > 0 ? '+' : ''}${city.diff}d`}</td><td>${s.kind === 'sakura' ? (city.observed ? 'Observed' : 'Forecast') : 'Forecast'}</td></tr>`).join('');
+  const rows = s.cities.slice().sort((a, b) => a.front - b.front).map((city) => `<tr><td>${esc(city.name)}</td><td>${fmtDay(city.front)}</td><td>${fmtDay(city.peak)}</td><td>${city.diff == null ? 'n/a' : `${city.diff > 0 ? '+' : ''}${city.diff}d`}</td><td>${s.kind === 'sakura' ? (city.jmaOnly ? 'Observed, not in forecast' : city.observed ? 'Observed' : 'Forecast') : 'Forecast'}</td></tr>`).join('');
   $('city-table').innerHTML = `<thead><tr><th scope="col">City</th><th scope="col">${c.front}</th><th scope="col">${c.peak}</th><th scope="col">vs avg</th><th scope="col">Source</th></tr></thead><tbody>${rows}</tbody>`;
 }
 
 const LAYER_DEFS = [
-  { id: 'relief', label: 'Elevation tint', thumb: 'linear-gradient(135deg,#ebe4d3,#c6b591 60%,#988a75)', opacity: true },
-  { id: 'hillshade', label: 'Hillshade', thumb: 'linear-gradient(135deg,#fffaf0,#8d7a62)', opacity: true },
+  { id: 'relief', label: 'Elevation', thumb: 'linear-gradient(135deg,#ebe4d3,#c6b591 60%,#988a75)', opacity: true },
+  { id: 'hillshade', label: 'Relief shading', thumb: 'linear-gradient(135deg,#fffaf0,#8d7a62)', opacity: true },
   { id: 'wash', label: null, thumb: null, opacity: true },
   { id: 'front', label: null, thumb: null, opacity: true },
-  { id: 'trees', label: 'Trees at JMC spots', thumb: null, opacity: false },
+  { id: 'trees', label: 'Forecast spots', thumb: null, opacity: false },
   { id: 'deviation', label: 'Cities vs average', thumb: 'linear-gradient(90deg,#1f6f8b,#f4f0e8,#a14a14)', opacity: false },
 ];
 
@@ -711,6 +828,67 @@ function renderLegend() {
   el.innerHTML = `${COPY[s.kind].wash}<div class="ramp">${stops.map((v) => `<i style="background:${rgba(rampColor(ramp, v), 1)}"></i>`).join('')}</div><div class="ramp-labels">${words.map((w) => `<span>${w}</span>`).join('')}</div>`;
 }
 
+// ---------- history ----------
+
+function renderHistory(force = false) {
+  const s = state.season;
+  if (!s) return;
+  const c = COPY[s.kind];
+  const kyoto = state.historyKyoto && s.kind === 'sakura';
+  const key = `${s.kind}|${kyoto ? 'kyoto' : state.historyCity}`;
+  if (!force && renderHistory.last === key) return;
+  renderHistory.last = key;
+  const svg = $('chart-trend');
+  const title = $('c3-title');
+  const sub = $('c3-sub');
+  $('c3-kyoto').hidden = s.kind !== 'sakura';
+  $('c3-kyoto').setAttribute('aria-pressed', String(kyoto));
+  if (kyoto) {
+    const rows = HISTORY.kyotoFullBloom;
+    const h = {
+      points: rows.map(([year, doy]) => ({ year, doy, substitute: false })),
+      running: rows.filter((r) => r[2] != null).map(([year, , avg]) => ({ year, doy: avg })),
+      normal: null,
+    };
+    historyChart(svg, h, { kind: s.kind });
+    const recent = rows.filter((r) => r[0] >= 1997);
+    const old = rows.filter((r) => r[0] >= 1800 && r[0] < 1900);
+    const mean = (a) => a.reduce((x, r) => x + r[1], 0) / a.length;
+    title.textContent = 'Kyoto full bloom since 812';
+    sub.textContent = `Last 30 years average ${fmtDoy(Math.round(mean(recent)))}; the 1800s averaged ${fmtDoy(Math.round(mean(old)))}.`;
+    sub.title = 'Mountain cherry, dated from court diaries and records before 1880';
+    svg.setAttribute('aria-label', `Kyoto full bloom dates from 812 to ${rows[rows.length - 1][0]}, with the 30-year average`);
+    return;
+  }
+  const name = state.historyCity;
+  const h = cityHistory(HISTORY[c.table], name, HISTORY.firstYear);
+  if (!h) {
+    svg.textContent = '';
+    title.textContent = `${name}: no history`;
+    sub.textContent = 'The weather station records have too few years here.';
+    return;
+  }
+  const city = s.cities.find((x) => x.name === name);
+  // This year's point: an observation when it shares the history's source, otherwise the forecast, drawn hollow.
+  let thisYear = null;
+  if (city && s.kind === 'sakura') {
+    const last = h.points[h.points.length - 1];
+    thisYear = last.year === s.year ? null : { year: s.year, doy: city.front - doyToDay(s.year, 1) + 1, forecast: !city.observed };
+  } else if (city && s.kind === 'koyo') {
+    thisYear = { year: s.year, doy: city.peak - doyToDay(s.year, 1) + 1, forecast: true };
+  }
+  historyChart(svg, h, { kind: s.kind, showTrend: true, thisYear });
+  const t = h.trend;
+  const per = Math.abs(t.perDecade);
+  const dir = t.perDecade < 0 ? 'earlier' : 'later';
+  title.textContent = `${name}, ${c.history} each year`;
+  sub.title = '';
+  sub.textContent = per < 0.3
+    ? `No clear trend since ${t.from}.`
+    : `About ${per.toFixed(1)} days ${dir} per decade since ${t.from}${h.species && !h.species.startsWith('Yoshino') ? `, ${h.species.split(' (')[0]}` : ''}.`;
+  svg.setAttribute('aria-label', `${name} ${c.history} dates from ${t.from} to ${t.to}. ${sub.textContent}`);
+}
+
 // ---------- wiring ----------
 
 function wire() {
@@ -736,9 +914,12 @@ function wire() {
   document.querySelectorAll('.dim-seg button').forEach((b) => b.addEventListener('click', () => applyDim(b.dataset.dim)));
   $('exag').addEventListener('change', (e) => {
     state.exag = Number(e.target.value);
-    if (map && state.dim === '3d') { map.setTerrain({ source: 'dem-terrain', exaggeration: state.exag }); }
+    lastExag = 0;
+    updateExaggeration();
+    map?.triggerRepaint();
   });
   $('region').addEventListener('change', (e) => fitRegion(e.target.value));
+  $('c3-kyoto').addEventListener('click', () => { state.historyKyoto = !state.historyKyoto; renderHistory(); });
   $('compass').addEventListener('click', () => map?.easeTo({ bearing: 0, duration: reducedMotion ? 0 : 500 }));
 
   // Arrow keys scrub the date anywhere outside form fields and the map's own controls.
@@ -790,7 +971,8 @@ function wire() {
       if (!s) return;
       charts.bloom = bloomChart($('chart-bloom'), series, s, COPY[s.kind], (d) => setDay(d));
       charts.speed = speedChart($('chart-speed'), speeds, s, (d) => setDay(d));
-      charts.trend = trendChart($('chart-trend'), s, (c) => showAt({ type: 'city', item: c }));
+      renderHistory(true);
+      renderAxis();
       setDay(state.day, true);
     }, 150);
   });
