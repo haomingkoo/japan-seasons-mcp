@@ -18,7 +18,8 @@ A calm seasonal almanac on warm paper. The map carries the colour; the chrome st
 - Radius 6 controls, 10 cards and popups. One shadow (`--float`) for legend, popups and map notices.
 
 ## Map
-- Tiles are OSM.de with a light desaturate and sepia filter so markers lead.
+- Base map is OpenFreeMap vector tiles (keyless) drawn by MapLibre inside Leaflet with a paper style in `BASE_STYLE`: English labels only, cities from zoom 6, towns from 10, roads from 7. OSM.de raster with a sepia filter is the fallback when WebGL or the libraries are missing.
+- Cluster bubbles sit on their anchor spot, not the centroid, and never exceed `CLUSTER_MAX_SIZE` (44px) with `CLUSTER_RADIUS` 52px, so they cannot overlap at any zoom.
 - Markers are plain shapes: dots for spots, squares for festivals and Kawazu cherry. No emoji or glyph icons.
 - Cluster numbers pick white or ink with `inkOn()` so every count passes 4.5:1.
 - Leaflet attribution, zoom and popups are themed from the tokens.

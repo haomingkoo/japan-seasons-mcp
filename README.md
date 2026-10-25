@@ -4,7 +4,7 @@
 
 **Give your AI assistant live Japan travel data — cherry blossom forecasts, autumn leaves, fruit picking, flowers, festivals & more.**
 
-*1,700+ spots. 17 tools. Live data from Japan Meteorological Corporation.*
+*About 1,700 forecast spots plus flowers, festivals and fruit farms. 17 tools. Live data from Japan Meteorological Corporation.*
 
 [![npm version](https://img.shields.io/npm/v/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/japan-seasons-mcp.svg)](https://www.npmjs.com/package/japan-seasons-mcp)
@@ -145,7 +145,7 @@ ChatGPT Search can discover `japan-seasons-mcp` as a web result, but web discove
 |--------|------|-------|--------|
 | Jan–Feb | Kawazu cherry (early deep-pink variety, Izu Peninsula) | 9 spots | JMC live |
 | Jan–Mar | Plum blossoms | 8 spots | curated |
-| Mar–May | Cherry blossom (sakura) | **1,012 parks & temples** | JMC live, daily |
+| Mar–May | Cherry blossom (sakura) | **about 1,000 parks & temples** | JMC live, daily |
 | Apr–May | Wisteria | 13 spots | curated |
 | May–Jun | Iris gardens | 9 spots | curated |
 | Jun–Jul | Hydrangea | 15 spots | curated |
@@ -154,10 +154,10 @@ ChatGPT Search can discover `japan-seasons-mcp` as a web result, but web discove
 | Jul–Aug | Sunflower fields | 7 spots | curated |
 | May–Nov | Fruit picking | **2,100+ farms**, 14 fruits | Jalan |
 | Sep–Oct | Cosmos fields | 8 spots | curated |
-| Oct–Dec | Autumn leaves (koyo) | **687 viewing spots** | JMC live |
+| Oct–Dec | Autumn leaves (koyo) | **about 700 viewing spots** | JMC live |
 | Jan–Feb | Winter events (Sapporo Snow Festival, etc.) | 8 events | curated |
 
-1,700+ GPS-tagged spots across 12 seasonal categories.
+Spot counts change as JMC adds and retires spots; the live API reports the current total (`totalSpots`).
 
 ---
 
@@ -194,7 +194,7 @@ All 48 JMA observation cities in one call: this year's forecast, actual dates wh
 
 **`sakura_spots`** — specific parks and temples
 
-1,012 spots across Japan with current status, bloom percentages, and GPS coordinates. When JMC spot reporters have filed a recent update (within 48 hours), the tool uses that observed status as the primary reading. Otherwise it falls back to the JMC bloom-meter forecast. Stale observations are shown as context, not hidden.
+About 1,000 spots across Japan with current status, bloom percentages, and GPS coordinates. When JMC spot reporters have filed a recent update (within 48 hours), the tool uses that observed status as the primary reading. Otherwise it falls back to the JMC bloom-meter forecast. Stale observations are shown as context, not hidden.
 
 ```
 "Cherry blossom spots in Kyoto"
@@ -349,7 +349,7 @@ Typical workflow:
 ```mermaid
 flowchart LR
     subgraph live["Live APIs (cached 1–6h)"]
-        JMC["Japan Meteorological Corp\nsakura · koyo · kawazu\n1,700+ spots · daily 9AM JST"]
+        JMC["Japan Meteorological Corp\nsakura · koyo · kawazu\nabout 1,700 spots · daily 9AM JST"]
         JMA["Japan Met Agency\nweather · 51 cities\nhourly"]
     end
 
@@ -419,7 +419,7 @@ Peak viewing is typically full bloom ± 3 days. Rain accelerates petal fall.
 
 ## Web app
 
-[seasons.kooexperience.com](https://seasons.kooexperience.com) is the interactive companion to this MCP server. It shows all the same data on a map — 1,012 sakura spots with lifecycle colours (orange bud, pink bloom, green ended), 687 koyo spots, 2,100+ fruit farms grouped by location, and 90 flower spots. There are also focused SEO/citation pages for [cherry blossom forecasts](https://seasons.kooexperience.com/cherry-blossom-forecast), [autumn leaves forecasts](https://seasons.kooexperience.com/autumn-leaves-forecast), and the [MCP server](https://seasons.kooexperience.com/japan-seasonal-travel-mcp). The map includes a "Plan My Trip" mode where you pick cities and see every seasonal activity near each one ranked by distance, and a "Near Me" button that finds spots within 30km of your GPS location.
+[seasons.kooexperience.com](https://seasons.kooexperience.com) is the interactive companion to this MCP server. It shows all the same data on a map — about 1,000 sakura spots with lifecycle colours (orange bud, pink bloom, green ended), 687 koyo spots, 2,100+ fruit farms grouped by location, and 90 flower spots. There are also focused SEO/citation pages for [cherry blossom forecasts](https://seasons.kooexperience.com/cherry-blossom-forecast), [autumn leaves forecasts](https://seasons.kooexperience.com/autumn-leaves-forecast), and the [MCP server](https://seasons.kooexperience.com/japan-seasonal-travel-mcp). The map includes a "Plan My Trip" mode where you pick cities and see every seasonal activity near each one ranked by distance, and a "Near Me" button that finds spots within 30km of your GPS location.
 
 ---
 
@@ -442,7 +442,7 @@ TypeScript. No external database. No auth required.
 
 | Source | What it provides |
 |--------|-----------------|
-| [Japan Meteorological Corporation](https://n-kishou.com) | Sakura and koyo forecasts, bloom percentages, 1,700+ viewing spots |
+| [Japan Meteorological Corporation](https://n-kishou.com) | Sakura and koyo forecasts, bloom percentages, about 1,700 viewing spots |
 | [Japan Meteorological Agency](https://www.jma.go.jp) via [tsukumijima](https://weather.tsukumijima.net) | City weather forecasts |
 | [Jalan](https://www.jalan.net) | Fruit picking farm listings |
 | Hand-curated | 90 flower spots, 46 festival entries, each with an official URL and verified GPS |

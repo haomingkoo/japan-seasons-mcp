@@ -189,13 +189,62 @@ function handleSpotClick(id) {
 }
 
 // ── Map setup ──
+// Base map: OpenFreeMap vector tiles drawn with a warm paper style and English-only labels.
+// Falls back to OSM.de raster tiles if WebGL or the vector libraries are unavailable.
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';
+const EN_NAME = ['coalesce', ['get', 'name:en'], ['get', 'name_en']];
+const BASE_STYLE = {
+  version: 8,
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+  sources: {
+    omt: {
+      type: 'vector', url: 'https://tiles.openfreemap.org/planet',
+      attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    },
+  },
+  layers: [
+    { id: 'land', type: 'background', paint: { 'background-color': '#f3ede2' } },
+    { id: 'park', type: 'fill', source: 'omt', 'source-layer': 'park', paint: { 'fill-color': '#e7e6d2', 'fill-opacity': 0.7 } },
+    { id: 'wood', type: 'fill', source: 'omt', 'source-layer': 'landcover', filter: ['in', ['get', 'class'], ['literal', ['wood', 'grass']]], paint: { 'fill-color': '#e9e6d3', 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.35, 10, 0.6] } },
+    { id: 'urban', type: 'fill', source: 'omt', 'source-layer': 'landuse', filter: ['in', ['get', 'class'], ['literal', ['residential', 'suburb', 'neighbourhood', 'commercial', 'retail']]], minzoom: 8, paint: { 'fill-color': '#ece4d6', 'fill-opacity': 0.8 } },
+    { id: 'water', type: 'fill', source: 'omt', 'source-layer': 'water', paint: { 'fill-color': '#cbd8d8' } },
+    { id: 'river', type: 'line', source: 'omt', 'source-layer': 'waterway', minzoom: 8, paint: { 'line-color': '#cbd8d8', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 14, 2.5] } },
+    { id: 'building', type: 'fill', source: 'omt', 'source-layer': 'building', minzoom: 14, paint: { 'fill-color': '#e6dccb' } },
+    { id: 'road-minor', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 12, filter: ['in', ['get', 'class'], ['literal', ['minor', 'service', 'tertiary']]], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fffcf7', 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.6, 16, 4] } },
+    { id: 'road-major', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7, filter: ['in', ['get', 'class'], ['literal', ['motorway', 'trunk', 'primary', 'secondary']]], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['match', ['get', 'class'], ['motorway', 'trunk'], '#e8d3b4', '#fffcf7'], 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.5, 12, 1.8, 16, 7] } },
+    { id: 'rail', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 10, filter: ['==', ['get', 'class'], 'rail'], paint: { 'line-color': '#cbbfae', 'line-width': 0.8, 'line-dasharray': [3, 2] } },
+    { id: 'pref-border', type: 'line', source: 'omt', 'source-layer': 'boundary', minzoom: 5, filter: ['all', ['==', ['get', 'admin_level'], 4], ['!=', ['get', 'maritime'], 1]], paint: { 'line-color': '#c4b8a3', 'line-width': 0.7, 'line-dasharray': [3, 2] } },
+    { id: 'country-border', type: 'line', source: 'omt', 'source-layer': 'boundary', filter: ['all', ['==', ['get', 'admin_level'], 2], ['!=', ['get', 'maritime'], 1]], paint: { 'line-color': '#b3a690', 'line-width': 1 } },
+    { id: 'road-label', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 13, filter: ['has', 'name:en'], layout: { 'symbol-placement': 'line', 'text-field': EN_NAME, 'text-font': ['Noto Sans Regular'], 'text-size': 11 }, paint: { 'text-color': '#6b6258', 'text-halo-color': '#fffcf7', 'text-halo-width': 1.2 } },
+    { id: 'place-small', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 10, filter: ['all', ['in', ['get', 'class'], ['literal', ['town', 'village', 'suburb']]], ['any', ['has', 'name:en'], ['has', 'name_en']]], layout: { 'text-field': EN_NAME, 'text-font': ['Noto Sans Regular'], 'text-size': 11.5 }, paint: { 'text-color': '#5a534b', 'text-halo-color': '#f6f1e8', 'text-halo-width': 1.4 } },
+    { id: 'place-city', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 6, filter: ['all', ['==', ['get', 'class'], 'city'], ['any', ['has', 'name:en'], ['has', 'name_en']]], layout: { 'text-field': EN_NAME, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 6, 11, 12, 14] }, paint: { 'text-color': '#4c453c', 'text-halo-color': '#f6f1e8', 'text-halo-width': 1.5 } },
+  ],
+};
+
+function addRasterBase(map) {
+  L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', { attribution: OSM_ATTRIBUTION, maxZoom: 19, className: 'osm-raster' }).addTo(map);
+}
+
+function addBaseMap(map) {
+  let webgl = false;
+  try { webgl = !!document.createElement('canvas').getContext('webgl2'); } catch {}
+  if (!webgl || typeof L.maplibreGL !== 'function' || typeof maplibregl === 'undefined') { addRasterBase(map); return; }
+  try {
+    const gl = L.maplibreGL({ style: BASE_STYLE, attributionControl: false, interactive: false }).addTo(map);
+    gl.getMaplibreMap().on('error', (e) => console.warn('Base map tile error', e?.error?.message || e));
+    map.attributionControl.addAttribution(BASE_STYLE.sources.omt.attribution);
+    if (window.matchMedia('(max-width: 768px)').matches) map.attributionControl.setPrefix(false);
+  } catch (e) {
+    console.warn('Vector base map failed, using raster tiles', e);
+    addRasterBase(map);
+  }
+}
+
 function initMap() {
-  mapInstance = L.map('map', { zoomControl: false }).setView([36.5, 137.5], 6);
+  anchorClustersOnSpots();
+  mapInstance = L.map('map', { zoomControl: false, maxZoom: 18 }).setView([36.5, 137.5], 6);
   L.control.zoom({ position: 'topright' }).addTo(mapInstance);
-  L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-    maxZoom: 19,
-  }).addTo(mapInstance);
+  addBaseMap(mapInstance);
 
   // Lazy-load weather when a spot popup opens
   // Weather cache: avoid re-fetching on every popup open (1-hour TTL)
@@ -317,6 +366,24 @@ function errorState(title, retry) {
   return stateHtml({ title, body: 'Check your connection and try again.', retry, error: true });
 }
 // White or ink, whichever reads at 4.5:1 on a marker fill.
+// Cluster bubbles never overlap: each one sits on its anchor spot (markercluster keeps anchors
+// more than CLUSTER_RADIUS px apart at every zoom) and no bubble is wider than CLUSTER_MAX_SIZE.
+const CLUSTER_MAX_SIZE = 44;
+const CLUSTER_RADIUS = 52;
+function clusterSize(n) {
+  return Math.round(Math.min(CLUSTER_MAX_SIZE, 28 + Math.log10(n) * 7));
+}
+function anchorClustersOnSpots() {
+  const proto = L.MarkerCluster && L.MarkerCluster.prototype;
+  if (!proto || proto._anchored) return;
+  const recalc = proto._recalculateBounds;
+  proto._recalculateBounds = function () {
+    recalc.call(this);
+    if (this._cLatLng) this._latlng = this._cLatLng;
+  };
+  proto._anchored = true;
+}
+
 function inkOn(hex) {
   const c = hex.replace('#', '');
   const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -961,10 +1028,10 @@ function renderFruitMonth(m) {
   let markersAdded = 0;
   if (farms.length) {
     clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50, spiderfyOnMaxZoom: true, showCoverageOnHover: false,
+      maxClusterRadius: CLUSTER_RADIUS, spiderfyOnMaxZoom: true, showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
         const n = cluster.getChildCount();
-        const size = Math.min(36 + n * 0.5, 54);
+        const size = clusterSize(n);
         return L.divIcon({
           html: `<div style="background:${C.green};color:${inkOn(C.green)};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '', iconSize: [size, size],
@@ -1159,7 +1226,7 @@ async function loadSakura() {
     }
     $('sidebar-content').innerHTML = html;
 
-    // Upgrade from fast city markers to the full 1,012-spot cluster after the
+    // Upgrade from fast city markers to the full spot cluster after the
     // forecast list has had a chance to paint.
     scheduleMapWork(() => loadAllSpotsOnMap({ token, replaceExisting: true, expectedMode: 'sakura' }));
   } catch (e) {
@@ -1840,10 +1907,10 @@ async function searchTrip() {
     if (noCities) {
       // Show individual sakura spots on map (clustered by status color)
       if (isSakuraSeason && allSpotsData) {
-        const sakuraCluster = L.markerClusterGroup({ maxClusterRadius: 30, showCoverageOnHover: false,
+        const sakuraCluster = L.markerClusterGroup({ maxClusterRadius: CLUSTER_RADIUS, showCoverageOnHover: false,
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
-            const sz = Math.min(30 + Math.log2(n) * 5, 50);
+            const sz = clusterSize(n);
             return L.divIcon({ html: `<div style="background:${C.bloom};color:${inkOn(C.bloom)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
@@ -1879,10 +1946,10 @@ async function searchTrip() {
       const farms = farmDataCache?.spots || [];
       const seasonFarms = farms.filter(f => f.lat && f.lon && f.fruits?.some(fr => FRUITS.find(ff => ff.name === fr && ff.months.includes(m))));
       if (seasonFarms.length) {
-        clusterGroup = L.markerClusterGroup({ maxClusterRadius: 40, showCoverageOnHover: false,
+        clusterGroup = L.markerClusterGroup({ maxClusterRadius: CLUSTER_RADIUS, showCoverageOnHover: false,
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
-            const sz = Math.min(32 + n * 0.2, 48);
+            const sz = clusterSize(n);
             return L.divIcon({ html: `<div style="background:${C.farmBlue};color:${inkOn(C.farmBlue)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
           }
         });
@@ -2069,10 +2136,10 @@ async function searchTrip() {
           : nearbySakura.some(s => s._tripPhase === 'blooming')
             ? sakuraPhaseColor('blooming')
             : sakuraPhaseColor('bud_swell');
-      clusterGroup = L.markerClusterGroup({ maxClusterRadius: 35, showCoverageOnHover: false,
+      clusterGroup = L.markerClusterGroup({ maxClusterRadius: CLUSTER_RADIUS, showCoverageOnHover: false,
         iconCreateFunction: cluster => {
           const n = cluster.getChildCount();
-          const sz = Math.min(34 + n * 0.3, 52);
+          const sz = clusterSize(n);
           return L.divIcon({ html: `<div style="background:${clusterColor};color:${inkOn(clusterColor)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
         }
       });
@@ -2369,7 +2436,7 @@ async function loadWeatherCard(cityName) {
   }
 }
 
-// ── Load all 1,012 spots on map ──
+// ── Load all sakura spots on map ──
 async function loadAllSpotsOnMap(options = {}) {
   const expectedMode = options.expectedMode || mode;
   const token = options.token ?? mapVersion;
@@ -2387,7 +2454,7 @@ async function loadAllSpotsOnMap(options = {}) {
     if (sc) sc.textContent = ` ${allSpotsData.spots.length.toLocaleString('en-US')} spots on the map.`;
 
     clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 40,
+      maxClusterRadius: CLUSTER_RADIUS,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
@@ -2420,7 +2487,7 @@ async function loadAllSpotsOnMap(options = {}) {
         else { color = C.dormant; textColor = '#333'; }                             // dormant
 
         textColor = inkOn(color);
-        const size = Math.min(38 + n * 0.4, 58);
+        const size = clusterSize(n);
         return L.divIcon({
           html: `<div style="background:${color};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '',
@@ -2579,7 +2646,7 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
     if (clusterGroup) mapInstance.removeLayer(clusterGroup); // a filter change can overlap the initial load
 
     clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 40,
+      maxClusterRadius: CLUSTER_RADIUS,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       iconCreateFunction: function(cluster) {
@@ -2593,7 +2660,7 @@ async function loadAllKoyoSpotsOnMap(options = {}) {
         const bg = p.hollow ? 'white' : p.color;
         const border = p.hollow ? `${KOYO_HOLLOW_STROKE}px solid ${p.color}` : '2px solid white';
         const textColor = p.hollow ? '#8a2f0a' : inkOn(p.color);
-        const size = Math.min(38 + n * 0.4, 58);
+        const size = clusterSize(n);
         return L.divIcon({
           html: `<div style="background:${bg};color:${textColor};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:${border};box-shadow:0 2px 6px rgba(0,0,0,0.2)">${n}</div>`,
           className: '',
@@ -2708,10 +2775,10 @@ function renderWhatsOn(m) {
   // Fruit farm cluster
   if (farms.length) {
     clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 40, showCoverageOnHover: false,
+      maxClusterRadius: CLUSTER_RADIUS, showCoverageOnHover: false,
       iconCreateFunction: cluster => {
         const n = cluster.getChildCount();
-        const sz = Math.min(30 + n * 0.3, 46);
+        const sz = clusterSize(n);
         return L.divIcon({ html: `<div style="background:${C.farmBlue};color:${inkOn(C.farmBlue)};width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${n}</div>`, className: '', iconSize: [sz, sz] });
       }
     });
