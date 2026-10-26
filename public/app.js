@@ -859,7 +859,11 @@ const MODE_TITLES = {
   trip:    'Japan in Seasons: plan a trip by date',
 };
 
+// Views that moved to their own page.
+const MODE_PAGES = { fruit: '/fruit' };
+
 function setMode(m) {
+  if (MODE_PAGES[m]) { location.assign(MODE_PAGES[m]); return; }
   mode = m;
   document.body.dataset.mode = m;
   mapInstance?.invalidateSize(); // koyo's phone layout changes the map height
@@ -2929,7 +2933,7 @@ function detectSeasonMode() {
   if (m >= 2 && m <= 5)  return 'sakura';   // Feb–May
   if (m >= 10 && m <= 12) return 'koyo';    // Oct–Dec
   if (m === 6 || m === 7) return 'flowers'; // Jun–Jul (hydrangea, lavender)
-  if (m === 8 || m === 9) return 'fruit';   // Aug–Sep
+  if (m === 8 || m === 9) return 'flowers'; // Aug–Sep (sunflower, cosmos)
   return 'whatson'; // Jan (winter festivals, plum blossom)
 }
 
@@ -2941,6 +2945,7 @@ function detectSeasonMode() {
     if (typeof L === 'undefined') throw new Error('map library missing');
     const p = new URLSearchParams(location.search);
     const m = p.get('mode');
+    if (m && MODE_PAGES[m]) { location.replace(MODE_PAGES[m]); return; }
     if (m && ['sakura','koyo','fruit','flowers','whatson','trip'].includes(m)) {
       initMap(); setMode(m);
       const pref = p.get('pref');

@@ -50,6 +50,7 @@ button { cursor: pointer; }
   color: var(--ink-2); white-space: nowrap;
 }
 .mode-btn:hover { color: var(--ink); }
+a.mode-btn { display: inline-flex; align-items: center; text-decoration: none; }
 .mode-btn.active { color: var(--ink); }
 .mode-btn.active::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--accent); }
 .mode-btn:focus-visible { outline-offset: -2px; }

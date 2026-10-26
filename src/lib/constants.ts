@@ -53,4 +53,6 @@ export const FRUITS = [
   { name: "Mandarin Orange", ja: "みかん",   emoji: "🍊", months: [10,11,12,1,2],  peak: [11,12],    regions: ["Ehime","Wakayama","Shizuoka"],                   note: "Ehime is Japan's top mikan prefecture" },
   { name: "Amaou Strawberry", ja: "あまおう", emoji: "🍓", months: [11,12,1,2,3,4], peak: [2,3],      regions: ["Fukuoka","Saga","Kumamoto"],                     note: "Amaou variety from Fukuoka — most premium" },
   { name: "Kiwi",            ja: "キウイ",   emoji: "🥝", months: [11,12],         peak: [11,12],    regions: ["Ehime","Kanagawa","Fukuoka"],                    note: "Harvested Nov–Dec; stored and sold through winter" },
+  { name: "Melon",           ja: "メロン",   emoji: "🍈", months: [5,6,7,8],       peak: [6,7],      regions: ["Hokkaido (Yubari)","Ibaraki","Kumamoto"],        note: "Yubari King is Japan's most prized melon" },
+  { name: "Loquat",          ja: "びわ",     emoji: "🍑", months: [5,6],           peak: [6],        regions: ["Nagasaki","Chiba"],                              note: "Short early-summer season; Nagasaki grows the most" },
 ];

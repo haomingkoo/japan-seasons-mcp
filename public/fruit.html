@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f1e8">
+  <title>{{FRUIT_TITLE}}</title>
+  <meta name="description" content="{{FRUIT_DESCRIPTION}}">
+  <link rel="canonical" href="{{SITE_URL}}{{FRUIT_PATH}}">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/shippori-mincho-latin-700.woff2" as="font" type="font/woff2" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{SITE_URL}}{{FRUIT_PATH}}">
+  <meta property="og:title" content="{{FRUIT_TITLE}}">
+  <meta property="og:description" content="{{FRUIT_DESCRIPTION}}">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <link rel="stylesheet" href="/almanac/almanac.css?v={{ASSET_VERSION}}">
+</head>
+<body>
+<a class="skip" href="#sidebar">Skip to the farm list</a>
+<div id="app" class="app" data-season="fruit" data-version="{{ASSET_VERSION}}">
+  <header class="top-bar">
+    <a class="brand" href="/" aria-label="Japan in Seasons, home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(16 16.6)" fill="var(--accent)"><path id="petal" d="M0-1.6C-3.6-4.2-4.6-8.4-2.6-11.4L0-9.6 2.6-11.4C4.6-8.4 3.6-4.2 0-1.6Z"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/></g></svg>
+      <span class="brand-name">Japan in Seasons</span>
+    </a>
+    <div class="page-title">
+      <h1 id="page-h1">{{FRUIT_H1}}</h1>
+      <p class="page-sub" id="page-sub">{{FRUIT_SUB}}</p>
+    </div>
+    <nav class="page-nav" aria-label="Pages">
+      <a href="/fruit" aria-current="page">Fruit picking</a>
+      <a href="/festivals">Festivals</a>
+      <a href="/plan">Plan by date</a>
+      <a href="/explore">Bloom front</a>
+    </nav>
+    <label>
+      <span class="sr-only">Region</span>
+      <select id="region" aria-label="Region">
+        <option value="japan">All Japan</option>
+        <option value="hokkaido">Hokkaido</option>
+        <option value="tohoku">Tohoku</option>
+        <option value="kanto">Kanto</option>
+        <option value="chubu">Chubu</option>
+        <option value="kansai">Kansai</option>
+        <option value="chugoku">Chugoku</option>
+        <option value="shikoku">Shikoku</option>
+        <option value="kyushu">Kyushu and Okinawa</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="main">
+    <div class="left">
+      <div class="map-wrap">
+        <div id="map" role="region" aria-label="Map of fruit-picking farms. Use the date slider to see which farms are in season; the farm list in the side panel has the same farms."></div>
+        <div id="map-status" class="map-status" role="status" aria-live="polite">Loading farms…</div>
+        <div id="tip" class="tip" hidden></div>
+        <div class="map-legend" id="legend" hidden></div>
+        <div class="map-controls">
+          <div class="seg" role="group" aria-label="View" id="dim-seg" hidden>
+            <button type="button" data-dim="2d" aria-pressed="true">2D</button>
+            <button type="button" data-dim="3d" aria-pressed="false">3D</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <section class="timeline" aria-label="Date">
+          <div class="tl-head">
+            <p class="tl-date"><span id="tl-date">Loading</span><span class="tl-phase" id="tl-sub"></span></p>
+            <span class="tl-range" id="tl-note"></span>
+          </div>
+          <div class="tl-body">
+            <div class="tl-buttons">
+              <button id="btn-play" class="tl-btn" type="button" aria-label="Play" aria-pressed="false">
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M5 3.2v9.6L12.5 8z"/></svg>
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="4" y="3.2" width="2.6" height="9.6" rx=".5"/><rect x="9.4" y="3.2" width="2.6" height="9.6" rx=".5"/></svg>
+              </button>
+              <button id="btn-today" class="btn" type="button">Today</button>
+            </div>
+            <div class="tl-track-wrap">
+              <div class="tl-marks" id="tl-marks"></div>
+              <input type="range" id="tl-input" class="tl-input" aria-label="Date in the year">
+              <div class="tl-axis" id="tl-axis" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+        <section class="cal" aria-labelledby="cal-title">
+          <div class="cal-head">
+            <h2 id="cal-title">When each fruit is in season</h2>
+            <div class="cal-key" id="cal-key"></div>
+          </div>
+          <div class="cal-rows" id="cal-rows"></div>
+        </section>
+      </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Fruit, dates and farms">
+      <div class="card profile" id="profile-card" hidden></div>
+
+      <div class="card">
+        <h2 class="card-title">Travel dates <span class="muted">optional</span></h2>
+        <form class="dates" id="dates-form">
+          <label>From<input type="date" id="date-from"></label>
+          <label>To<input type="date" id="date-to"></label>
+          <div class="row">
+            <button type="submit" class="btn btn-primary">Show open farms</button>
+            <button type="button" class="link-btn" id="dates-clear" hidden>Clear dates</button>
+          </div>
+          <p class="field-error" id="dates-error" role="alert" hidden></p>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="side-tabs" role="tablist" aria-label="Panel">
+          <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="true">In season</button>
+          <button type="button" role="tab" id="tab-sources" aria-controls="pane-sources" aria-selected="false" tabindex="-1">Where dates come from</button>
+        </div>
+        <div id="pane-season" role="tabpanel" aria-labelledby="tab-season">
+          <ul class="pick-list" id="fruit-list" aria-live="polite"><li><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></li></ul>
+        </div>
+        <div id="pane-sources" role="tabpanel" aria-labelledby="tab-sources" hidden>
+          <div class="sources" id="sources"></div>
+        </div>
+      </div>
+
+      <div class="card detail" id="farm-card" aria-live="polite" hidden></div>
+
+      <details class="card" id="farms-details">
+        <summary class="card-title" id="farms-summary">Open farms</summary>
+        <ul class="farm-list" id="farm-list"></ul>
+      </details>
+    </aside>
+  </div>
+</div>
+<footer class="site-footer">
+  <p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p>
+</footer>
+<noscript><p style="padding:24px">This page needs JavaScript. The <a href="/?mode=fruit">main map</a> lists fruit by month.</p></noscript>
+<script type="module" src="/almanac/fruit.js?v={{ASSET_VERSION}}"></script>
+</body>
+</html>

@@ -18,6 +18,7 @@ import { TTL } from "./lib/cache.js";
 import { durableCacheEnabled, readDurableTextCache, writeDurableTextCache } from "./lib/durable-cache.js";
 import { JAPAN_BOUNDS, JAPAN_PREFECTURE_COUNT } from "./lib/constants.js";
 import { DATE_RANGE_INPUT_HINT, parseDateRangeInputJst } from "./lib/dates.js";
+import { buildFarms, PICKING_FRUITS, REGIONS, type RawFarm, type RawFarmSeason } from "./lib/fruit-seasons.js";
 
 // ── Minimal shared spot type ──────────────────────────────────────────────────
 interface SpotRecord { lat?: number; lon?: number; name?: string; [key: string]: unknown; }
@@ -32,7 +33,26 @@ const STATIC = {
   flowers:   loadStatic("flowers.json"),
   festivals: loadStatic("festivals.json"),
   farms:     loadStatic("fruit-farms.json"),
+  farmSeasons: loadStatic("fruit-farm-seasons.json"),
 };
+
+let fruitSeasonsJson: string | null = null;
+function fruitSeasonsPayload(): string {
+  if (fruitSeasonsJson) return fruitSeasonsJson;
+  const raw = (STATIC.farms as { spots?: RawFarm[]; scraped_at?: string } | null) ?? {};
+  const seasons = (STATIC.farmSeasons as { farms?: Record<string, RawFarmSeason>; updated?: string } | null) ?? {};
+  const { farms, stats } = buildFarms(raw.spots ?? [], seasons.farms ?? {});
+  fruitSeasonsJson = JSON.stringify({
+    farmsUpdated: raw.scraped_at ?? null,
+    datesChecked: seasons.updated ?? null,
+    totalListed: raw.spots?.length ?? 0,
+    fruits: PICKING_FRUITS,
+    regions: REGIONS.map(({ id, name }) => ({ id, name })),
+    stats,
+    farms,
+  });
+  return fruitSeasonsJson;
+}
 
 // ── Server-side caches — shared across users ──
 // All-spots: 47 upstream requests → cache aggressively so only first user pays the cost.
@@ -302,6 +322,12 @@ export async function handleApiRequest(
       const jsonStr = JSON.stringify(data);
       setAllSpotsCache("koyo", jsonStr);
       writeAllSpotsJson(res, jsonStr, ALL_SPOTS_CDN_TTL / 1000);
+      return true;
+    }
+
+    // GET /api/fruit/seasons — farms with per-fruit season windows and where each window comes from
+    if (pathname === "/api/fruit/seasons") {
+      writeAllSpotsJson(res, fruitSeasonsPayload(), TTL.HISTORICAL / 1000);
       return true;
     }
 

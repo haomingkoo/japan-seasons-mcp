@@ -11,6 +11,7 @@ COPY src ./src
 COPY public ./public
 COPY scripts ./scripts
 COPY explore ./explore
+COPY almanac ./almanac
 RUN npm run build
 
 ENV PORT=3000
