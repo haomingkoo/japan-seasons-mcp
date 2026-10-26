@@ -3,7 +3,8 @@
 //   node scripts/build-season-history.mjs
 // Sources (all fetched here, never by the browser):
 // - JMA phenological observation tables (生物季節観測累年値, CSV), Government of Japan
-//   Standard Terms of Use: cherry first bloom (004), full bloom (005), maple colouring (015).
+//   Standard Terms of Use: cherry first bloom (004), full bloom (005), ginkgo colouring (013),
+//   maple colouring (015).
 // - JMA current-season cherry pages (sakura_kaika.html, sakura_mankai.html), for this year.
 // - Kyoto full-bloom series since 812 (Aono and Kazui 2008, Aono and Saito 2010, Aono 2012,
 //   Katata 2026), CC BY 4.0, via Our World in Data.
@@ -100,6 +101,7 @@ const SPECIES_EN = { "ひかんざくら": "Taiwan cherry (hikanzakura)", "え�
 const bloom = await table(4, true);
 const full = await table(5, true);
 const maple = await table(15, false);
+const ginkgo = await table(13, false);
 const now = await currentSeason("sakura_kaika.html");
 const nowFull = await currentSeason("sakura_mankai.html");
 for (const [name, r] of Object.entries(now.rows)) {
@@ -126,7 +128,7 @@ function compact(t) {
 
 // Refuse to write a file that lost data, so a JMA layout change cannot quietly empty the charts.
 const covered = Object.values(bloom).filter((v) => Object.keys(v.years).length > 30).length;
-if (covered < 50 || Object.keys(maple).length < 45 || kyoto.length < 800) {
+if (covered < 50 || Object.keys(maple).length < 45 || Object.keys(ginkgo).length < 45 || kyoto.length < 800) {
   throw new Error(`History looks incomplete: ${covered} cherry stations with 30+ years, ${Object.keys(maple).length} maple stations, ${kyoto.length} Kyoto years`);
 }
 
@@ -143,6 +145,7 @@ writeFileSync(out, JSON.stringify({
   sakuraBloom: compact(bloom),
   sakuraFull: compact(full),
   mapleColour: compact(maple),
+  ginkgoColour: compact(ginkgo),
   kyotoFullBloom: kyoto,
 }));
 console.log(`Wrote ${out}: ${Object.keys(bloom).length} cherry stations, ${Object.keys(now.rows).length} this season, ${kyoto.length} Kyoto years`);

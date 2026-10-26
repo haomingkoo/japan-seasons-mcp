@@ -97,6 +97,34 @@ describe('autumn leaves mapping', () => {
     expect(kyoto.diff).toBe(6);
     expect(fmtDiff(kyoto.diff)).toBe('6 days later than average');
     expect(season.spots[0].dates.map((d) => fmtDay(d))).toEqual(['Nov 10', 'Nov 20', 'Nov 27', 'Dec 5']);
+    expect(season.events[0].label).toBe('First maple colour: Kyoto');
+  });
+
+  it('builds a separate ginkgo front, estimating ginkgo at maple spots from the city gap', () => {
+    const forecast = { regions: [{ name: 'Kinki', cities: [
+      { nameEn: 'Kyoto', prefNameEn: 'Kyoto', maple: { forecast: iso('2026-12-11'), normalDiffDays: 6 }, ginkgo: { forecast: iso('2026-12-01'), normalDiffDays: 2 } },
+      { nameEn: 'Nara', prefNameEn: 'Nara', maple: { forecast: iso('2026-11-25'), normalDiffDays: 4 } },
+    ] }] };
+    const spots = { spots: [
+      { lat: 35.0, lon: 135.7, nameRomaji: 'Arashiyama', name: '嵐山', leafType: 'Maple (momiji)', bestStart: iso('2026-11-20'), bestPeak: iso('2026-11-27'), bestEnd: iso('2026-12-05') },
+      { lat: 35.01, lon: 135.76, nameRomaji: 'Big ginkgo', name: '大銀杏', leafType: 'Ginkgo (ichou)', bestStart: iso('2026-11-25'), bestPeak: iso('2026-11-28'), bestEnd: iso('2026-12-04') },
+    ] };
+    const g = buildKoyoSeason(forecast, spots, 'ginkgo');
+    expect(g.species).toBe('ginkgo');
+    expect(g.cities.map((c) => c.name)).toEqual(['Kyoto']); // Nara has no ginkgo forecast
+    expect(fmtDay(g.cities[0].peak)).toBe('Dec 1');
+    expect(g.cities[0].diff).toBe(2);
+    const arash = g.spots.find((s) => s.name === 'Arashiyama');
+    expect(arash.estimated).toBe(true);
+    expect(fmtDay(arash.peak)).toBe('Nov 17'); // maple Nov 27 shifted by Kyoto's -10 day gap
+    expect(arash.trees).toBe(false);
+    const big = g.spots.find((s) => s.name === 'Big ginkgo');
+    expect(big.estimated).toBe(false);
+    expect(fmtDay(big.peak)).toBe('Nov 28');
+    expect(g.events[0].label).toBe('First ginkgo colour: Kyoto');
+    const m = buildKoyoSeason(forecast, spots, 'maple');
+    expect(m.cities).toHaveLength(2);
+    expect(m.spots.find((s) => s.name === 'Big ginkgo').trees).toBe(false);
   });
 });
 

@@ -74,8 +74,8 @@ export function bloomChart(svg, series, season, labels, onScrub) {
     for (let i = series.length - 1; i >= 0; i--) p += `L${x(series[i].day).toFixed(1)},${y(bottom(series[i])).toFixed(1)}`;
     return `${p}Z`;
   };
-  el('path', { d: areaPath((s) => s.peak, () => 0), class: `area peak ${season.kind}` }, g);
-  el('path', { d: areaPath((s) => s.peak + s.opening, (s) => s.peak), class: `area opening ${season.kind}` }, g);
+  el('path', { d: areaPath((s) => s.peak, () => 0), class: `area peak ${season.species === 'ginkgo' ? 'ginkgo' : season.kind}` }, g);
+  el('path', { d: areaPath((s) => s.peak + s.opening, (s) => s.peak), class: `area opening ${season.species === 'ginkgo' ? 'ginkgo' : season.kind}` }, g);
   const cur = el('g', { class: 'cursor' }, svg);
   const line = el('line', { y1: m.t, y2: H - m.b }, cur);
   const dot = el('circle', { r: 3.5 }, cur);

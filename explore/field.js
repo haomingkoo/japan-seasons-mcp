@@ -110,6 +110,16 @@ export const RAMPS = {
     [3.4, [176, 182, 120, 0.34]],
     [4, [120, 156, 96, 0.0]],
   ],
+  // Ginkgo: green to a clear golden yellow, distinct from the maple reds.
+  ginkgo: [
+    [0, [110, 140, 80, 0]],
+    [0.5, [140, 150, 70, 0.18]],
+    [1, [226, 196, 72, 0.45]],
+    [2, [242, 186, 24, 0.7]],
+    [2.7, [232, 168, 20, 0.72]],
+    [3.4, [176, 140, 70, 0.34]],
+    [4, [150, 130, 100, 0.0]],
+  ],
   koyo: [
     [0, [104, 140, 84, 0]],
     [0.5, [112, 146, 82, 0.22]],
@@ -143,7 +153,7 @@ function lut(ramp) {
   }
   return out;
 }
-const LUTS = { sakura: lut(RAMPS.sakura), koyo: lut(RAMPS.koyo) };
+const LUTS = { sakura: lut(RAMPS.sakura), koyo: lut(RAMPS.koyo), ginkgo: lut(RAMPS.ginkgo) };
 
 export function paintField(field, kind, day, imageData, glow = 0) {
   const { dates, support } = field;
