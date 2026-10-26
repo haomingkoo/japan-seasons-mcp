@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "http";
 import { gzipSync } from "zlib";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
@@ -38,6 +38,7 @@ import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, koyoFreshness
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
+import { buildFarms, fruitByName, fruitBySlug, PICKING_FRUITS, rangeLabel, rangesOverlapDays, tripDays } from "./lib/fruit-seasons.js";
 import {
   MCP_ENDPOINT,
   SAKURA_FORECAST_API_URL,
@@ -135,7 +136,14 @@ const STATIC_MCP = {
   flowers:   loadStaticJSON("flowers.json"),
   festivals: loadStaticJSON("festivals.json"),
   farms:     loadStaticJSON("fruit-farms.json"),
+  farmSeasons: loadStaticJSON("fruit-farm-seasons.json"),
 };
+
+let farmModel: ReturnType<typeof buildFarms> | null = null;
+function farmSeasonModel() {
+  farmModel ??= buildFarms(STATIC_MCP.farms?.spots ?? [], STATIC_MCP.farmSeasons?.farms ?? {});
+  return farmModel;
+}
 
 function staticSpotCount(data: AnySpot | null): number | null {
   if (!data) return null;
@@ -279,6 +287,7 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/favicon.svg":  { file: "favicon.svg",                   mime: "image/svg+xml" },
   "/fonts/shippori-mincho-latin-500.woff2": { file: "fonts/shippori-mincho-latin-500.woff2", mime: "font/woff2" },
   "/fonts/shippori-mincho-latin-700.woff2": { file: "fonts/shippori-mincho-latin-700.woff2", mime: "font/woff2" },
+  "/fruit":     { file: "fruit.html", mime: "text/html; charset=utf-8" },
   "/explore":  { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/": { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/explore.js":  { file: "explore/explore.js",  mime: "text/javascript; charset=utf-8" },
@@ -295,6 +304,48 @@ const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
       logger.warn(`Static file not found: ${entry.file}`);
     }
   }
+}
+
+// Bundled fruit, festival and plan pages: file names include content hashes, so register the folder.
+{
+  const dir = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "almanac");
+  const MIME: Record<string, string> = { ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
+  try {
+    for (const name of readdirSync(dir)) {
+      const ext = name.slice(name.lastIndexOf("."));
+      if (MIME[ext]) STATIC_FILES[`/almanac/${name}`] = { body: readFileSync(join(dir, name)), mime: MIME[ext] };
+    }
+  } catch {
+    logger.warn("public/almanac not built; /fruit, /festivals and /plan will not load their scripts");
+  }
+}
+
+function fruitPageHtml(slug: string): string | null {
+  const page = STATIC_FILES["/fruit"];
+  if (!page) return null;
+  const fruit = slug ? fruitBySlug(slug) : null;
+  if (slug && !fruit) return null;
+  const spots: AnySpot[] = STATIC_MCP.farms?.spots ?? [];
+  const n = fruit ? spots.filter((s) => (s["fruits"] as string[] | undefined)?.includes(fruit.name)).length : spots.length;
+  const noun = fruit ? fruit.slug[0].toUpperCase() + fruit.slug.slice(1) : "";
+  const tokens: Record<string, string> = fruit
+    ? {
+        "{{FRUIT_TITLE}}": `${noun} picking in Japan: season, peak months and ${n.toLocaleString("en-US")} farms | Japan in Seasons`,
+        "{{FRUIT_DESCRIPTION}}": `When and where to pick ${fruit.label.toLowerCase()} in Japan: peak months by region from farm listings, and a map of ${n.toLocaleString("en-US")} farms you can filter by travel dates.`,
+        "{{FRUIT_PATH}}": `/fruit/${fruit.slug}`,
+        "{{FRUIT_H1}}": fruit.label,
+        "{{FRUIT_SUB}}": `Where and when to pick ${fruit.label.toLowerCase()}. Drag the date.`,
+      }
+    : {
+        "{{FRUIT_TITLE}}": "Fruit picking in Japan: what's in season, where | Japan in Seasons",
+        "{{FRUIT_DESCRIPTION}}": `A month-by-month fruit picking calendar for Japan and a map of ${n.toLocaleString("en-US")} farms. Scrub the year or enter travel dates to see which farms are open for strawberries, cherries, peaches, grapes, apples, pears and mikan.`,
+        "{{FRUIT_PATH}}": "/fruit",
+        "{{FRUIT_H1}}": "Fruit picking",
+        "{{FRUIT_SUB}}": "What's in season, where. Drag the date.",
+      };
+  let text = String(renderSiteTemplate(page.body, page.mime));
+  for (const [token, value] of Object.entries(tokens)) text = text.split(token).join(value.replace(/[<>"&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", '"': "&quot;", "&": "&amp;" }[c]!)));
+  return text;
 }
 
 const SITE_TEMPLATE_REPLACEMENTS: Record<string, string> = {
@@ -330,6 +381,8 @@ function SITEMAP_XML(): string {
     { loc: SAKURA_FORECAST_TEXT_URL, priority: "0.9" },
     { loc: `${SITE_URL}/autumn-leaves-forecast`, priority: "0.95" },
     { loc: `${SITE_URL}/explore`, priority: "0.8" },
+    { loc: `${SITE_URL}/fruit`, priority: "0.8" },
+    ...PICKING_FRUITS.map((f) => ({ loc: `${SITE_URL}/fruit/${f.slug}`, priority: "0.6" })),
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
     { loc: `${SITE_URL}/privacy`, priority: "0.3" },
@@ -892,7 +945,7 @@ const SEARCH_DOCS = [
     title: "Japan Fruit Picking Seasons and Farms",
     url: `${SITE_URL}/#fruit`,
     keywords: "fruit picking farms strawberry grape peach apple mikan yamanashi nagano japan booking",
-    summary: `Fruit season calendar for 14 fruits and ${FRUIT_FARM_LABEL} with GPS coordinates, fruit types, seasons, and booking links.`,
+    summary: `Fruit season calendar for ${FRUITS.length} fruits and ${FRUIT_FARM_LABEL} with GPS coordinates, fruit types, seasons, and booking links.`,
   },
   {
     id: "mcp-install",
@@ -1120,7 +1173,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     "japan-seasons://fruit-seasons",
     {
       title: "Fruit Picking Season Calendar",
-      description: "Complete full-year fruit picking season calendar for 14 fruits in Japan — season months, peak months, best regions, and notes.",
+      description: `Complete full-year fruit picking season calendar for ${FRUITS.length} fruits in Japan — season months, peak months, best regions, and notes.`,
       mimeType: "application/json",
     },
     async (_uri) => ({
@@ -1837,7 +1890,7 @@ Use the japan-seasons-mcp tools based on the travel month:
     "fruit_seasons",
     {
       title: "Fruit Picking Season Calendar",
-      description: "Use this when the user asks what fruit is in season in a given month or which month is best for strawberries, grapes, peaches, apples, and similar picking trips. Returns the fruit season calendar, peak months, best regions, and notes for 14 fruits. Call fruit_farms next if the user needs actual farm listings, map coordinates, or booking links.",
+      description: `Use this when the user asks what fruit is in season in a given month or which month is best for strawberries, grapes, peaches, apples, and similar picking trips. Returns the fruit season calendar, peak months, best regions, and notes for ${FRUITS.length} fruits. Call fruit_farms next if the user needs actual farm listings, map coordinates, or booking links.`,
       inputSchema: {
         month: z.number().int().min(1).max(12).optional()
           .describe("Optional month number from 1 to 12. Returns fruits in season during that month plus fruits starting the following month. Omit to return the full year calendar.")
@@ -1977,16 +2030,22 @@ Use the japan-seasons-mcp tools based on the travel month:
     "fruit_farms",
     {
       title: "Fruit Picking Farms",
-      description: "Use this when the user needs actual fruit-picking farms, booking links, and map coordinates. Returns farms from the local dataset, and month filtering automatically narrows results to fruits that are in season. If the user only asks which fruit is in season, call fruit_seasons first.",
+      description: "Use this when the user needs actual fruit-picking farms, booking links, and map coordinates, optionally open on a month or on travel dates. Each farm's season says where it comes from: the farm's own listing, an estimate from other farms' listings in the same region, or the typical national season. If the user only asks which fruit is in season, call fruit_seasons first.",
       inputSchema: {
         month: z.number().int().min(1).max(12).optional()
-          .describe("Optional travel month from 1 to 12. Filters to farms with at least one fruit in season during that month, for example 5 for May strawberry farms.")
+          .describe("Optional travel month from 1 to 12. Keeps farms with at least one fruit open during that month, for example 5 for May strawberry farms.")
           .meta({ title: "Travel Month" }),
+        start_date: z.string().optional()
+          .describe("Optional trip start date as YYYY-MM-DD. With end_date, keeps farms open on at least one day of the trip. Overrides month.")
+          .meta({ title: "Trip Start Date" }),
+        end_date: z.string().optional()
+          .describe("Optional trip end date as YYYY-MM-DD, used with start_date.")
+          .meta({ title: "Trip End Date" }),
         fruit: z.string().optional()
-          .describe("Optional fruit name such as 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', or 'Mikan'. Matching is case-insensitive. Use with or instead of month.")
+          .describe("Optional fruit name such as 'Strawberry', 'Apple', 'Grape', 'Peach', 'Cherry', 'Pear', or 'Mikan'. Matching is case-insensitive. Use with or instead of month.")
           .meta({ title: "Fruit Name" }),
         region: z.string().optional()
-          .describe("Optional prefecture, city, or region substring such as 'Yamanashi', 'Nagano', 'Aomori', or 'Tokyo'. Partial case-insensitive matching is supported against farm names and addresses.")
+          .describe("Optional prefecture or region such as 'Yamanashi', 'Nagano', 'Tohoku', or 'Kanto', or a city or address substring. Case-insensitive.")
           .meta({ title: "Region Filter" }),
         limit: z.number().int().min(1).max(100).optional()
           .describe("Optional maximum number of farms to return. Default is 30 and the hard maximum is 100.")
@@ -1994,56 +2053,59 @@ Use the japan-seasons-mcp tools based on the travel month:
       },
       annotations: READONLY,
     },
-    async ({ month, fruit, region, limit = 30 }) => {
+    async ({ month, start_date, end_date, fruit, region, limit = 30 }) => {
       try {
         const data = STATIC_MCP.farms;
         if (!data) {
           return { content: [{ type: "text", text: "Farm data not available on this instance. The hosted version at seasons.kooexperience.com includes the fruit-picking farm directory." }], isError: true };
         }
-        let farms: AnySpot[] = data.spots || [];
-
-        if (month) {
-          const inSeason = new Set(FRUITS.filter(f => f.months.includes(month)).map(f => f.name));
-          farms = farms.filter(f => (f["fruits"] as string[] | undefined)?.some(fr => inSeason.has(fr)));
+        const { farms: all } = farmSeasonModel();
+        let days: number[] | null = null;
+        let when = "any time";
+        if (start_date || end_date) {
+          const range = parseDateRangeInputJst(start_date, end_date);
+          if (!range || !start_date || !end_date) return { content: [{ type: "text", text: `Invalid trip dates. ${DATE_RANGE_INPUT_HINT}` }], isError: true };
+          days = tripDays(start_date, end_date);
+          when = `${start_date} to ${end_date}`;
+        } else if (month) {
+          days = tripDays(`2025-${String(month).padStart(2, "0")}-01`, `2025-${String(month).padStart(2, "0")}-${new Date(Date.UTC(2025, month, 0)).getUTCDate()}`);
+          when = MO[month - 1];
         }
-        if (fruit) {
-          const wantedFruit = fruit.toLowerCase();
-          farms = farms.filter((f) =>
-            (f["fruits"] as string[] | undefined)?.some((farmFruit) => farmFruit.toLowerCase() === wantedFruit)
-          );
+        const wanted = fruit ? fruitByName(fruit) : null;
+        if (fruit && !wanted) {
+          return { content: [{ type: "text", text: `No farms list "${fruit}". Farms in this dataset offer: ${PICKING_FRUITS.map((f) => f.label).join(", ")}.` }] };
         }
-        if (region) farms = farms.filter((f) =>
-          (f["address"] as string | undefined)?.toLowerCase().includes(region.toLowerCase()) ||
-          (f["name"] as string | undefined)?.toLowerCase().includes(region.toLowerCase())
-        );
-
-        // Prioritise farms with coordinates
-        farms.sort((a, b) => (b["lat"] ? 1 : 0) - (a["lat"] ? 1 : 0));
-
-        const withCoords = farms.filter((f) => f["lat"]).length;
-        const shown = farms.slice(0, limit);
+        const q = region?.toLowerCase();
+        let farms = all
+          .filter((f) => !q || f.pref.toLowerCase().includes(q) || f.region.includes(q) || f.address.toLowerCase().includes(q) || f.name.toLowerCase().includes(q))
+          .map((f) => ({ f, open: f.seasons.filter((s) => (!wanted || s.fruit === wanted.name) && (!days || rangesOverlapDays(s.ranges, days))) }))
+          .filter((x) => x.open.length);
+        // Farms that list their own dates first.
+        farms.sort((a, b) => Number(b.open.some((s) => s.source === "farm")) - Number(a.open.some((s) => s.source === "farm")));
 
         let output = `# Japan Fruit Picking Farms\n`;
         output += `Database: ${data.total} total farms | Updated: ${data.scraped_at ? new Date(data.scraped_at).toDateString() : "unknown"}\n`;
-        const monthLabel = month ? `month=${MO[month-1]}, ` : "";
-        output += `Filters: ${monthLabel}fruit=${fruit || "any"}, region=${region || "any"} → ${farms.length} matches (${withCoords} with GPS)\n\n`;
+        output += `Filters: open ${when}, fruit=${wanted?.label ?? "any"}, region=${region || "any"} → ${farms.length} matches\n`;
+        output += `Season sources: "farm listing" is the farm's own dates; "regional estimate" comes from other farms' listings nearby; "typical" is approximate. Check with the farm before going.\n\n`;
 
-        if (shown.length === 0) {
-          return { content: [{ type: "text", text: `No farms found. Try fruit_seasons to see what's in season, then filter by a specific fruit.` }] };
+        if (farms.length === 0) {
+          return { content: [{ type: "text", text: `No farms found open ${when}${wanted ? ` for ${wanted.label.toLowerCase()}` : ""}${region ? ` in ${region}` : ""}. Try fruit_seasons to see what's in season, or widen the region.` }] };
         }
 
-        for (const f of shown) {
-          output += `### ${f["name"]}\n`;
-          if (f["address"]) output += `- **Address:** ${f["address"]}\n`;
-          const fruits = f["fruits"] as string[] | undefined;
-          if (fruits?.length) output += `- **Fruits:** ${fruits.join(", ")}\n`;
-          if (f["lat"] && f["lon"]) output += gpsLine(f["lat"], f["lon"], outputConfig);
-          if (f["url"]) output += `- **Link:** ${f["url"]}\n`;
-          output += "\n";
+        for (const { f, open } of farms.slice(0, limit)) {
+          output += `### ${f.name}\n`;
+          output += `- **Address:** ${f.address} (${f.pref})\n`;
+          for (const s of open) {
+            const label = fruitByName(s.fruit)?.label ?? s.fruit;
+            const src = s.source === "farm" ? "farm listing" : s.source === "region" ? `regional estimate from ${s.basis} listings` : "typical, approximate";
+            output += `- **${label}:** ${s.ranges.map(rangeLabel).join(" and ")} (${src})\n`;
+          }
+          output += gpsLine(f.lat, f.lon, outputConfig);
+          output += `- **Link:** ${f.url}\n\n`;
         }
 
         if (farms.length > limit) {
-          output += `_Showing ${limit} of ${farms.length} farms. Use the fruit/region filters or visit seasons.kooexperience.com for the full interactive map._`;
+          output += `_Showing ${limit} of ${farms.length} farms. Use the fruit/region filters or see ${SITE_URL}/fruit for the map._`;
         }
 
         return { content: [{ type: "text", text: output }] };
@@ -2459,6 +2521,16 @@ async function startHttpServer() {
       });
       res.end(SITEMAP_XML());
       return;
+    }
+
+    const fruitPath = /^\/fruit(?:\/([a-z-]+))?\/?$/.exec(url.pathname);
+    if (fruitPath) {
+      const html = fruitPageHtml(fruitPath[1] ?? "");
+      if (html) {
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300", "Vary": "Accept-Encoding" });
+        res.end(html);
+        return;
+      }
     }
 
     // Serve frontend static files
