@@ -10,7 +10,7 @@ import {
   findPrefCode,
   type SakuraSpot,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, koyoForecastFreshness } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { pMapSettled } from "./lib/fetch.js";
 import { logger } from "./lib/logger.js";
@@ -235,7 +235,7 @@ export async function handleApiRequest(
     // GET /api/koyo/forecast
     if (pathname === "/api/koyo/forecast") {
       const data = await getKoyoForecast();
-      json(res, data, 200, TTL.FORECAST / 1000);
+      json(res, { ...data, freshness: koyoForecastFreshness(data.lastUpdated, data.updateSchedule) }, 200, TTL.FORECAST / 1000);
       return true;
     }
 

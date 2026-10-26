@@ -34,7 +34,7 @@ import {
   type SakuraSpotResult,
   refreshSpotObservations,
 } from "./lib/sakura-forecast.js";
-import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
+import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, koyoFreshnessLine, koyoForecastFreshness, lastKoyoForecast, formatDate as formatKoyoDate, type KoyoSpot, type KoyoSpotResult } from "./lib/koyo.js";
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
@@ -346,6 +346,13 @@ ${urls.map((url) => `  <url>
   </url>`).join("\n")}
 </urlset>
 `;
+}
+
+// Health never fetches upstream; it reports the last forecast this instance loaded.
+function koyoHealth() {
+  const cached = lastKoyoForecast();
+  if (!cached) return { loaded: false };
+  return { loaded: true, ...koyoForecastFreshness(cached.lastUpdated, cached.updateSchedule) };
 }
 
 const SERVER_INSTRUCTIONS = `You are connected to Japan in Seasons, a read-only MCP server for live Japan seasonal travel data.
@@ -679,7 +686,7 @@ async function formatKoyoNowAnswer(options: {
       if (koyoViewingWindowOverlaps(city, range.startDate, range.endDate)) matches.push(city);
     }
     let output = `# Autumn leaves forecast for ${options.start_date} to ${options.end_date}\n`;
-    output += `Source: ${forecast.source}. Last updated: ${forecast.lastUpdated}. Today in Japan: ${today}.\n\n`;
+    output += `Source: ${forecast.source}. ${koyoFreshnessLine(forecast)} Today in Japan: ${today}.\n\n`;
     const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
     if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
     if (!matches.length) {
@@ -700,7 +707,7 @@ async function formatKoyoNowAnswer(options: {
   const soon = sortByClosestDate(entries.filter((entry) => entry.delta !== null && entry.delta >= 4 && entry.delta <= 21));
 
   let output = `# Autumn leaves forecast now\n`;
-  output += `Source: ${forecast.source}. Last updated: ${forecast.lastUpdated}. Today in Japan: ${today}.\n`;
+  output += `Source: ${forecast.source}. ${koyoFreshnessLine(forecast)} Today in Japan: ${today}.\n`;
   output += `Maps: maple ${preferredMapUrl(forecast.mapleForecastMapUrlEn, forecast.mapleForecastMapUrl, options.outputConfig)} | ginkgo ${preferredMapUrl(forecast.ginkgoForecastMapUrlEn, forecast.ginkgoForecastMapUrl, options.outputConfig)}\n\n`;
   const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
   if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
@@ -1550,7 +1557,7 @@ Use the japan-seasons-mcp tools based on the travel month:
           };
         }
 
-        let output = `# Autumn Leaves (Koyo) Forecast\nSource: ${forecast.source}\nLast updated: ${forecast.lastUpdated}\n\n`;
+        let output = `# Autumn Leaves (Koyo) Forecast\nSource: ${forecast.source}\n${koyoFreshnessLine(forecast)}\n\n`;
         const freshnessNote = priorSeasonKoyoNote(forecast.lastUpdated);
         if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;
         output += `## Typical timing guide\n${KOYO_TYPICAL_TIMING_GUIDE}\n\n`;
@@ -2294,6 +2301,7 @@ async function startHttpServer() {
         version: SERVER_VERSION,
         activeSessions: transports.size,
         ...stats.toJSON(),
+        sources: { koyoForecast: koyoHealth() },
       }));
       return;
     }

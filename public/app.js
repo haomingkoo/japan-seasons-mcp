@@ -843,7 +843,7 @@ function pushUrlState(params = {}) {
 const JMC_LINK = '<a href="https://n-kishou.com" target="_blank" rel="noopener">Japan Meteorological Corporation</a>';
 const FOOTER_NOTES = {
   sakura:  `Forecasts from ${JMC_LINK}, updated daily at 9:00 Japan time.`,
-  koyo:    `Forecasts and spot reports from ${JMC_LINK}, updated daily at 9:00 Japan time.`,
+  koyo:    `Spot reports from ${JMC_LINK}, updated daily at 9:00 Japan time. The forecast itself is issued a few times each autumn.`,
   fruit:   'Farms listed on Jalan. Seasons are regional averages, so check with the farm before you go.',
   flowers: 'Typical bloom dates. Timing moves with the weather, so check the official site before you go.',
   whatson: 'Typical dates. Check the official site before you go.',
@@ -1355,7 +1355,11 @@ async function loadKoyo() {
           The dates below are from last season's forecast (${lastUpdated || dataYear}). This list updates when Japan Meteorological Corporation publishes the new one.
         </div>`
       : '';
-    let html = '<div id="koyo-date-results" aria-live="polite"></div>' + freshnessBanner + '<div id="koyo-city-list">';
+    const fresh = data.freshness || {};
+    const issuedLine = lastUpdated && !freshnessBanner
+      ? `<p class="koyo-issued${fresh.overdue ? ' is-overdue' : ''}">Forecast issued ${lastUpdated}.${fresh.nextUpdate ? ` Next update ${esc(fresh.nextUpdate.replace(' (planned)', ''))}${fresh.overdue ? ', which is late, so dates may have moved' : ''}.` : ''}</p>`
+      : '';
+    let html = '<div id="koyo-date-results" aria-live="polite"></div>' + freshnessBanner + issuedLine + '<div id="koyo-city-list">';
     for (const region of data.regions) {
       html += `<div class="section-head">${region.name}</div>`;
       for (const city of region.cities) {
