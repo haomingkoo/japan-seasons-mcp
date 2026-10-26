@@ -1,7 +1,7 @@
 # CLAUDE.md — japan-seasons-mcp
 
 ## Build and test
-- `npm run build`: `tsc` to `dist/`, bundles `/explore` and the `almanac/` pages (`/fruit`) into `public/`, then `scripts/check-site-copy.mjs` checks public copy against `src/lib/site-config.ts`. A copy mismatch fails the build.
+- `npm run build`: `tsc` to `dist/`, bundles `/explore` and the `almanac/` pages (`/fruit`, `/festivals`, `/plan`) into `public/`, then `scripts/check-site-copy.mjs` checks public copy against `src/lib/site-config.ts`. A copy mismatch fails the build.
 - `npx vitest run`: tests (`npm test` starts Vitest in watch mode).
 - `npm run start:http` (or any `PORT` set) serves the site, `/api/*` and the remote MCP endpoint `/mcp`. Without it the server runs stdio MCP.
 - No lint script. CI only runs `npm ci && npm run build`, plus a daily probe of the upstream JMC and weather APIs.

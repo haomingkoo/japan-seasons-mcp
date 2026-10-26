@@ -39,7 +39,7 @@ import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
 import { occurrencesInRange, whenLine, type FestivalLike } from "./lib/festival-dates.js";
-import { buildFarms, fruitByName, fruitBySlug, PICKING_FRUITS, rangeLabel, rangesOverlapDays, tripDays } from "./lib/fruit-seasons.js";
+import { buildFarms, fruitByName, fruitBySlug, monthOfDay, PICKING_FRUITS, rangeLabel, rangesOverlapDays, regionOfPrefecture, REGIONS, tripDays } from "./lib/fruit-seasons.js";
 import {
   MCP_ENDPOINT,
   SAKURA_FORECAST_API_URL,
@@ -291,6 +291,8 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/fruit":     { file: "fruit.html", mime: "text/html; charset=utf-8" },
   "/festivals":  { file: "festivals.html", mime: "text/html; charset=utf-8" },
   "/festivals/": { file: "festivals.html", mime: "text/html; charset=utf-8" },
+  "/plan":       { file: "plan.html", mime: "text/html; charset=utf-8" },
+  "/plan/":      { file: "plan.html", mime: "text/html; charset=utf-8" },
   "/explore":  { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/": { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/explore.js":  { file: "explore/explore.js",  mime: "text/javascript; charset=utf-8" },
@@ -386,6 +388,7 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/explore`, priority: "0.8" },
     { loc: `${SITE_URL}/fruit`, priority: "0.8" },
     { loc: `${SITE_URL}/festivals`, priority: "0.8" },
+    { loc: `${SITE_URL}/plan`, priority: "0.8" },
     ...PICKING_FRUITS.map((f) => ({ loc: `${SITE_URL}/fruit/${f.slug}`, priority: "0.6" })),
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
@@ -427,6 +430,7 @@ Tool routing:
 - Use flowers_spots for non-sakura seasonal flowers such as plum, wisteria, hydrangea, lavender, sunflower, and cosmos.
 - Use festivals_list for recurring fireworks, matsuri, and winter events with official links.
 - Use fruit_seasons to answer which fruits are in season, and fruit_farms only when the user needs actual farms, GPS coordinates, or booking links.
+- Use plan_by_date when the user gives travel dates and wants everything on then in one answer: the blossom or leaves forecast, festivals and fruit farms.
 - Use weather_forecast after bloom tools when rain or temperature could change the recommendation, especially because rain can shorten sakura viewing.
 - Use search and fetch only for ChatGPT/deep-research style retrieval over the Japan in Seasons dataset and documentation.
 
@@ -1207,6 +1211,77 @@ Use the japan-seasons-mcp tools based on the travel month:
   );
 
   // ── Tool: sakura_forecast ──
+
+  // ── Tool: plan_by_date ──
+
+  registerTextTool(server,
+    "plan_by_date",
+    {
+      title: "Plan Japan Trip by Date",
+      description: "Use this when the user gives travel dates, optionally with a region, and wants everything seasonal happening then in one answer: the cherry blossom or autumn leaves forecast for those dates, festivals on, and fruit-picking farms open. Each date says how sure it is and where it comes from. For a single topic, use the specific tool instead.",
+      inputSchema: {
+        start_date: z.string().describe("Trip start date as YYYY-MM-DD.").meta({ title: "Trip Start Date" }),
+        end_date: z.string().describe("Trip end date as YYYY-MM-DD, up to 62 days after the start.").meta({ title: "Trip End Date" }),
+        region: z.string().optional().describe("Optional region or prefecture such as 'Kansai', 'Tohoku', 'Hokkaido', 'Kyoto' or 'Nagano'. Omit for all of Japan.").meta({ title: "Region" }),
+      },
+      annotations: READONLY,
+    },
+    async ({ start_date, end_date, region }) => {
+      try {
+        const range = parseDateRangeInputJst(start_date, end_date);
+        const days = range ? tripDays(start_date, end_date, 62) : [];
+        if (!range || !days.length || (range.endDate.getTime() - range.startDate.getTime()) / 86_400_000 > 61) {
+          return { content: [{ type: "text", text: `Invalid trip dates. ${DATE_RANGE_INPUT_HINT} Keep the trip to 62 days or fewer.` }], isError: true };
+        }
+        const q = region?.trim().toLowerCase() || "";
+        const regionId = REGIONS.find((r) => r.id === q || r.name.toLowerCase() === q)?.id ?? null;
+        const inRegion = (pref: string) => !q || pref === "Nationwide" || (regionId ? regionOfPrefecture(pref) === regionId : pref.toLowerCase().includes(q));
+        const demote = (md: string) => md.replace(/^(#+) /gm, "#$1 ");
+        const months = new Set(days.map((d) => monthOfDay(d)));
+        const where = region ? ` in ${region}` : "";
+
+        let output = `# What's on in Japan${where}, ${start_date} to ${end_date}\n`;
+        output += `Map view: ${SITE_URL}/plan?from=${start_date}&to=${end_date}${regionId ? `&region=${regionId}` : ""}\n\n`;
+
+        const fronts: string[] = [];
+        if ([1, 2, 3, 4, 5].some((m) => months.has(m))) fronts.push(demote(await formatSakuraNowAnswer({ city: region, start_date, end_date, outputConfig })));
+        if ([9, 10, 11, 12].some((m) => months.has(m))) fronts.push(demote(await formatKoyoNowAnswer({ region, start_date, end_date, outputConfig })));
+        output += fronts.length ? fronts.join("\n") + "\n" : "## Cherry blossom and autumn leaves\nNeither is in season on these dates. Cherry blossom runs from January in Okinawa to May in Hokkaido; autumn colour from September in Hokkaido to early December in Kyushu.\n\n";
+
+        const festivals: AnySpot[] = STATIC_MCP.festivals?.spots ?? [];
+        const on = festivals
+          .map((f) => ({ f, occ: occurrencesInRange(f as FestivalLike, start_date, end_date)[0] }))
+          .filter((x) => x.occ && inRegion(String(x.f["prefecture"])));
+        output += `## Festivals on\n`;
+        if (!on.length) output += `None of the ${festivals.length} festivals in the calendar fall on these dates${where}.\n`;
+        for (const { f, occ } of on) {
+          const w = whenLine(f as FestivalLike, occ!.year);
+          output += `- **${f["name"]}** (${f["place"] ?? f["prefecture"]}): ${w.date}. ${w.note} ${f["summary"] ?? ""} ${f["url"] ? `Official site: ${f["url"]}` : ""}\n`;
+        }
+        output += "\n";
+
+        const { farms } = farmSeasonModel();
+        const open = farms
+          .filter((f) => !q || (regionId ? f.region === regionId : f.pref.toLowerCase().includes(q) || f.address.toLowerCase().includes(q)))
+          .map((f) => ({ f, open: f.seasons.filter((s) => rangesOverlapDays(s.ranges, days)) }))
+          .filter((x) => x.open.length);
+        output += `## Fruit picking\n`;
+        if (!open.length) output += `No farms${where} are open for picking on these dates.\n`;
+        for (const fruit of PICKING_FRUITS) {
+          const list = open.flatMap(({ f, open: o }) => o.filter((s) => s.fruit === fruit.name).map((s) => ({ f, s })));
+          if (!list.length) continue;
+          const own = list.filter((x) => x.s.source === "farm");
+          output += `- **${fruit.label}:** ${list.length} farm${list.length === 1 ? "" : "s"} open${own.length ? `, ${own.length} with ${own.length === 1 ? "its" : "their"} own listed dates` : ""}.`;
+          const examples = (own.length ? own : list).slice(0, 3).map(({ f, s }) => `${f.name} (${f.pref}, ${s.ranges.map(rangeLabel).join(" and ")}${s.source === "farm" ? "" : ", estimated"}) ${f.url}`);
+          output += examples.length ? ` For example: ${examples.join("; ")}.\n` : "\n";
+        }
+        output += `\nFarm seasons are the farm's own listing where given, otherwise estimates; festival dates marked "usually" or "probably" can move. Check before you go.`;
+        return { content: [{ type: "text", text: output }] };
+      } catch (e: any) {
+        return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
+      }
+    }
+  );
 
   registerTextTool(server, 
     "japan_seasonal_answer",
