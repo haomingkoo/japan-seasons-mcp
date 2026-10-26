@@ -206,7 +206,7 @@ function initMap() {
   let idleTimer = 0;
   map.on('idle', () => {
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => trees.refreshElevation(), 30);
+    idleTimer = setTimeout(() => { trees.refreshElevation(); updateFarLabels(); }, 30);
   });
   map.on('move', () => {
     updateTreeSize();
@@ -501,7 +501,7 @@ function buildMarkers() {
     el.addEventListener('mouseenter', () => { state.hoverLock = { type: 'city', item: c }; showAt(state.hoverLock); });
     el.addEventListener('mouseleave', () => { state.hoverLock = null; });
     el.addEventListener('click', (ev) => { ev.stopPropagation(); state.hoverLock = { type: 'city', item: c }; setDay(c.front); });
-    const marker = new maplibregl.Marker({ element: el, anchor: 'left', offset: [-9, 0], opacityWhenCovered: '0.6' }).setLngLat([c.lon, c.lat]).addTo(map);
+    const marker = new maplibregl.Marker({ element: el, anchor: 'left', offset: [-9, 0], opacityWhenCovered: '1' }).setLngLat([c.lon, c.lat]).addTo(map);
     return { city: c, el, marker };
   });
   updateMarkerLabels();
@@ -518,30 +518,28 @@ function updateMarkerLabels() {
 }
 
 // Labels crowd near the horizon on a tilted map; hide the far ones, then drop any label that
-// would overlap a more important one (bigger cities first, then south to north).
+// would overlap a more important one (bigger cities first, then south to north). Boxes come
+// from the rendered markers, which already include terrain height.
 function updateFarLabels() {
-  const h = map.getContainer().clientHeight;
-  const cut = map.getPitch() > 20 ? h * 0.12 : -1;
+  const wrap = map.getContainer().getBoundingClientRect();
+  const cut = map.getPitch() > 20 ? wrap.height * 0.12 : -1;
   const rank = (n) => (TIER1.has(n) ? 0 : TIER2.has(n) ? 1 : 2);
-  // Dots of labelled cities are obstacles, so a label never covers another named city.
-  const dots = new Map();
+  const boxes = new Map();
   for (const m of markers) {
-    if (m.el.classList.contains('minor')) continue;
-    const p = map.project([m.city.lon, m.city.lat]);
-    if (p.y >= cut) dots.set(m, [p.x - 5, p.y - 5, p.x + 5, p.y + 5]);
-  }
-  const placed = [];
-  const order = markers.slice().sort((a, b) => rank(a.city.name) - rank(b.city.name) || a.city.lat - b.city.lat);
-  for (const m of order) {
-    const p = map.project([m.city.lon, m.city.lat]);
-    m.el.classList.toggle('far', p.y < cut);
+    const dot = m.el.querySelector('.wp-dot').getBoundingClientRect();
+    const far = dot.top - wrap.top < cut;
+    m.el.classList.toggle('far', far);
     m.el.classList.remove('crowded');
-    if (p.y < cut || m.el.classList.contains('minor')) continue;
-    if (!m.labelWidth) m.labelWidth = m.el.querySelector('.wp-label').offsetWidth;
-    const w = m.labelWidth || 7 * (m.city.name.length + 7);
-    const box = [p.x, p.y - 11, p.x + w + 14, p.y + 11];
-    const hit = (b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1];
-    if (placed.some(hit) || [...dots].some(([o, b]) => o !== m && hit(b))) {
+    if (far || m.el.classList.contains('minor')) continue;
+    const label = m.el.querySelector('.wp-label').getBoundingClientRect();
+    boxes.set(m, { dot: [dot.left - 2, dot.top - 2, dot.right + 2, dot.bottom + 2], label: [label.left - 2, label.top - 1, label.right + 2, label.bottom + 1] });
+  }
+  const hit = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+  const placed = [];
+  const order = [...boxes.keys()].sort((a, b) => rank(a.city.name) - rank(b.city.name) || a.city.lat - b.city.lat);
+  for (const m of order) {
+    const box = boxes.get(m).label;
+    if (placed.some((b) => hit(box, b)) || [...boxes].some(([o, b]) => o !== m && hit(box, b.dot))) {
       m.el.classList.add('crowded');
       continue;
     }

@@ -124,6 +124,12 @@ function compact(t) {
   }));
 }
 
+// Refuse to write a file that lost data, so a JMA layout change cannot quietly empty the charts.
+const covered = Object.values(bloom).filter((v) => Object.keys(v.years).length > 30).length;
+if (covered < 50 || Object.keys(maple).length < 45 || kyoto.length < 800) {
+  throw new Error(`History looks incomplete: ${covered} cherry stations with 30+ years, ${Object.keys(maple).length} maple stations, ${kyoto.length} Kyoto years`);
+}
+
 const stations = Object.fromEntries(Object.values(STATIONS).map(([n, lat, lon]) => [n, [lat, lon]]));
 writeFileSync(out, JSON.stringify({
   generated: new Date().toISOString().slice(0, 10),

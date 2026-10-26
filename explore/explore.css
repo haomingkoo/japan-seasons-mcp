@@ -98,7 +98,8 @@ select { appearance: none; border: 1px solid var(--line); background: var(--pane
 .wp.edge .wp-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
 .wp-label { background: var(--chip); color: #fff; border-radius: 5px; padding: 2px 6px; font-size: 11.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .wp-label .d { color: #e8dfd3; margin-left: 4px; }
-.wp.minor .wp-label, .wp.far .wp-label, .wp.crowded .wp-label { display: none; }
+.wp.minor .wp-label, .wp.far .wp-label { display: none; }
+.wp.crowded .wp-label { visibility: hidden; pointer-events: none; }
 .wp.under-tip .wp-label { visibility: hidden; }
 .wp.far .wp-dot { opacity: 0.5; }
 .wp:hover .wp-label, .wp:focus-visible .wp-label { display: inline; visibility: visible; }
@@ -234,4 +235,5 @@ select { appearance: none; border: 1px solid var(--line); background: var(--pane
 /* Labelled cities draw above unlabelled dots so a dot never sits on a label. */
 .wp { z-index: 1; }
 .wp:not(.minor):not(.far):not(.crowded) { z-index: 2; }
+.wp.crowded:hover .wp-label, .wp.crowded:focus-visible .wp-label { visibility: visible; }
 .wp:hover, .wp:focus-visible { z-index: 3; }
