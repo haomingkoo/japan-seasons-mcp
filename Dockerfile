@@ -10,6 +10,7 @@ COPY README.md server.json ./
 COPY src ./src
 COPY public ./public
 COPY scripts ./scripts
+COPY explore ./explore
 RUN npm run build
 
 ENV PORT=3000

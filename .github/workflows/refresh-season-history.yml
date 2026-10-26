@@ -1,0 +1,55 @@
+name: Refresh Season History
+
+on:
+  schedule:
+    # 1st of each month, 03:00 UTC. JMA adds a season's observations once they are final.
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Fetches the JMA tables, this season's JMA pages and the Kyoto series; fails if any look incomplete.
+      - name: Rebuild explore/season-history.json
+        run: node scripts/build-season-history.mjs
+
+      - name: Check for changes
+        id: check
+        run: |
+          # The generated date changes every run; only open a PR when the data itself changed.
+          git show HEAD:explore/season-history.json > /tmp/old.json
+          if node -e 'const f=(p)=>{const d=JSON.parse(require("fs").readFileSync(p));delete d.generated;return JSON.stringify(d)};process.exit(f("/tmp/old.json")===f("explore/season-history.json")?1:0)'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="chore/season-history-$(date -u +%Y-%m)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add explore/season-history.json
+          git commit -m "chore(explore): refresh JMA and Kyoto season history"
+          git push -f origin "$branch"
+          body="Monthly rebuild of explore/season-history.json from the JMA phenological tables and the Kyoto full-bloom series. Merging deploys production."
+          # Actions may not be allowed to open PRs in this repo; fall back to an issue with the compare link.
+          gh pr create --base main --head "$branch" --title "chore(explore): refresh season history" --body "$body" \
+            || gh issue create --title "Season history refresh ready: $branch" \
+                 --body "$body Open a PR from https://github.com/${{ github.repository }}/compare/main...$branch"
