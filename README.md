@@ -2,6 +2,14 @@
 
 # 🌸 japan-seasons-mcp
 
+<p align="center">
+  <a href="https://kooexperience.com/projects/japan-in-seasons.html"><img src="docs/media/seasons-preview.webp" width="800" alt="The cherry blossom front moving north across a map of Japan, day by day"></a>
+  <br>
+  <a href="https://seasons.kooexperience.com/?tour=1">▶ 30-second tour</a> · <a href="https://seasons.kooexperience.com/">Live app</a> · <a href="https://kooexperience.com/projects/japan-in-seasons.html">kooexperience.com</a>
+  <br>
+  <sub>Music: Sascha Ende, ende.app (CC BY 4.0)</sub>
+</p>
+
 **Give your AI assistant live Japan travel data — cherry blossom forecasts, autumn leaves, fruit picking, flowers, festivals & more.**
 
 *About 1,700 forecast spots plus flowers, festivals and fruit farms. 17 tools. Live data from Japan Meteorological Corporation.*

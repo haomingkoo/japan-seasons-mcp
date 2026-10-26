@@ -290,6 +290,19 @@ a.mode-btn { display: inline-flex; align-items: center; text-decoration: none; }
   .brand-mark { width: 20px; height: 20px; }
   .mode-select { max-width: 140px; }
 }
+/* ── Tour video ── */
+.tour-link { background: none; border: 0; padding: 0; color: var(--ink-2); font-size: 13px; text-decoration: underline; text-underline-offset: 2px; }
+.tour-link:hover { color: var(--accent); }
+.tour { width: min(960px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); color: var(--ink); box-shadow: var(--float); }
+.tour::backdrop { background: rgba(31, 28, 24, 0.6); }
+.tour[open] { animation: tour-in 160ms ease-out; }
+@keyframes tour-in { from { opacity: 0; transform: translateY(8px); } }
+.tour-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.tour-head h2 { font-family: var(--serif); font-weight: 700; font-size: 20px; line-height: 1.25; }
+.tour-close { width: 36px; height: 36px; flex: none; border: 1px solid var(--line); border-radius: var(--r-control); background: var(--surface); font-size: 20px; line-height: 1; color: var(--ink); }
+.tour-close:hover { background: var(--surface-2); }
+.tour video { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; background: var(--ink); border-radius: var(--r-control); }
+.tour-credit { margin-top: 8px; font-size: 12px; color: var(--ink-2); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
