@@ -518,8 +518,8 @@ function onSeasonReady(keepDay = false) {
     updateScale();
   }
 
-  charts.bloom = bloomChart($('chart-bloom'), series, season, COPY[kind], (d) => setDay(d));
-  charts.speed = speedChart($('chart-speed'), speeds, season, (d) => setDay(d));
+  charts.bloom = bloomChart($('chart-bloom'), series, season, COPY[kind], (d) => { pause(); setDay(d); });
+  charts.speed = speedChart($('chart-speed'), speeds, season, (d) => { pause(); setDay(d); });
   renderHistory();
   $('c1-sub').textContent = `of ${season.cities.length} forecast cities`;
 
@@ -616,11 +616,14 @@ function play() {
   requestAnimationFrame(tick);
 }
 
+// Stopping playback snaps to a whole day. When nothing is playing it leaves the date alone,
+// so a drag or a key press is never overwritten by the old date.
 function pause() {
+  const was = state.playing;
   state.playing = false;
   $('btn-play').setAttribute('aria-pressed', 'false');
   $('btn-play').setAttribute('aria-label', 'Play');
-  if (state.season) setDay(Math.round(state.day), true);
+  if (was && state.season) setDay(Math.round(state.day), true);
 }
 
 function stepToNextEvent() {
@@ -1071,7 +1074,39 @@ function renderHistory(force = false) {
 
 function wire() {
   const slider = $('tl-range-input');
-  slider.addEventListener('input', (e) => { pause(); setDay(Number(e.target.value)); });
+  // Read the slider before stopping playback; pausing writes the playing date back to it.
+  const dragTip = $('tl-drag-tip');
+  const showDragTip = () => {
+    const s = state.season;
+    if (!s) return;
+    dragTip.textContent = fmtDay(state.day, true);
+    // The 22px thumb is inset by half its width at each end; keep the label inside the track.
+    const w = slider.clientWidth;
+    const x = 11 + (w - 22) * ((state.day - s.start) / (s.end - s.start));
+    const half = dragTip.offsetWidth / 2;
+    dragTip.style.left = `${Math.min(w - half, Math.max(half, x))}px`;
+  };
+  slider.addEventListener('input', (e) => {
+    const v = Number(e.target.value);
+    pause();
+    setDay(v);
+    if (slider.classList.contains('dragging')) showDragTip();
+  });
+  slider.addEventListener('pointerdown', () => {
+    pause();
+    slider.classList.add('dragging');
+    dragTip.hidden = false;
+    showDragTip();
+  });
+  const endDrag = () => {
+    if (!slider.classList.contains('dragging')) return;
+    slider.classList.remove('dragging');
+    dragTip.hidden = true;
+    setDay(Math.round(Number(slider.value)), true);
+  };
+  slider.addEventListener('pointerup', endDrag);
+  slider.addEventListener('pointercancel', endDrag);
+  slider.addEventListener('change', endDrag);
   // Whole days from the keyboard; the slider itself moves in fractions for smooth playback.
   slider.addEventListener('keydown', (e) => {
     const s = state.season;
@@ -1148,8 +1183,8 @@ function wire() {
     resizeTimer = setTimeout(() => {
       const s = state.season;
       if (!s) return;
-      charts.bloom = bloomChart($('chart-bloom'), series, s, COPY[s.kind], (d) => setDay(d));
-      charts.speed = speedChart($('chart-speed'), speeds, s, (d) => setDay(d));
+      charts.bloom = bloomChart($('chart-bloom'), series, s, COPY[s.kind], (d) => { pause(); setDay(d); });
+      charts.speed = speedChart($('chart-speed'), speeds, s, (d) => { pause(); setDay(d); });
       renderHistory(true);
       renderAxis();
       setDay(state.day, true);
