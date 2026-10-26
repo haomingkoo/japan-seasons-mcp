@@ -3,6 +3,7 @@
 
 import { BOUNDS } from './field.js';
 import { fmtDay } from './data.js';
+import { loadTile } from './dem.js';
 
 const Z = 6;
 const TILE = 256;
@@ -23,13 +24,8 @@ async function buildBase() {
   const jobs = [];
   for (let tx = Math.floor(x0 / TILE); tx <= Math.floor(x1 / TILE); tx++) {
     for (let ty = Math.floor(y0 / TILE); ty <= Math.floor(y1 / TILE); ty++) {
-      jobs.push(new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => { ctx.drawImage(img, tx * TILE - x0, ty * TILE - y0); resolve(); };
-        img.onerror = resolve;
-        img.src = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`;
-      }));
+      jobs.push(loadTile(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`)
+        .then((bmp) => ctx.drawImage(bmp, tx * TILE - x0, ty * TILE - y0)).catch(() => {}));
     }
   }
   await Promise.all(jobs);
