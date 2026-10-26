@@ -1,5 +1,6 @@
 // /fruit and /fruit/<slug>: which farms are open for which fruit, through the year.
 import { createMap, setTerrain, fitRegion, hasWebGL } from './map.js';
+import { FRUIT_COLORS as COLORS } from './colors.js';
 import { createTimeline, fmtDayOfYear, monthName, pct } from './timeline.js';
 import { dayOfYear, isoToDayOfYear, rangeLabel, tripDays, daysInMonthCovered } from '../src/lib/fruit-seasons.ts';
 
@@ -9,12 +10,6 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = new Intl.NumberFormat('en-US');
 
-// One colour per fruit, each at least 3:1 against the paper land colour.
-const COLORS = {
-  Strawberry: '#d12f4a', Cherry: '#8a1538', Peach: '#c63f78', Blueberry: '#2f5fa8', Grape: '#5b3a9c',
-  'Japanese Pear': '#5d7a1f', Apple: '#7f1d12', Chestnut: '#6b4a2b', Persimmon: '#c2560f',
-  'Mandarin Orange': '#9a6a00', Melon: '#2f7d74', Loquat: '#a8740a',
-};
 
 const state = {
   data: null, farms: [], fruits: [], region: 'japan', day: 1, trip: null,

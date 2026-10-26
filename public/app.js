@@ -860,7 +860,7 @@ const MODE_TITLES = {
 };
 
 // Views that moved to their own page.
-const MODE_PAGES = { fruit: '/fruit', whatson: '/festivals' };
+const MODE_PAGES = { fruit: '/fruit', whatson: '/festivals', trip: '/plan' };
 
 function setMode(m) {
   if (MODE_PAGES[m]) { location.assign(MODE_PAGES[m]); return; }

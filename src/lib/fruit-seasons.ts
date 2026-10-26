@@ -159,6 +159,11 @@ const PREF_EN: Record<string, string> = {
   長崎県: "Nagasaki", 熊本県: "Kumamoto", 大分県: "Oita", 宮崎県: "Miyazaki", 鹿児島県: "Kagoshima", 沖縄県: "Okinawa",
 };
 
+export function regionOfPrefecture(en: string): RegionId | null {
+  const ja = Object.keys(PREF_EN).find((k) => PREF_EN[k] === en);
+  return ja ? REGIONS.find((r) => (r.prefs as readonly string[]).includes(ja))!.id : null;
+}
+
 export function prefectureOf(address: string): { ja: string; en: string; region: RegionId } | null {
   const ja = Object.keys(PREF_EN).find((p) => address.startsWith(p));
   if (!ja) return null;

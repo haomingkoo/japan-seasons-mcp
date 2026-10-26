@@ -1,5 +1,6 @@
 // /festivals: the year's matsuri, fireworks and winter festivals on a timeline and a map.
-import { createMap, fitRegion, hasWebGL } from './map.js';
+import { createMap, hasWebGL } from './map.js';
+import { FESTIVAL_TYPES as TYPES } from './colors.js';
 import { createTimeline, fmtDayOfYear, pct, MONTH_START } from './timeline.js';
 import { occurrence, occurrenceCovers, whenLine } from '../src/lib/festival-dates.ts';
 import { dayOfYear } from '../src/lib/fruit-seasons.ts';
@@ -10,12 +11,6 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = new Intl.NumberFormat('en-US');
 
-// Each 3:1 or better on the land colour; squares on the map per DESIGN.md.
-export const TYPES = {
-  fireworks: { label: 'Fireworks', plural: 'Fireworks', color: '#b8461b' },
-  matsuri: { label: 'Matsuri', plural: 'Matsuri', color: '#8f1d3a' },
-  winter: { label: 'Winter festival', plural: 'Winter festivals', color: '#2c5a7a' },
-};
 const SOON_DAYS = 21;
 const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 

@@ -28,7 +28,8 @@ A calm seasonal almanac on warm paper. The map carries the colour; the chrome st
 - Same shell as `/explore`: map, a year timeline under it, a side panel of cards. MapLibre directly, with the paper style plus soft hillshade.
 - 3D terrain only on per-fruit pages, where orchards sit on basin floors; everything else is 2D.
 - Farms are solid dots when the farm lists its own dates and rings when the season is estimated. Calendar cells are hatched when mostly estimated.
-- Each fruit has a fixed colour (`COLORS` in `almanac/fruit.js`), all 3:1 or better on the land colour.
+- Fruit, festival-type and phase colours live in `almanac/colors.js`, all 3:1 or better on the land colour.
+- `/plan` puts a day-by-day strip under the map: front phases per day, festivals, fruit open. It links into `/explore` at the trip date.
 
 ## Copy
 - Plain sentence case. No em dashes, no exclamation marks, no "JMC spot report" jargon in the UI.
