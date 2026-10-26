@@ -38,6 +38,7 @@ import { getKoyoForecast, getKoyoSpots, koyoViewingWindowOverlaps, koyoFreshness
 import { getWeatherForecast } from "./lib/weather.js";
 import { WEATHER_CITY_IDS } from "./lib/areas.js";
 import { FLOWER_SEASON_MONTHS, FLOWER_META, FESTIVAL_TYPE_META, MO, FRUITS } from "./lib/constants.js";
+import { occurrencesInRange, whenLine, type FestivalLike } from "./lib/festival-dates.js";
 import { buildFarms, fruitByName, fruitBySlug, PICKING_FRUITS, rangeLabel, rangesOverlapDays, tripDays } from "./lib/fruit-seasons.js";
 import {
   MCP_ENDPOINT,
@@ -288,6 +289,8 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/fonts/shippori-mincho-latin-500.woff2": { file: "fonts/shippori-mincho-latin-500.woff2", mime: "font/woff2" },
   "/fonts/shippori-mincho-latin-700.woff2": { file: "fonts/shippori-mincho-latin-700.woff2", mime: "font/woff2" },
   "/fruit":     { file: "fruit.html", mime: "text/html; charset=utf-8" },
+  "/festivals":  { file: "festivals.html", mime: "text/html; charset=utf-8" },
+  "/festivals/": { file: "festivals.html", mime: "text/html; charset=utf-8" },
   "/explore":  { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/": { file: "explore.html", mime: "text/html; charset=utf-8" },
   "/explore/explore.js":  { file: "explore/explore.js",  mime: "text/javascript; charset=utf-8" },
@@ -382,6 +385,7 @@ function SITEMAP_XML(): string {
     { loc: `${SITE_URL}/autumn-leaves-forecast`, priority: "0.95" },
     { loc: `${SITE_URL}/explore`, priority: "0.8" },
     { loc: `${SITE_URL}/fruit`, priority: "0.8" },
+    { loc: `${SITE_URL}/festivals`, priority: "0.8" },
     ...PICKING_FRUITS.map((f) => ({ loc: `${SITE_URL}/fruit/${f.slug}`, priority: "0.6" })),
     { loc: `${SITE_URL}/japan-seasonal-travel-mcp`, priority: "0.9" },
     { loc: `${SITE_URL}/status`, priority: "0.4" },
@@ -1962,8 +1966,14 @@ Use the japan-seasons-mcp tools based on the travel month:
     "festivals_list",
     {
       title: "Japan Seasonal Festivals",
-      description: "Use this when the user wants recurring Japan events to plan around, such as fireworks, matsuri, or winter festivals. Returns curated events with typical dates, attendance, official URLs, notes, and GPS coordinates. Do not use this for bloom timing, one-off concerts, or weather forecasts.",
+      description: "Use this when the user wants recurring Japan events to plan around, such as fireworks, matsuri, or winter festivals. Returns curated events with this year's likely dates (and how sure each date is), places, attendance, official URLs, notes, and GPS coordinates. Pass start_date and end_date to get only events during a trip. Do not use this for bloom timing, one-off concerts, or weather forecasts.",
       inputSchema: {
+        start_date: z.string().optional()
+          .describe("Optional trip start date as YYYY-MM-DD. With end_date, returns only festivals that fall during the trip, with their dates for that year. Overrides month.")
+          .meta({ title: "Trip Start Date" }),
+        end_date: z.string().optional()
+          .describe("Optional trip end date as YYYY-MM-DD, used with start_date.")
+          .meta({ title: "Trip End Date" }),
         month: z.number().int().min(1).max(12).optional()
           .describe("Optional month number from 1 to 12. Useful examples: 7 or 8 for fireworks season, 10 or 11 for autumn matsuri, and 1 or 2 for winter events.")
           .meta({ title: "Month Number" }),
@@ -1976,23 +1986,34 @@ Use the japan-seasons-mcp tools based on the travel month:
       },
       annotations: READONLY,
     },
-    async ({ month, type, prefecture }) => {
+    async ({ start_date, end_date, month, type, prefecture }) => {
       try {
         const data = STATIC_MCP.festivals;
         if (!data) {
           return { content: [{ type: "text", text: "Festivals data not available on this instance." }], isError: true };
         }
         let spots: AnySpot[] = data.spots || [];
+        const year = Number(todayJstIsoDate().slice(0, 4));
+        let trip: { start: string; end: string } | null = null;
+        if (start_date || end_date) {
+          if (!start_date || !end_date || !parseDateRangeInputJst(start_date, end_date)) {
+            return { content: [{ type: "text", text: `Invalid trip dates. ${DATE_RANGE_INPUT_HINT}` }], isError: true };
+          }
+          trip = { start: start_date.slice(0, 10), end: end_date.slice(0, 10) };
+          spots = spots.filter((s) => occurrencesInRange(s as FestivalLike, trip!.start, trip!.end).length);
+          month = undefined;
+        }
 
         if (type && type !== "all") spots = spots.filter((s) => s["type"] === type);
         if (prefecture) spots = spots.filter((s) => (s["prefecture"] as string | undefined)?.toLowerCase().includes(prefecture.toLowerCase()));
-        if (month) spots = spots.filter((s) => (s["months"] as number[] | undefined)?.includes(month));
+        const wantMonth = month;
+        if (wantMonth) spots = spots.filter((s) => (s["months"] as number[] | undefined)?.includes(wantMonth));
 
         if (spots.length === 0) {
           return { content: [{ type: "text", text: `No festivals found for the given filters. Major seasons: fireworks Jul-Aug, autumn matsuri Sep-Nov, winter events Jan-Feb.` }] };
         }
 
-        let output = `# Japan Festivals${month ? ` — ${MO[month-1]}` : ""}${type && type !== "all" ? ` — ${type}` : ""}\n`;
+        let output = `# Japan Festivals${trip ? ` — ${trip.start} to ${trip.end}` : month ? ` — ${MO[month-1]}` : ""}${type && type !== "all" ? ` — ${type}` : ""}\n`;
         output += `Source: seasons.kooexperience.com | ${spots.length} events\n\n`;
         output += `## Tips\n- Book accommodation months ahead for major festivals (Gion Matsuri, Nebuta, Sumida Fireworks)\n`;
         output += `- Fireworks season peaks July–August; winter events peak January–February\n\n`;
@@ -2008,8 +2029,10 @@ Use the japan-seasons-mcp tools based on the travel month:
           output += `## ${FESTIVAL_TYPE_META[fType]?.emoji ?? ""} ${fType.charAt(0).toUpperCase() + fType.slice(1)} (${fSpots.length})\n\n`;
           for (const s of fSpots) {
             output += `### ${s["name"]}${s["nameJa"] ? ` (${s["nameJa"]})` : ""}\n`;
-            output += `- **When:** ${(s["months"] as number[]).map((m: number) => MO[m-1]).join(", ")} — ${s["typicalDate"]}\n`;
-            output += `- **Location:** ${s["prefecture"]} (${s["region"]})\n`;
+            const occYear = trip ? Number((occurrencesInRange(s as FestivalLike, trip.start, trip.end)[0]?.start ?? trip.start).slice(0, 4)) : year;
+            const when = whenLine(s as FestivalLike, occYear);
+            output += `- **When:** ${s["typicalDate"]}. ${occYear}: ${when.date}. ${when.note}\n`;
+            output += `- **Location:** ${s["place"] ?? s["prefecture"]} (${s["prefecture"]}, ${s["region"]})\n`;
             if (s["attendance"]) output += `- **Attendance:** ~${(s["attendance"] as number).toLocaleString()} visitors\n`;
             if (s["note"]) output += `- **Note:** ${s["note"]}\n`;
             output += `- **Official site:** ${s["url"]}\n`;

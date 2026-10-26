@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f1e8">
+  <title>Japan festival calendar: matsuri, fireworks and snow festivals by date | Japan in Seasons</title>
+  <meta name="description" content="Scrub through the year and watch {{FESTIVAL_COUNT}} of Japan's major matsuri, fireworks and winter festivals appear on the map, with this year's dates, where they are and official links.">
+  <link rel="canonical" href="{{SITE_URL}}/festivals">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/shippori-mincho-latin-700.woff2" as="font" type="font/woff2" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{SITE_URL}}/festivals">
+  <meta property="og:title" content="Japan festival calendar | Japan in Seasons">
+  <meta property="og:description" content="Matsuri, fireworks and snow festivals across Japan on a living calendar. Drag the date.">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <link rel="stylesheet" href="/almanac/almanac.css?v={{ASSET_VERSION}}">
+</head>
+<body>
+<a class="skip" href="#sidebar">Skip to the festival list</a>
+<div id="app" class="app" data-season="winter" data-version="{{ASSET_VERSION}}">
+  <header class="top-bar">
+    <a class="brand" href="/" aria-label="Japan in Seasons, home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(16 16.6)" fill="var(--accent)"><path id="petal" d="M0-1.6C-3.6-4.2-4.6-8.4-2.6-11.4L0-9.6 2.6-11.4C4.6-8.4 3.6-4.2 0-1.6Z"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/></g></svg>
+      <span class="brand-name">Japan in Seasons</span>
+    </a>
+    <div class="page-title">
+      <h1>Festivals</h1>
+      <p class="page-sub">Matsuri, fireworks and snow festivals through the year. Drag the date.</p>
+    </div>
+    <nav class="page-nav" aria-label="Pages">
+      <a href="/fruit">Fruit picking</a>
+      <a href="/festivals" aria-current="page">Festivals</a>
+      <a href="/plan">Plan by date</a>
+      <a href="/explore">Bloom front</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Year" id="year-seg"></div>
+  </header>
+
+  <div class="main">
+    <div class="left">
+      <div class="map-wrap">
+        <div id="map" role="region" aria-label="Map of festivals. Festivals on the chosen date are labelled; the side panel lists the same festivals."></div>
+        <div id="map-status" class="map-status" role="status" aria-live="polite">Loading festivals…</div>
+        <div id="tip" class="tip" hidden></div>
+        <div class="map-legend" id="legend" hidden></div>
+      </div>
+
+      <div class="bottom">
+        <section class="timeline" aria-label="Date">
+          <div class="tl-head">
+            <p class="tl-date"><span id="tl-date">Loading</span><span class="tl-phase" id="tl-sub"></span></p>
+            <span class="tl-range" id="tl-note"></span>
+          </div>
+          <div class="tl-body">
+            <div class="tl-buttons">
+              <button id="btn-play" class="tl-btn" type="button" aria-label="Play" aria-pressed="false">
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M5 3.2v9.6L12.5 8z"/></svg>
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="4" y="3.2" width="2.6" height="9.6" rx=".5"/><rect x="9.4" y="3.2" width="2.6" height="9.6" rx=".5"/></svg>
+              </button>
+              <button id="btn-today" class="btn" type="button">Today</button>
+            </div>
+            <div class="tl-track-wrap">
+              <div class="tl-marks" id="tl-marks"></div>
+              <input type="range" id="tl-input" class="tl-input" aria-label="Date in the year">
+              <div class="tl-axis" id="tl-axis" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+        <section class="cal lanes-wrap" aria-labelledby="lanes-title">
+          <div class="cal-head">
+            <h2 id="lanes-title">The year's festivals</h2>
+            <div class="cal-key" id="lanes-key"></div>
+          </div>
+          <div class="lanes" id="lanes"></div>
+        </section>
+      </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Festivals">
+      <div class="card detail" id="fest-card" aria-live="polite" hidden></div>
+
+      <div class="card">
+        <div class="side-tabs" role="tablist" aria-label="Panel">
+          <button type="button" role="tab" id="tab-day" aria-controls="pane-day" aria-selected="true">On this date</button>
+          <button type="button" role="tab" id="tab-sources" aria-controls="pane-sources" aria-selected="false" tabindex="-1">About the dates</button>
+        </div>
+        <div id="pane-day" role="tabpanel" aria-labelledby="tab-day">
+          <div id="day-list" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+        </div>
+        <div id="pane-sources" role="tabpanel" aria-labelledby="tab-sources" hidden>
+          <div class="sources" id="sources"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Show</h2>
+        <ul class="type-list" id="type-list"></ul>
+      </div>
+    </aside>
+  </div>
+</div>
+<footer class="site-footer">
+  <p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p>
+</footer>
+<noscript><p style="padding:24px">This page needs JavaScript.</p></noscript>
+<script type="module" src="/almanac/festivals.js?v={{ASSET_VERSION}}"></script>
+</body>
+</html>

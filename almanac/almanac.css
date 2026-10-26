@@ -258,3 +258,17 @@ a.cal-label:hover .cal-name { text-decoration: underline; }
 .pick-row { display: flex; flex-direction: column; }
 .pick-link { margin: -6px 0 4px 28px; font-size: 12px; align-self: flex-start; min-height: 24px; display: inline-flex; align-items: center; }
 .pick:disabled { cursor: default; color: inherit; }
+
+/* Festival lanes: one row per type, a bar per festival, aligned with the timeline */
+.lanes { position: relative; display: grid; gap: 5px; }
+.lane { display: flex; align-items: flex-start; gap: 14px; }
+.lane-label { line-height: 15px; }
+.lane-track { position: relative; flex: 1; min-width: 0; margin: 2px 11px 0; }
+.lane-bar { position: absolute; height: 7px; border: 0; padding: 0; border-radius: 2px; background: var(--c); cursor: pointer; }
+.lane-bar.approx { background-color: color-mix(in srgb, var(--c) 55%, #e9e1d3); background-image: repeating-linear-gradient(135deg, rgba(255, 252, 247, 0.6) 0 1.5px, transparent 1.5px 4.5px); }
+.lane-bar.season { height: 3px; margin-top: 2px; }
+.lane-bar.several { height: 3px; margin-top: 2px; background: repeating-linear-gradient(90deg, var(--c) 0 3px, transparent 3px 6px); }
+.lane-bar:hover, .lane-bar:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; z-index: 2; }
+.type-list { list-style: none; margin: 0; padding: 0; }
+.type-row { display: grid; grid-template-columns: 18px 12px 1fr auto; align-items: center; gap: 8px; min-height: 36px; cursor: pointer; }
+.type-row input { width: 16px; height: 16px; margin: 0; accent-color: var(--text); }
