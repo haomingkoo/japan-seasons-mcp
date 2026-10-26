@@ -44,6 +44,8 @@
       letter-spacing: 0;
     }
     p { margin: 0; color: var(--muted); }
+    .crumb { font-size: 14px; margin-bottom: 16px; }
+    .site-footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; }
     a { color: var(--accent); text-decoration: none; font-weight: 600; }
     a:hover { text-decoration: underline; }
     .status-pill {
@@ -151,6 +153,7 @@
 </head>
 <body>
   <main>
+    <nav class="crumb"><a href="/">Japan in Seasons</a> / Status</nav>
     <header>
       <div>
         <h1>{{CONNECTOR_NAME}} Status</h1>
@@ -191,6 +194,7 @@
       <h2>Registry Note</h2>
       <p>Smithery and Glama counters only move when calls are routed through their own gateway or inspector. This page shows calls that reached the live MCP server.</p>
     </section>
+    <footer class="site-footer"><p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p></footer>
   </main>
 
   <script>
