@@ -65,6 +65,7 @@
   "files": [
     "dist",
     "public",
+    "!public/media",
     "README.md",
     "LICENSE",
     "server.json",

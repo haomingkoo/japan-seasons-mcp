@@ -2952,6 +2952,22 @@ function detectSeasonMode() {
   return 'flowers'; // Jan (plum blossom)
 }
 
+// ── 30-second tour ──
+(function() {
+  const dlg = document.getElementById('tour');
+  const open = document.getElementById('tour-open');
+  if (!dlg || !open || typeof dlg.showModal !== 'function') return;
+  const video = document.getElementById('tour-video');
+  let returnTo = open;
+  const show = () => { returnTo = document.activeElement || open; if (!dlg.open) dlg.showModal(); };
+  open.addEventListener('click', show);
+  document.getElementById('tour-close').addEventListener('click', () => dlg.close());
+  // Clicks on the backdrop land on the dialog element itself.
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => { video.pause(); (returnTo && returnTo.isConnected ? returnTo : open).focus(); });
+  if (new URLSearchParams(location.search).get('tour') === '1') { returnTo = open; dlg.showModal(); }
+})();
+
 // ── Init ──
 // Read URL state on load
 (function() {

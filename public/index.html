@@ -250,6 +250,7 @@
   <section class="content-section" id="about">
     <h2>What's in season, and where</h2>
     <p class="lede">Japan in Seasons shows where cherry blossoms, autumn leaves, flowers and fruit are in season across Japan, and which festivals are on. Forecasts update every morning at 9:00 Japan time.</p>
+    <p><button type="button" class="tour-link" id="tour-open" aria-haspopup="dialog">&#9654; 30-second tour</button></p>
     <p>Cherry blossom and autumn leaves forecasts, and the daily reports from individual spots, come from the Japan Meteorological Corporation (JMC), an independent forecaster. City dates follow the official observation trees of the Japan Meteorological Agency (JMA). Weather comes from JMA and Open-Meteo. Each flower spot, festival and fruit farm links to its official page.</p>
   </section>
 
@@ -296,6 +297,18 @@
     <p>Source code is on <a href="https://github.com/haomingkoo/japan-seasons-mcp" target="_blank" rel="noopener">GitHub</a>.</p>
   </section>
 </div>
+
+<dialog class="tour" id="tour" aria-labelledby="tour-title">
+  <div class="tour-head">
+    <h2 id="tour-title">Japan in Seasons in 30 seconds</h2>
+    <button type="button" class="tour-close" id="tour-close" aria-label="Close the tour video">&times;</button>
+  </div>
+  <video id="tour-video" controls preload="none" playsinline poster="/media/seasons-poster.jpg">
+    <source src="/media/seasons.webm" type="video/webm">
+    <source src="/media/seasons.mp4" type="video/mp4">
+  </video>
+  <p class="tour-credit">Music: Sascha Ende, ende.app (CC BY 4.0)</p>
+</dialog>
 
 <footer class="site-footer">
   <p>&copy; 2026 Haoming Koo &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; Contact (<a href="mailto:privacy@kooexperience.com">privacy@kooexperience.com</a>) &middot; More projects &rarr; <a href="https://kooexperience.com">kooexperience.com</a></p>

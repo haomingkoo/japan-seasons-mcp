@@ -298,6 +298,9 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/explore/explore.js":  { file: "explore/explore.js",  mime: "text/javascript; charset=utf-8" },
   "/explore/explore.css": { file: "explore/explore.css", mime: "text/css; charset=utf-8" },
   "/explore/maplibre-gl-worker.mjs": { file: "explore/maplibre-gl-worker.mjs", mime: "text/javascript; charset=utf-8" },
+  "/media/seasons.mp4":        { file: "media/seasons.mp4",        mime: "video/mp4" },
+  "/media/seasons.webm":       { file: "media/seasons.webm",       mime: "video/webm" },
+  "/media/seasons-poster.jpg": { file: "media/seasons-poster.jpg", mime: "image/jpeg" },
 };
 const STATIC_FILES: Record<string, { body: Buffer; mime: string }> = {};
 {
@@ -2435,7 +2438,7 @@ async function startHttpServer() {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https:; worker-src 'self' blob:; connect-src 'self' https:; frame-ancestors 'none'");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self'; worker-src 'self' blob:; connect-src 'self' https:; frame-ancestors 'none'");
 
     // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -2636,6 +2639,26 @@ async function startHttpServer() {
     // No server-side gzip — let the reverse proxy (Railway) handle compression
     // to avoid double-encoding issues.
     const staticEntry = STATIC_FILES[url.pathname];
+    // Safari needs byte ranges to play video.
+    if (staticEntry?.mime.startsWith("video/")) {
+      const size = staticEntry.body.length;
+      const headers = { "Content-Type": staticEntry.mime, "Accept-Ranges": "bytes", "Cache-Control": "public, max-age=86400" };
+      const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ""));
+      if (!m || (!m[1] && !m[2])) {
+        res.writeHead(200, { ...headers, "Content-Length": size });
+        res.end(req.method === "HEAD" ? undefined : staticEntry.body);
+        return;
+      }
+      const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
+      const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+      if (start > end || start >= size) {
+        res.writeHead(416, { "Content-Range": `bytes */${size}` }).end();
+        return;
+      }
+      res.writeHead(206, { ...headers, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1 });
+      res.end(req.method === "HEAD" ? undefined : staticEntry.body.subarray(start, end + 1));
+      return;
+    }
     if (staticEntry) {
       const body = renderSiteTemplate(staticEntry.body, staticEntry.mime);
       res.writeHead(200, {
