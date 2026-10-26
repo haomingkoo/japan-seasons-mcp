@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { koyoSpotPhase, koyoViewingWindowOverlaps } from "./koyo.js";
+import { koyoForecastFreshness, koyoSpotPhase, koyoViewingWindowOverlaps, parseJmcScheduleEntry } from "./koyo.js";
 import { jstDate } from "./dates.js";
 import { parseRegionObservations, type SpotObservationMap } from "./sakura-forecast.js";
 
@@ -62,5 +62,30 @@ describe("koyoViewingWindowOverlaps", () => {
   it("rejects a trip outside the window", () => {
     expect(koyoViewingWindowOverlaps(city, jstDate("2026-11-10"), jstDate("2026-11-16"))).toBe(false);
     expect(koyoViewingWindowOverlaps(city, jstDate("2026-12-01"), jstDate("2026-12-05"))).toBe(false);
+  });
+});
+
+describe("koyoForecastFreshness", () => {
+  const schedule = ["9月2日(水)", "10月上旬(予定)", "11月上旬(予定)"];
+
+  it("names the next JMC round after the issue date", () => {
+    const f = koyoForecastFreshness("2026-10-01T00:00:00+09:00", schedule, new Date("2026-10-26T03:00:00Z"));
+    expect(f).toEqual({ issued: "2026-10-01", nextUpdate: "early November (planned)", overdue: false });
+  });
+
+  it("flags a round that is more than three days late", () => {
+    // early November ends Nov 10; grace runs to the end of Nov 13 JST (15:00 UTC).
+    expect(koyoForecastFreshness("2026-10-01T00:00:00+09:00", schedule, new Date("2026-11-13T14:00:00Z")).overdue).toBe(false);
+    expect(koyoForecastFreshness("2026-10-01T00:00:00+09:00", schedule, new Date("2026-11-13T15:30:00Z")).overdue).toBe(true);
+  });
+
+  it("has no next round after the last one", () => {
+    expect(koyoForecastFreshness("2026-11-05T00:00:00+09:00", schedule, new Date("2026-12-20T00:00:00Z"))).toEqual({ issued: "2026-11-05", nextUpdate: null, overdue: false });
+  });
+
+  it("parses fixed days and month thirds", () => {
+    expect(parseJmcScheduleEntry("9月2日(水)", 2026)?.label).toBe("Sep 2");
+    expect(parseJmcScheduleEntry("10月下旬(予定)", 2026)?.latest.toISOString().slice(0, 10)).toBe("2026-10-31");
+    expect(parseJmcScheduleEntry("未定", 2026)).toBeNull();
   });
 });

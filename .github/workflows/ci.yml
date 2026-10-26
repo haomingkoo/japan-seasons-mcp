@@ -20,6 +20,26 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+  # Red when JMC's next scheduled koyo round is more than three days late.
+  koyo-freshness:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx tsc
+      - name: Check koyo forecast round is not overdue
+        run: |
+          node --input-type=module -e "
+          import { getKoyoForecast, koyoForecastFreshness, koyoFreshnessLine } from './dist/lib/koyo.js';
+          const f = await getKoyoForecast();
+          console.log(koyoFreshnessLine(f));
+          process.exit(koyoForecastFreshness(f.lastUpdated, f.updateSchedule).overdue ? 1 : 0);
+          "
+
   api-health:
     runs-on: ubuntu-latest
     steps:

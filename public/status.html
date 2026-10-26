@@ -173,6 +173,7 @@
         <div>Started</div><div id="started">-</div>
         <div>Active sessions</div><div id="sessions">-</div>
         <div>Unique users (today, UTC)</div><div id="users">-</div>
+        <div>Autumn leaves forecast</div><div id="koyo-forecast">-</div>
         <div>MCP endpoint</div><div><code>{{MCP_ENDPOINT}}</code></div>
         <div>Last checked</div><div id="checked">-</div>
       </div>
@@ -244,6 +245,9 @@
         setText("sessions", numberFmt.format(data.activeSessions || 0));
         setText("users", numberFmt.format(data.uniqueUsers || 0));
         setText("checked", new Date().toLocaleString());
+        const koyo = data.sources && data.sources.koyoForecast;
+        setText("koyo-forecast", !koyo || !koyo.loaded ? "Not loaded since start"
+          : `Issued ${koyo.issued}${koyo.nextUpdate ? `, next ${koyo.nextUpdate}` : ""}${koyo.overdue ? " (overdue)" : ""}`);
         renderTools(data.toolCalls);
       } catch (error) {
         setStatus("status-bad", "Unavailable");
