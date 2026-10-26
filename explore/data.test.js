@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildKoyoSeason, buildSakuraSeason, cityHistory, defaultDay, fmtDay, fmtDiff, fmtDoy, frontAt, isoToDay, linearTrend, phaseLabel, phaseValue,
+  buildKoyoSeason, buildSakuraSeason, calibrateLapse, cityHistory, defaultDay, fmtDay, fmtDiff, fmtDoy, frontAt, isoToDay, linearTrend, phaseLabel, phaseValue,
 } from './data.js';
+import { buildField, sampleField } from './field.js';
 
 const iso = (d) => `${d}T00:00:00+09:00`;
 
@@ -97,7 +98,8 @@ describe('autumn leaves mapping', () => {
     expect(kyoto.diff).toBe(6);
     expect(fmtDiff(kyoto.diff)).toBe('6 days later than average');
     expect(season.spots[0].dates.map((d) => fmtDay(d))).toEqual(['Nov 10', 'Nov 20', 'Nov 27', 'Dec 5']);
-    expect(season.events[0].label).toBe('First maple colour: Kyoto');
+    expect(season.events.map((e) => e.label)).toEqual(['First colour: Kyoto', 'Colour reaches Kyoto', 'Peak in Kyoto', 'Last peak: Kyoto']);
+    expect(season.events.some((e) => e.label === 'Peak in Kyoto')).toBe(true);
   });
 
   it('builds a separate ginkgo front, estimating ginkgo at maple spots from the city gap', () => {
@@ -121,7 +123,7 @@ describe('autumn leaves mapping', () => {
     const big = g.spots.find((s) => s.name === 'Big ginkgo');
     expect(big.estimated).toBe(false);
     expect(fmtDay(big.peak)).toBe('Nov 28');
-    expect(g.events[0].label).toBe('First ginkgo colour: Kyoto');
+    expect(g.events[0].label).toBe('First ginkgo yellow: Kyoto');
     const m = buildKoyoSeason(forecast, spots, 'maple');
     expect(m.cities).toHaveLength(2);
     expect(m.spots.find((s) => s.name === 'Big ginkgo').trees).toBe(false);
@@ -172,5 +174,35 @@ describe('JMA history and stations the forecast leaves out', () => {
   it('fits a straight line exactly', () => {
     const t = linearTrend([{ year: 2000, doy: 90 }, { year: 2010, doy: 85 }, { year: 2020, doy: 80 }]);
     expect(t.perDecade).toBeCloseTo(-5);
+  });
+});
+
+describe('autumn elevation lapse', () => {
+  it('fits days per metre from mountain spots against nearby cities, within 1 to 4 days per 100 m', () => {
+    const cities = [{ name: 'A', lat: 36.0, lon: 138.0, front: 100 }, { name: 'B', lat: 36.2, lon: 137.8, front: 100 }];
+    // Height grows east; colour comes 3 days earlier per 100 m above the cities.
+    const elevOf = (lon) => Math.max(0, (lon - 138.0) * 4000);
+    const spots = [];
+    for (let i = 0; i < 40; i++) {
+      const lon = 138.05 + i * 0.01;
+      const e = elevOf(lon);
+      spots.push({ lat: 36.1, lon, front: 100 - 0.03 * e + (i % 3) * 0.2 });
+    }
+    const fit = calibrateLapse(spots, cities, elevOf);
+    expect(fit.fitted).toBe(true);
+    expect(fit.k).toBeCloseTo(-0.03, 2);
+    expect(calibrateLapse(spots.slice(0, 5), cities, elevOf)).toEqual({ k: -0.025, n: expect.any(Number), fitted: false });
+  });
+
+  it('puts colour earlier on high ground in the field', () => {
+    const dem = { sample: (lon) => (lon > 138 ? 2000 : 0) };
+    const pts = [{ lat: 36, lon: 137.95, elev: 0, dates: [90, 100, 105, 115] }, { lat: 36, lon: 138.05, elev: 0, dates: [90, 100, 105, 115] }];
+    const flat = buildField(pts, 680);
+    const hilly = buildField(pts, 680, { dem, k: -0.025 });
+    const lo = sampleField(hilly, 137.95, 36);
+    const hi = sampleField(hilly, 138.05, 36);
+    expect(lo[1]).toBeCloseTo(100, 0);
+    expect(hi[1]).toBeCloseTo(50, 0); // 2,000 m at 2.5 days per 100 m
+    expect(sampleField(flat, 138.05, 36)[1]).toBeCloseTo(100, 0);
   });
 });

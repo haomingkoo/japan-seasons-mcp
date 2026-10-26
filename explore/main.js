@@ -1,6 +1,7 @@
 import * as maplibregl from 'maplibre-gl';
+import { loadDem } from './dem.js';
 import {
-  buildKoyoSeason, buildSakuraSeason, cityHistory, defaultDay, doyToDay, fmtDay, fmtDiff, fmtDoy, frontAt, phaseLabel, seasonSeries, todayDay,
+  buildKoyoSeason, buildSakuraSeason, calibrateLapse, cityHistory, defaultDay, doyToDay, fmtDay, fmtDiff, fmtDoy, frontAt, phaseLabel, seasonSeries, todayDay,
 } from './data.js';
 import HISTORY from './season-history.json';
 import { buildField, contour, corners, gridShape, meanLatitude, paintField, RAMPS, rampColor, sampleField } from './field.js';
@@ -41,6 +42,7 @@ const REGIONS = {
   japan: [[128.8, 30.9], [145.9, 45.5]],
   okinawa: [[123.6, 24.0], [131.6, 28.6]],
   fuji: [[138.3, 35.0], [139.2, 35.7]],
+  alps: [[136.9, 35.6], [138.4, 36.9]],
   kyushu: [[129.4, 31.0], [132.1, 34.0]],
   kansai: [[132.4, 32.9], [136.6, 35.8]],
   chubu: [[135.8, 34.5], [139.3, 37.7]],
@@ -103,20 +105,33 @@ async function loadSeason(kind) {
     getJson(`${base}/forecast`),
     getJson(`${base}/all-spots`).catch(() => ({ spots: [] })),
   ]);
-  const fieldFor = (season) => buildField(season.spots.concat(season.cities), FIELD_WIDTH);
   if (kind === 'sakura') {
     const season = buildSakuraSeason(forecast, spots, HISTORY);
     if (!season.cities.length) throw new Error('The forecast has no city dates yet.');
-    state.cache[kind] = { season, field: fieldFor(season) };
+    state.cache[kind] = { season, field: buildField(season.spots.concat(season.cities), FIELD_WIDTH) };
     return state.cache[kind];
   }
   const maple = buildKoyoSeason(forecast, spots, 'maple');
   const ginkgo = buildKoyoSeason(forecast, spots, 'ginkgo');
   if (!maple.cities.length) throw new Error('The forecast has no city dates yet.');
+  // Autumn colour starts on the ridges and works down: add an elevation term to the wash,
+  // fitted from mountain spots against nearby cities. Without terrain the wash stays flat.
+  let dem = null;
+  let lapse = null;
+  try {
+    dem = await loadDem();
+    lapse = calibrateLapse(maple.spots, maple.cities, (lon, lat) => dem.sample(lon, lat));
+    for (const s of [maple, ginkgo]) for (const p of s.spots.concat(s.cities)) p.elev = dem.sample(p.lon, p.lat);
+  } catch (err) {
+    console.warn('Elevation unavailable, autumn wash without height', err);
+  }
+  const opts = lapse ? { dem, k: lapse.k } : {};
+  const fieldFor = (season) => buildField(season.spots.concat(season.cities), FIELD_WIDTH, opts);
   // Both fronts share one timeline.
   const start = Math.min(maple.start, ginkgo.start ?? maple.start);
   const end = Math.max(maple.end, ginkgo.end ?? maple.end);
   for (const s of [maple, ginkgo]) { s.start = start; s.end = end; }
+  state.lapse = lapse;
   state.cache[kind] = {
     season: maple, field: fieldFor(maple),
     maple: { season: maple, field: fieldFor(maple) },
@@ -221,6 +236,8 @@ function initMap() {
     fadeDuration: 0,
   });
   map.keyboard.disable();
+  map.boxZoom.disable(); // Shift-drag orbits instead
+  setupOrbit();
   trees = new TreeLayer('trees');
   treesGinkgo = new TreeLayer('trees-ginkgo', 'ginkgo');
   map.on('load', () => {
@@ -232,6 +249,7 @@ function initMap() {
     applyLayers();
     fitRegion(state.region, false);
     if (state.season) onSeasonReady();
+    setTimeout(showOrbitHint, 2500);
   });
   let idleTimer = 0;
   map.on('idle', () => {
@@ -300,6 +318,13 @@ function updateScale() {
 function fitRegion(region, animate = true) {
   state.region = region;
   const three = state.dim === '3d';
+  if (region === 'alps' && three) {
+    // Northern and Central Alps from the south-west, Matsumoto basin below the ridges.
+    const cam = { center: [137.75, 36.2], zoom: 8.55, pitch: 64, bearing: 25 };
+    if (animate && !reducedMotion) map.flyTo({ ...cam, duration: 1800, essential: false });
+    else map.jumpTo(cam);
+    return;
+  }
   if (region === 'fuji') {
     // Fuji from the south-west over Lake Motosu, close enough that the cone reads.
     const cam = three ? { center: [138.7274, 35.3606], zoom: 10.7, pitch: 60, bearing: 20 } : { center: [138.73, 35.36], zoom: 10.2, pitch: 0, bearing: 0 };
@@ -327,6 +352,7 @@ function applyDim(dim, animate = true) {
   state.dim = dim;
   document.querySelectorAll('.dim-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dim === dim)));
   $('exag').disabled = dim !== '3d';
+  document.querySelector('.tilt-ctl').hidden = dim !== '3d';
   if (!styleReady) return;
   lastExag = 0;
   if (dim === '3d') {
@@ -380,6 +406,123 @@ function applyLayers() {
   renderLegend();
 }
 
+// ---------- orbit ----------
+
+// Rotate and tilt together like a globe viewer: Shift-drag or right-drag on the map (MapLibre
+// handles right-drag and Ctrl-drag), drag the compass to turn, tilt buttons, and Q/E/W/S keys.
+function orbitBy(dBearing, dPitch, animate = true) {
+  if (!map || state.dim !== '3d') return;
+  const pitch = Math.min(map.getMaxPitch(), Math.max(0, map.getPitch() + dPitch));
+  const opts = { bearing: map.getBearing() + dBearing, pitch };
+  if (animate && !reducedMotion) map.easeTo({ ...opts, duration: 350, easing: (t) => 1 - (1 - t) ** 3 });
+  else map.jumpTo(opts);
+  noteOrbit();
+}
+
+let orbitHintShown = false;
+function noteOrbit() {
+  stopAutoOrbit();
+  const hint = $('orbit-hint');
+  if (!hint.hidden) hint.hidden = true;
+  try { localStorage.setItem('bf-orbit-hint', '1'); } catch {}
+}
+
+function showOrbitHint() {
+  let seen = false;
+  try { seen = localStorage.getItem('bf-orbit-hint') === '1'; } catch {}
+  if (seen || orbitHintShown || state.dim !== '3d') return;
+  orbitHintShown = true;
+  const hint = $('orbit-hint');
+  hint.hidden = false;
+  setTimeout(() => { hint.hidden = true; }, 9000);
+}
+
+function setupOrbit() {
+  const canvas = map.getCanvasContainer();
+  // Shift-drag on the map: horizontal turns, vertical tilts, with a short glide on release.
+  let drag = null;
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!e.shiftKey || e.button !== 0 || state.dim !== '3d') return;
+    e.preventDefault();
+    e.stopPropagation();
+    map.dragPan.disable();
+    drag = { x: e.clientX, y: e.clientY, t: performance.now(), vx: 0, vy: 0 };
+    canvas.setPointerCapture(e.pointerId);
+    noteOrbit();
+  }, true);
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const now = performance.now();
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    const dt = Math.max(1, now - drag.t);
+    drag.vx = 0.7 * drag.vx + 0.3 * (dx / dt);
+    drag.vy = 0.7 * drag.vy + 0.3 * (dy / dt);
+    Object.assign(drag, { x: e.clientX, y: e.clientY, t: now });
+    map.jumpTo({ bearing: map.getBearing() - dx * 0.3, pitch: Math.min(map.getMaxPitch(), Math.max(0, map.getPitch() - dy * 0.25)) });
+  });
+  const end = () => {
+    if (!drag) return;
+    const { vx, vy } = drag;
+    drag = null;
+    map.dragPan.enable();
+    if (!reducedMotion && Math.hypot(vx, vy) > 0.05) {
+      map.easeTo({ bearing: map.getBearing() - Math.max(-30, Math.min(30, vx * 40)), pitch: Math.min(map.getMaxPitch(), Math.max(0, map.getPitch() - Math.max(-8, Math.min(8, vy * 20)))), duration: 500, easing: (t) => 1 - (1 - t) ** 3 });
+    }
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+  // MapLibre's own right-drag, Ctrl-drag and two-finger twist also count as orbiting.
+  map.on('rotatestart', noteOrbit);
+  map.on('pitchstart', noteOrbit);
+
+  // Compass: click resets north, drag turns the map.
+  const compass = $('compass');
+  let cdrag = null;
+  compass.addEventListener('pointerdown', (e) => {
+    cdrag = { x: e.clientX, moved: false };
+    compass.setPointerCapture(e.pointerId);
+  });
+  compass.addEventListener('pointermove', (e) => {
+    if (!cdrag) return;
+    const dx = e.clientX - cdrag.x;
+    if (Math.abs(dx) > 2) cdrag.moved = true;
+    cdrag.x = e.clientX;
+    if (cdrag.moved) { map.jumpTo({ bearing: map.getBearing() - dx * 0.8 }); noteOrbit(); }
+  });
+  compass.addEventListener('pointerup', () => {
+    const moved = cdrag?.moved;
+    cdrag = null;
+    if (!moved) map.easeTo({ bearing: 0, duration: reducedMotion ? 0 : 500 });
+  });
+  $('tilt-up').addEventListener('click', () => orbitBy(0, 10));
+  $('tilt-down').addEventListener('click', () => orbitBy(0, -10));
+
+  // Slow idle orbit on desktop: after 15 s without input, never under reduced motion.
+  if (!reducedMotion && matchMedia('(pointer: fine)').matches) {
+    let idle = 0;
+    const kick = () => { stopAutoOrbit(); clearTimeout(idle); idle = setTimeout(startAutoOrbit, 15000); };
+    for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart']) addEventListener(ev, kick, { passive: true });
+    kick();
+  }
+}
+
+let autoOrbit = 0;
+function startAutoOrbit() {
+  if (state.dim !== '3d' || state.playing || document.hidden) return;
+  let last = performance.now();
+  const step = (t) => {
+    map.setBearing(map.getBearing() + (t - last) * 0.0025);
+    last = t;
+    autoOrbit = requestAnimationFrame(step);
+  };
+  autoOrbit = requestAnimationFrame(step);
+}
+function stopAutoOrbit() {
+  if (autoOrbit) cancelAnimationFrame(autoOrbit);
+  autoOrbit = 0;
+}
+
 // ---------- peaks and snow ----------
 
 const PEAKS = [
@@ -430,6 +573,11 @@ async function setSeason(kind) {
   document.querySelectorAll('.season-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.season === kind)));
   const c = COPY[kind];
   $('intro').textContent = c.intro;
+  $('page-h1').textContent = kind === 'koyo' ? 'Colour front' : 'Bloom front';
+  document.title = `${kind === 'koyo' ? 'Colour front: Japan autumn leaves' : 'Bloom front: Japan cherry blossom'} in 3D | Japan in Seasons`;
+  const u = new URL(location.href);
+  u.searchParams.set('season', kind);
+  history.replaceState(null, '', u);
   $('c1-title').textContent = c.c1;
   $('c2-sub').textContent = c.c2;
   setStatus('Loading forecast data…');
@@ -473,6 +621,12 @@ function onSeasonReady(keepDay = false) {
   washCtx2 = washCanvas2.getContext('2d');
   washImage2 = washCtx2.createImageData(width, height);
   COPY.koyo.c1 = season.species === 'ginkgo' ? 'Cities with ginkgo colour' : 'Cities with maple colour';
+  if (kind === 'koyo') {
+    const l = state.lapse;
+    $('lapse-note').textContent = !l ? 'not available: the terrain tiles did not load, so this wash has no height term'
+      : l.fitted ? `${(-l.k * 100).toFixed(1)} days per 100 m, fitted from ${l.n} mountain spots`
+        : `${(-l.k * 100).toFixed(1)} days per 100 m, a default, as too few mountain spots were near cities`;
+  }
   COPY.koyo.front = season.species === 'ginkgo' ? 'Ginkgo starts' : 'Maple starts';
   COPY.koyo.peak = season.species === 'ginkgo' ? 'Ginkgo peak' : 'Maple peak';
   COPY.koyo.history = state.historySpecies === 'ginkgo' ? 'ginkgo colour' : 'maple colour';
@@ -495,7 +649,7 @@ function onSeasonReady(keepDay = false) {
     map.setPaintProperty('front', 'line-color', kind === 'sakura' ? '#b8245c' : '#9a3412');
     const iso = [];
     for (let d = Math.ceil(season.start / 7) * 7; d <= season.end; d += 7) {
-      for (const line of contour(field, d, 3)) iso.push({ type: 'Feature', properties: { day: d }, geometry: { type: 'LineString', coordinates: line } });
+      for (const line of contour(field, d, 3).filter((l) => l.length >= (kind === 'koyo' ? 12 : 3))) iso.push({ type: 'Feature', properties: { day: d }, geometry: { type: 'LineString', coordinates: line } });
     }
     map.getSource('iso').setData({ type: 'FeatureCollection', features: iso });
     map.getSource('deviation').setData({
@@ -506,11 +660,11 @@ function onSeasonReady(keepDay = false) {
     const grovePoints = season.spots.concat(season.cities.filter((c) => c.jmaOnly));
     const treePoints = grovePoints.filter((p) => p.trees !== false);
     trees.ramp = rampKey(season);
-    trees.setTrees(placeTrees(treePoints, 7), treePoints, kind, season.start);
+    trees.setTrees(placeTrees(treePoints, kind === 'koyo' ? 11 : 7), treePoints, kind, season.start);
     const g = state.cache.koyo?.ginkgo;
     if (kind === 'koyo' && season.species === 'maple' && g) {
       const gp = g.season.spots.filter((p) => p.trees);
-      treesGinkgo.setTrees(placeTrees(gp, 7), gp, 'koyo', g.season.start);
+      treesGinkgo.setTrees(placeTrees(gp, 11), gp, 'koyo', g.season.start);
     } else treesGinkgo.setTrees([], [], kind, season.start);
     applyLayers();
     buildMarkers();
@@ -568,10 +722,22 @@ function setDay(day, force = false) {
   }
 }
 
-let washPauseTimer = 0;
+// During playback the colour field (two in autumn) is repainted at most every WASH_MS, which
+// keeps phones smooth; trees and markers still move every frame. Paused, every change paints.
+const WASH_MS = matchMedia('(pointer: coarse)').matches ? 90 : 45;
+let lastWash = 0;
+let washTimer = 0;
 function paintDay() {
   const s = state.season;
   const d = state.day;
+  if (styleReady) { trees.day = d; treesGinkgo.day = d; map.triggerRepaint(); }
+  const now = performance.now();
+  clearTimeout(washTimer);
+  if (state.playing && now - lastWash < WASH_MS) {
+    washTimer = setTimeout(paintDay, WASH_MS);
+    return;
+  }
+  lastWash = now;
   paintField(state.field, rampKey(s), d, washImage, 1);
   washCtx.putImageData(washImage, 0, 0);
   const sec = secondary();
@@ -581,14 +747,13 @@ function paintDay() {
   }
   if (!hasWebGL2) { drawStaticMap($('static-map'), washCanvas, s, d); return; }
   if (!styleReady) return;
+  // Upload the new pixels for one frame only, rather than streaming the canvas continuously.
   const srcs = [map.getSource('wash')].concat(sec ? [map.getSource('wash2')] : []);
   for (const src of srcs) src.play();
-  clearTimeout(washPauseTimer);
-  washPauseTimer = setTimeout(() => { for (const src of srcs) src.pause(); }, 120);
-  const lines = contour(state.field, d, 2);
+  map.once('render', () => { for (const src of srcs) src.pause(); });
+  // Drop tiny loops: with the height term the arrival line also rings single hilltops.
+  const lines = contour(state.field, d, 2).filter((l) => l.length >= (s.kind === 'koyo' ? 10 : 3));
   map.getSource('front').setData({ type: 'FeatureCollection', features: lines.map((l) => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: l } })) });
-  trees.day = d;
-  treesGinkgo.day = d;
   updateSnow(d);
   map.triggerRepaint();
 }
@@ -764,7 +929,8 @@ function tipHtml(hit) {
     const parts = [];
     if (hit.meters != null) parts.push(`${Math.round(hit.meters).toLocaleString('en')} m`);
     if (hit.dates) parts.push(`${c.front} about ${fmtDay(hit.dates[1])}`);
-    const second = hit.dates ? `<br><span class="sub">${phaseLabel(s.kind, hit.dates, d)} on ${fmtDay(d)}, estimated from nearby spots</span>` : '<br><span class="sub">No forecast spots nearby</span>';
+    const how = s.kind === 'koyo' && state.lapse ? 'estimated from nearby spots and height' : 'estimated from nearby spots';
+    const second = hit.dates ? `<br><span class="sub">${phaseLabel(s.kind, hit.dates, d)} on ${fmtDay(d)}, ${how}</span>` : '<br><span class="sub">No forecast spots nearby</span>';
     return parts.join(' · ') + second;
   }
   return '';
@@ -1134,7 +1300,7 @@ function wire() {
   $('region').addEventListener('change', (e) => fitRegion(e.target.value));
   $('c3-kyoto').addEventListener('click', () => { state.historyKyoto = !state.historyKyoto; renderHistory(); });
   $('c3-species').addEventListener('click', () => { state.historySpecies = state.historySpecies === 'ginkgo' ? 'maple' : 'ginkgo'; renderHistory(); });
-  $('compass').addEventListener('click', () => map?.easeTo({ bearing: 0, duration: reducedMotion ? 0 : 500 }));
+
 
   // Arrow keys scrub the date anywhere outside form fields and the map's own controls.
   document.addEventListener('keydown', (e) => {
@@ -1145,6 +1311,14 @@ function wire() {
       e.preventDefault();
       pause();
       setDay(Math.round(state.day) + (e.key === 'ArrowRight' ? 1 : -1) * (e.shiftKey ? 7 : 1));
+    } else if (['q', 'e', 'w', 's'].includes(e.key.toLowerCase()) && state.dim === '3d') {
+      e.preventDefault();
+      const big = e.shiftKey;
+      const k = e.key.toLowerCase();
+      if (k === 'q') orbitBy(big ? -45 : -15, 0);
+      if (k === 'e') orbitBy(big ? 45 : 15, 0);
+      if (k === 'w') orbitBy(0, big ? 15 : 5);
+      if (k === 's') orbitBy(0, big ? -15 : -5);
     } else if (e.key === ' ' && t === document.body) {
       e.preventDefault();
       state.playing ? pause() : play();
@@ -1201,6 +1375,10 @@ function start() {
     const m = new Date().getUTCMonth();
     kind = m >= 8 || m === 0 ? 'koyo' : 'sakura';
   }
+  // Autumn opens on the Alps, where colour runs from the ridges down to the valleys.
+  const wantRegion = params.get('region');
+  state.region = REGIONS[wantRegion] ? wantRegion : kind === 'koyo' && !reducedMotion ? 'alps' : 'japan';
+  $('region').value = state.region;
   if (hasWebGL2) {
     initMap();
     if (params.has('debug')) window.__bf = { map, state, trees };
@@ -1209,6 +1387,7 @@ function start() {
     document.querySelector('.dim-seg').hidden = true;
     $('exag').hidden = true;
     $('compass').hidden = true;
+    document.querySelector('.tilt-ctl').hidden = true;
     setStatus('');
   }
   applyDim(state.dim, false);

@@ -31,7 +31,12 @@ export function corners() {
 
 // Inverse-distance weighting over the k nearest points. Support fades to zero 28 km from the
 // nearest point, so open sea and areas with no spots stay unshaded.
-export function buildField(points, width) {
+// With a lapse rate (opts.k, days per metre, negative = earlier uphill) and a DEM, each point is
+// reduced to a sea-level date before interpolating and the pixel's own height is added back,
+// so colour arrives on the ridges first and works down the valleys.
+export function buildField(points, width, opts = {}) {
+  const { dem = null, k = 0 } = opts;
+  const lapse = dem && k ? k : 0;
   const { height } = gridShape(width);
   const n = width * height;
   const dates = [new Float32Array(n), new Float32Array(n), new Float32Array(n), new Float32Array(n)];
@@ -74,11 +79,14 @@ export function buildField(points, width) {
       const acc = [0, 0, 0, 0];
       for (let i = 0; i < Math.min(K, near.length); i++) {
         const w = 1 / (near[i][0] + 4);
-        const d = near[i][1].dates;
-        acc[0] += w * d[0]; acc[1] += w * d[1]; acc[2] += w * d[2]; acc[3] += w * d[3];
+        const p = near[i][1];
+        const d = p.dates;
+        const sea = lapse ? lapse * (p.elev || 0) : 0;
+        acc[0] += w * (d[0] - sea); acc[1] += w * (d[1] - sea); acc[2] += w * (d[2] - sea); acc[3] += w * (d[3] - sea);
         wSum += w;
       }
-      for (let c = 0; c < 4; c++) dates[c][idx] = acc[c] / wSum;
+      const here = lapse ? lapse * dem.sample(lon, lat) : 0;
+      for (let c = 0; c < 4; c++) dates[c][idx] = acc[c] / wSum + here;
     }
   }
   return { width, height, dates, support };
@@ -113,21 +121,22 @@ export const RAMPS = {
   // Ginkgo: green to a clear golden yellow, distinct from the maple reds.
   ginkgo: [
     [0, [110, 140, 80, 0]],
-    [0.5, [140, 150, 70, 0.18]],
-    [1, [226, 196, 72, 0.45]],
-    [2, [242, 186, 24, 0.7]],
-    [2.7, [232, 168, 20, 0.72]],
-    [3.4, [176, 140, 70, 0.34]],
+    [0.5, [140, 150, 70, 0.04]],
+    [1, [226, 196, 72, 0.16]],
+    [2, [242, 186, 24, 0.62]],
+    [2.7, [232, 168, 20, 0.66]],
+    [3.4, [176, 140, 70, 0.22]],
     [4, [150, 130, 100, 0.0]],
   ],
+  // Still-green land carries a light green tint so the front reads as green turning red.
   koyo: [
-    [0, [104, 140, 84, 0]],
-    [0.5, [112, 146, 82, 0.22]],
-    [1, [214, 172, 64, 0.48]],
-    [2, [214, 92, 38, 0.68]],
-    [2.7, [178, 44, 36, 0.74]],
-    [3.4, [132, 84, 58, 0.36]],
-    [4, [120, 96, 80, 0.0]],
+    [0, [104, 140, 84, 0.26]],
+    [0.5, [112, 146, 82, 0.28]],
+    [1, [218, 172, 58, 0.56]],
+    [2, [220, 88, 34, 0.76]],
+    [2.7, [182, 40, 34, 0.8]],
+    [3.4, [132, 84, 58, 0.42]],
+    [4, [120, 96, 80, 0.18]],
   ],
 };
 

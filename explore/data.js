@@ -325,17 +325,27 @@ export function seasonEvents(season) {
   } else {
     const tree = season.species === 'ginkgo' ? 'ginkgo' : 'maple';
     const first = byFront[0];
-    events.push({ day: first.front, label: `First ${tree} colour: ${first.name}`, species: tree });
-    const kyoto = cityByName(season, 'Kyoto');
+    const add = (day, label) => events.push({ day, label, species: tree });
     const tokyo = cityByName(season, 'Tokyo');
-    if (tokyo) events.push({ day: tokyo.peak, label: `Tokyo ${tree} peak`, species: tree });
-    if (kyoto) events.push({ day: kyoto.peak, label: `Kyoto ${tree} peak`, species: tree });
+    const kyoto = cityByName(season, 'Kyoto');
     if (tree === 'maple') {
+      add(first.front, `First colour: ${first.name}`);
+      const sapporo = cityByName(season, 'Sapporo');
+      if (sapporo) add(sapporo.peak, 'Peak in Sapporo');
+      const sendai = cityByName(season, 'Sendai');
+      if (sendai) add(sendai.front, 'Colour reaches Sendai');
+      if (tokyo) { add(tokyo.front, 'Colour reaches Tokyo'); add(tokyo.peak, 'Peak in Tokyo'); }
+      if (kyoto) { add(kyoto.front, 'Colour reaches Kyoto'); add(kyoto.peak, 'Peak in Kyoto'); }
       const south = cities.filter((c) => c.lat < 34).sort((a, b) => a.front - b.front)[0];
-      if (south) events.push({ day: south.front, label: `Maple colour reaches Kyushu (${south.name})`, species: tree });
+      if (south) add(south.front, `Colour reaches Kyushu (${south.name})`);
+      const last = cities.slice().sort((a, b) => b.peak - a.peak)[0];
+      add(last.peak, `Last peak: ${last.name}`);
+    } else {
+      add(first.front, `First ginkgo yellow: ${first.name}`);
+      if (tokyo) add(tokyo.peak, 'Ginkgo peak in Tokyo');
+      const last = cities.slice().sort((a, b) => b.peak - a.peak)[0];
+      add(last.peak, `Last ginkgo peak: ${last.name}`);
     }
-    const last = cities.slice().sort((a, b) => b.peak - a.peak)[0];
-    events.push({ day: last.peak, label: `Last ${tree} peak: ${last.name}`, species: tree });
   }
   return events.sort((a, b) => a.day - b.day);
 }
@@ -387,4 +397,33 @@ export function runningMean(points, window) {
 
 export function fmtDoy(doy) {
   return fmtDay(doyToDay(2021, doy));
+}
+
+// Days per metre that autumn colour runs ahead on higher ground, fitted from forecast spots
+// against the cities around them: (spot date - nearby city date) against (spot height - city
+// height). Clamped to 1 to 4 days per 100 m, the range JMA describes; 2.5 when too few spots.
+export function calibrateLapse(spots, cities, elevOf) {
+  const cs = cities.map((c) => ({ ...c, elev: elevOf(c.lon, c.lat) }));
+  const xs = [];
+  const ys = [];
+  for (const s of spots) {
+    if (s.estimated) continue;
+    const near = cs.map((c) => [((c.lat - s.lat) * 111) ** 2 + ((c.lon - s.lon) * 111 * Math.cos((s.lat * Math.PI) / 180)) ** 2, c])
+      .filter(([d2]) => d2 < 80 * 80).sort((a, b) => a[0] - b[0]).slice(0, 3);
+    if (!near.length) continue;
+    let w = 0; let date = 0; let elev = 0;
+    for (const [d2, c] of near) { const k = 1 / (d2 + 25); w += k; date += k * c.front; elev += k * c.elev; }
+    const de = elevOf(s.lon, s.lat) - elev / w;
+    if (Math.abs(de) < 150) continue;
+    xs.push(de);
+    ys.push(s.front - date / w);
+  }
+  const n = xs.length;
+  if (n < 20) return { k: -0.025, n, fitted: false };
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0; let sxx = 0;
+  for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+  const raw = sxx ? sxy / sxx : -0.025;
+  return { k: Math.min(-0.01, Math.max(-0.04, raw)), raw, n, fitted: true };
 }
