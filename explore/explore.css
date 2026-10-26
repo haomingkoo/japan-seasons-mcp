@@ -151,6 +151,8 @@ select { appearance: none; border: 1px solid var(--line); background: var(--pane
 .chart .area.peak.sakura { fill: #d24b80; }
 .chart .area.opening.koyo { fill: #eec26a; }
 .chart .area.peak.koyo { fill: #c2452a; }
+.chart .area.opening.ginkgo { fill: #f2dc8a; }
+.chart .area.peak.ginkgo { fill: #d9a514; }
 .chart .line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
 .chart .yr { fill: color-mix(in srgb, var(--accent) 55%, transparent); }
 .chart .yr.alt { fill: none; stroke: color-mix(in srgb, var(--accent) 70%, transparent); stroke-width: 1; }
@@ -237,3 +239,15 @@ select { appearance: none; border: 1px solid var(--line); background: var(--pane
 .wp:not(.minor):not(.far):not(.crowded) { z-index: 2; }
 .wp.crowded:hover .wp-label, .wp.crowded:focus-visible .wp-label { visibility: visible; }
 .wp:hover, .wp:focus-visible { z-index: 3; }
+
+/* Labelled peaks: a small ink triangle with the height, quieter than the city labels. */
+.peak { display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 2; }
+.peak-label { order: -1; background: rgba(255, 252, 247, 0.92); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-size: 11.5px; white-space: nowrap; font-variant-numeric: tabular-nums; margin-bottom: 2px; box-shadow: 0 1px 3px rgba(40, 30, 20, 0.12); }
+.peak-label .m { color: var(--text-2); }
+.peak-label .note { display: block; color: var(--text-2); font-size: 10.5px; text-align: center; }
+.peak-mark { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--text); }
+.peak.off, .peak.crowded .peak-label { display: none; }
+.peak.off { display: none; }
+.legend-row + .legend-row { margin-top: 4px; }
+.tl-event.ginkgo::before { border-top-color: #b07d0a; }
+.tl-event.maple::before { border-top-color: var(--koyo); }

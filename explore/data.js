@@ -150,53 +150,85 @@ export function buildSakuraSeason(forecast, spotsPayload, history = null) {
   return finishSeason('sakura', cities, spots);
 }
 
-export function buildKoyoSeason(forecast, spotsPayload) {
+// Autumn has two fronts: maple (kaede) turning red and ginkgo (icho) turning yellow. Each city
+// carries its own JMC date for each. Spots are mostly maple; ginkgo dates at maple and mixed
+// spots are estimated by shifting the spot's maple dates by the nearby cities' ginkgo-maple gap.
+export function buildKoyoSeason(forecast, spotsPayload, species = 'maple') {
+  const other = species === 'maple' ? 'ginkgo' : 'maple';
   const cities = [];
+  const gaps = [];
   for (const region of forecast?.regions ?? []) {
     for (const c of region.cities ?? []) {
       const coords = CITY_COORDS[c.nameEn];
-      const peak = isoToDay(c.maple?.forecast) ?? isoToDay(c.ginkgo?.forecast);
-      if (peak == null || !coords) continue;
-      const diffDays = c.maple?.forecast ? c.maple.normalDiffDays : c.ginkgo?.normalDiffDays;
+      if (!coords) continue;
+      const mine = isoToDay(c[species]?.forecast);
+      const theirs = isoToDay(c[other]?.forecast);
+      const maple = isoToDay(c.maple?.forecast);
+      const ginkgo = isoToDay(c.ginkgo?.forecast);
+      if (maple != null && ginkgo != null) gaps.push({ lat: coords[0], lon: coords[1], gap: ginkgo - maple });
+      if (mine == null) continue;
+      const diffDays = c[species]?.normalDiffDays;
       const diff = Number.isFinite(diffDays) ? diffDays : null;
-      const start = peak - KOYO_BEFORE_PEAK;
+      const start = mine - KOYO_BEFORE_PEAK;
       cities.push({
         name: c.nameEn,
         region: c.prefNameEn || region.name,
         lat: coords[0], lon: coords[1],
-        front: start, peak,
-        dates: [start - 10, start, peak, peak + KOYO_AFTER_PEAK],
-        normal: diff == null ? null : peak - diff,
+        front: start, peak: mine,
+        dates: [start - 10, start, mine, mine + KOYO_AFTER_PEAK],
+        normal: diff == null ? null : mine - diff,
         diff,
+        otherPeak: theirs,
         observed: false,
         peakObserved: false,
       });
     }
   }
+  const gapAt = (lat, lon) => {
+    const near = gaps.map((g) => [(g.lat - lat) ** 2 + ((g.lon - lon) * Math.cos((lat * Math.PI) / 180)) ** 2, g.gap])
+      .sort((x, y) => x[0] - y[0]).slice(0, 3);
+    if (!near.length) return null;
+    let w = 0;
+    let sum = 0;
+    for (const [d2, g] of near) { const k = 1 / (d2 + 0.01); w += k; sum += k * g; }
+    return sum / w;
+  };
   const spots = [];
   for (const s of spotsPayload?.spots ?? []) {
-    const start = isoToDay(s.bestStart);
-    const peak = isoToDay(s.bestPeak) ?? start;
-    const end = isoToDay(s.bestEnd) ?? (peak != null ? peak + KOYO_AFTER_PEAK : null);
+    let start = isoToDay(s.bestStart);
+    let peak = isoToDay(s.bestPeak) ?? start;
+    let end = isoToDay(s.bestEnd) ?? (peak != null ? peak + KOYO_AFTER_PEAK : null);
     if (start == null || !Number.isFinite(s.lat) || !Number.isFinite(s.lon)) continue;
+    const type = /ginkgo/i.test(s.leafType || '') ? 'ginkgo' : /mixed/i.test(s.leafType || '') ? 'mixed' : 'maple';
+    let estimated = false;
+    if (species === 'ginkgo' && type !== 'ginkgo') {
+      const g = gapAt(s.lat, s.lon);
+      if (g == null) continue;
+      start += g; peak += g; end += g;
+      estimated = true;
+    }
     spots.push({
-      name: s.nameRomaji || s.name, nameJa: s.name, pref: null,
+      name: s.nameRomaji || s.name, nameJa: s.name, pref: null, leafType: type,
       lat: s.lat, lon: s.lon, front: start, peak, dates: [start - 10, start, peak, Math.max(end, peak + 1)],
+      estimated,
+      // Trees stand where this species actually grows at the spot.
+      trees: type === species || type === 'mixed',
     });
   }
-  return finishSeason('koyo', cities, spots);
+  const season = finishSeason('koyo', cities, spots, species);
+  return season;
 }
 
-function finishSeason(kind, cities, spots) {
+function finishSeason(kind, cities, spots, species = null) {
   cities.sort((a, b) => a.lat - b.lat);
   const all = cities.concat(spots);
-  if (!all.length) return { kind, cities, spots, start: null, end: null, year: null, events: [] };
+  if (!all.length) return { kind, species, cities, spots, start: null, end: null, year: null, events: [] };
   const firsts = all.map((p) => p.dates[1]);
   const lasts = all.map((p) => p.dates[3]);
   const start = Math.min(...cities.map((c) => c.dates[1]), percentile(firsts, 0.02)) - 12;
   const end = Math.max(...cities.map((c) => c.dates[3]), percentile(lasts, 0.98)) + 6;
   const year = dayToDate(percentile(firsts, 0.5)).getUTCFullYear();
-  const season = { kind, cities, spots, start: Math.floor(start), end: Math.ceil(end), year };
+  const season = { kind, species, cities, spots, start: Math.floor(start), end: Math.ceil(end), year };
   season.events = seasonEvents(season);
   return season;
 }
@@ -291,16 +323,19 @@ export function seasonEvents(season) {
     const last = cities.slice().sort((a, b) => b.peak - a.peak)[0];
     events.push({ day: last.peak, label: `Last full bloom: ${last.name}` });
   } else {
+    const tree = season.species === 'ginkgo' ? 'ginkgo' : 'maple';
     const first = byFront[0];
-    events.push({ day: first.front, label: `First colour: ${first.name}` });
+    events.push({ day: first.front, label: `First ${tree} colour: ${first.name}`, species: tree });
     const kyoto = cityByName(season, 'Kyoto');
     const tokyo = cityByName(season, 'Tokyo');
-    if (tokyo) events.push({ day: tokyo.peak, label: 'Tokyo peak colour' });
-    if (kyoto) events.push({ day: kyoto.peak, label: 'Kyoto peak colour' });
-    const south = cities.filter((c) => c.lat < 34).sort((a, b) => a.front - b.front)[0];
-    if (south) events.push({ day: south.front, label: `Colour reaches Kyushu (${south.name})` });
+    if (tokyo) events.push({ day: tokyo.peak, label: `Tokyo ${tree} peak`, species: tree });
+    if (kyoto) events.push({ day: kyoto.peak, label: `Kyoto ${tree} peak`, species: tree });
+    if (tree === 'maple') {
+      const south = cities.filter((c) => c.lat < 34).sort((a, b) => a.front - b.front)[0];
+      if (south) events.push({ day: south.front, label: `Maple colour reaches Kyushu (${south.name})`, species: tree });
+    }
     const last = cities.slice().sort((a, b) => b.peak - a.peak)[0];
-    events.push({ day: last.peak, label: `Last peak: ${last.name}` });
+    events.push({ day: last.peak, label: `Last ${tree} peak: ${last.name}`, species: tree });
   }
   return events.sort((a, b) => a.day - b.day);
 }

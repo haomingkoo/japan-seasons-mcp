@@ -40,6 +40,7 @@
         <option value="kansai">Kansai and Shikoku</option>
         <option value="chubu">Chubu</option>
         <option value="kanto">Kanto</option>
+        <option value="fuji">Mt Fuji</option>
         <option value="tohoku">Tohoku</option>
         <option value="hokkaido">Hokkaido</option>
       </select>
@@ -119,7 +120,7 @@
           </figure>
           <figure class="chart">
             <figcaption>
-              <span class="c3-head"><span id="c3-title">Year by year</span><button type="button" class="chip-btn" id="c3-kyoto" aria-pressed="false">Kyoto since 812</button></span>
+              <span class="c3-head"><span id="c3-title">Year by year</span><span><button type="button" class="chip-btn" id="c3-kyoto" aria-pressed="false">Kyoto since 812</button><button type="button" class="chip-btn" id="c3-species" hidden>Show ginkgo</button></span></span>
               <span class="c3-sub" id="c3-sub"></span>
             </figcaption>
             <svg id="chart-trend" role="img" aria-label="Year-by-year dates for the selected city"></svg>
@@ -145,9 +146,11 @@
           <div class="sources">
             <p><strong>Dates.</strong> City dates come from the Japan Meteorological Agency (JMA) observation trees once recorded, otherwise from the <a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> forecast. Spot dates are JMC forecasts. Averages are the normal dates published with the forecast. For autumn leaves, JMC gives only the difference from normal.</p>
             <p><strong>Okinawa, Amami and five Hokkaido cities</strong> are not in the JMC forecast. Their dates are this year's JMA observations. Okinawa and Amami watch the Taiwan cherry, which blooms in winter; most of Hokkaido watches the Sargent cherry.</p>
+            <p><strong>Maple and ginkgo.</strong> JMC forecasts both per city, and they turn at different times. Most forecast spots are maple; the ginkgo colour at maple and mixed spots is estimated by shifting each spot's maple dates by the nearby cities' ginkgo-to-maple gap. Ginkgo trees stand only at ginkgo and mixed spots. Three cities have no ginkgo forecast.</p>
+            <p><strong>Snow on high peaks</strong> is a seasonal tint by month, not an observation: white above about 2,000 m from December to February, rising to about 2,800 m in May, none from June to September.</p>
             <p><strong>Shading.</strong> Colour between spots is estimated from the six nearest spots and cities. It fades out 28 km from the nearest one, so open sea and empty mountains stay plain. Each group of trees stands on a real forecast spot.</p>
             <p><strong>Front speed</strong> is how fast the estimated arrival line moves, averaged over a week.</p>
-            <p><strong>Year by year.</strong> <a href="https://www.data.jma.go.jp/sakura/data/download_ruinenchi.html" target="_blank" rel="noopener">JMA phenological observation tables</a>, 1953 onward (Government of Japan Standard Terms of Use). Hollow dots are years JMA watched a stand-in species. The dashed line is a straight-line fit; the solid line is a 10-year running mean. This year's forecast, when not yet observed, is a hollow ring.</p>
+            <p><strong>Year by year.</strong> <a href="https://www.data.jma.go.jp/sakura/data/download_ruinenchi.html" target="_blank" rel="noopener">JMA phenological observation tables</a>, 1953 onward (Government of Japan Standard Terms of Use). Hollow dots are years JMA watched a stand-in species. Autumn history uses JMA maple colouring (kaede) or ginkgo yellowing (icho). The dashed line is a straight-line fit; the solid line is a 10-year running mean. This year's forecast, when not yet observed, is a hollow ring.</p>
             <p><strong>Kyoto since 812.</strong> Full bloom of mountain cherry from court diaries and records: Aono and Kazui (2008), Aono and Saito (2010), Aono (2012) and Katata (2026), via <a href="https://ourworldindata.org/grapher/date-of-the-peak-cherry-tree-blossom-in-kyoto" target="_blank" rel="noopener">Our World in Data</a>, CC BY 4.0. The line is the 30-year average.</p>
             <p><strong>Terrain.</strong> <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles on AWS</a> (Mapzen, <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">sources</a>). Map drawn with MapLibre GL JS.</p>
           </div>

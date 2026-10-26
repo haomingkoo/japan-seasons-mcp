@@ -9,6 +9,10 @@ const TREE_RAMPS = {
     [0.0, 0.47, 0.39, 0.34], [0.7, 0.55, 0.40, 0.38], [1.0, 0.82, 0.55, 0.60], [1.6, 0.95, 0.62, 0.74],
     [2.0, 0.97, 0.66, 0.79], [2.7, 0.99, 0.80, 0.87], [3.3, 0.72, 0.74, 0.50], [4.0, 0.38, 0.56, 0.30],
   ],
+  ginkgo: [
+    [0.0, 0.30, 0.47, 0.22], [0.8, 0.50, 0.58, 0.20], [1.0, 0.80, 0.74, 0.22], [1.6, 0.95, 0.80, 0.16],
+    [2.1, 0.99, 0.78, 0.10], [2.8, 0.96, 0.70, 0.08], [3.4, 0.62, 0.52, 0.26], [4.0, 0.45, 0.38, 0.33],
+  ],
   koyo: [
     [0.0, 0.27, 0.45, 0.24], [0.8, 0.40, 0.52, 0.22], [1.0, 0.70, 0.62, 0.20], [1.6, 0.90, 0.66, 0.18],
     [2.1, 0.90, 0.38, 0.13], [2.8, 0.74, 0.17, 0.13], [3.4, 0.52, 0.31, 0.19], [4.0, 0.45, 0.38, 0.33],
@@ -147,8 +151,9 @@ export function placeTrees(spots, perSpot = 7) {
 }
 
 export class TreeLayer {
-  constructor() {
-    this.id = 'trees';
+  constructor(id = 'trees', ramp = null) {
+    this.id = id;
+    this.ramp = ramp;
     this.type = 'custom';
     this.renderingMode = '3d';
     this.day = 0;
@@ -275,7 +280,7 @@ export class TreeLayer {
     gl.uniform1f(this.u.u_size, this.size);
     gl.uniform1f(this.u.u_exag, this.map.terrain ? this.map.terrain.exaggeration || 1 : 0);
     gl.uniform1i(this.u.u_kind, this.kind === 'sakura' ? 0 : 1);
-    gl.uniform4fv(this.u.u_ramp, TREE_RAMPS[this.kind].flat());
+    gl.uniform4fv(this.u.u_ramp, TREE_RAMPS[this.ramp || this.kind].flat());
     gl.bindVertexArray(this.vao);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
