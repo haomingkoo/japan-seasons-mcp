@@ -17,7 +17,16 @@
       "typicalDate": "Last Saturday of July",
       "url": "https://www.sumidagawa-hanabi.com/",
       "note": "Tokyo's most iconic fireworks: ~20,000 shells over the Sumida River. One of Japan's oldest hanabi events. Book riverside restaurants months ahead.",
-      "attendance": 900000
+      "attendance": 900000,
+      "when": {
+        "type": "weekday",
+        "month": 7,
+        "weekday": 6,
+        "n": -1,
+        "days": 1
+      },
+      "place": "Sumida River, Tokyo",
+      "summary": "About 20,000 fireworks over the Sumida River, one of Japan's oldest displays."
     },
     {
       "id": "fw_nagaoka",
@@ -34,7 +43,14 @@
       "typicalDate": "August 2–3",
       "url": "https://nagaokamatsuri.com/",
       "note": "One of Japan's top 3 fireworks festivals: famous for the Phoenix (鳳凰) spread 2km wide. A memorial for WWII victims. Tickets sell out within minutes.",
-      "attendance": 800000
+      "attendance": 800000,
+      "when": {
+        "type": "fixed",
+        "start": "08-02",
+        "end": "08-03"
+      },
+      "place": "Nagaoka, Niigata",
+      "summary": "Two nights of fireworks held as a memorial for war victims, known for the Phoenix display that spreads 2 km wide."
     },
     {
       "id": "fw_omagari",
@@ -51,7 +67,16 @@
       "typicalDate": "Last Saturday of August",
       "url": "https://www.oomagari-hanabi.com/",
       "note": "Japan's most prestigious fireworks competition. Pyrotechnists from across Japan compete. Considered the pinnacle of Japanese hanabi artistry.",
-      "attendance": 750000
+      "attendance": 750000,
+      "when": {
+        "type": "weekday",
+        "month": 8,
+        "weekday": 6,
+        "n": -1,
+        "days": 1
+      },
+      "place": "Omagari, Akita",
+      "summary": "A national fireworks competition where makers from across Japan compete."
     },
     {
       "id": "fw_tsuchiura",
@@ -68,7 +93,16 @@
       "typicalDate": "First Saturday of October",
       "url": "https://www.tsuchiura-hanabi.jp/",
       "note": "Autumn fireworks competition: one of Japan's three major competitions alongside Nagaoka and Omagari. Held over Lake Kasumigaura.",
-      "attendance": 500000
+      "attendance": 500000,
+      "when": {
+        "type": "weekday",
+        "month": 10,
+        "weekday": 6,
+        "n": 1,
+        "days": 1
+      },
+      "place": "Lake Kasumigaura, Ibaraki",
+      "summary": "An autumn fireworks competition held over Lake Kasumigaura."
     },
     {
       "id": "fw_pl",
@@ -85,7 +119,14 @@
       "typicalDate": "August 1",
       "url": "https://www.perfect-liberty.or.jp/",
       "note": "100,000 fireworks in a single night: one of Japan's largest displays. Visible from 10km away. Organized by Perfect Liberty Kyodan.",
-      "attendance": 200000
+      "attendance": 200000,
+      "when": {
+        "type": "fixed",
+        "start": "08-01",
+        "end": "08-01"
+      },
+      "place": "Tondabayashi, Osaka",
+      "summary": "About 100,000 fireworks in one night, organised by the Perfect Liberty Kyodan."
     },
     {
       "id": "fw_miyajima",
@@ -102,7 +143,14 @@
       "typicalDate": "Mid-August",
       "url": "https://www.miyajima.or.jp/",
       "note": "Fireworks launched from the sea in front of Itsukushima Shrine's floating torii gate. One of Japan's most photogenic hanabi backdrops.",
-      "attendance": 50000
+      "attendance": 50000,
+      "when": {
+        "type": "approx",
+        "start": "08-11",
+        "end": "08-20"
+      },
+      "place": "Miyajima, Hiroshima",
+      "summary": "Fireworks launched from the sea in front of the floating torii gate of Itsukushima Shrine."
     },
     {
       "id": "fw_suwa",
@@ -119,7 +167,14 @@
       "typicalDate": "August 15",
       "url": "https://www.suwako-hanabi.com/",
       "note": "40,000 fireworks reflected over Lake Suwa on the night of Obon. One of the largest fireworks shows in the Chubu region.",
-      "attendance": 500000
+      "attendance": 500000,
+      "when": {
+        "type": "fixed",
+        "start": "08-15",
+        "end": "08-15"
+      },
+      "place": "Lake Suwa, Nagano",
+      "summary": "About 40,000 fireworks reflected in Lake Suwa on the night of Obon."
     },
     {
       "id": "fw_jingu",
@@ -136,7 +191,14 @@
       "typicalDate": "Mid-August",
       "url": "https://www.jinguhanabi.com/",
       "note": "Inner-city Tokyo fireworks near Meiji Jingu: no river needed. Features J-pop performances. Very popular with younger crowds.",
-      "attendance": 100000
+      "attendance": 100000,
+      "when": {
+        "type": "approx",
+        "start": "08-11",
+        "end": "08-20"
+      },
+      "place": "Meiji Jingu Gaien, Tokyo",
+      "summary": "Fireworks with live J-pop near Meiji Jingu in central Tokyo."
     },
     {
       "id": "fw_yodogawa",
@@ -153,7 +215,16 @@
       "typicalDate": "First Saturday of August",
       "url": "https://www.yodohanabi.com/",
       "note": "Osaka's premier summer fireworks over the Yodo River. Famous for the 'Niagara' waterfall fireworks effect.",
-      "attendance": 520000
+      "attendance": 520000,
+      "when": {
+        "type": "weekday",
+        "month": 8,
+        "weekday": 6,
+        "n": 1,
+        "days": 1
+      },
+      "place": "Yodo River, Osaka",
+      "summary": "Osaka's summer fireworks over the Yodo River, known for its Niagara waterfall effect."
     },
     {
       "id": "fw_atami",
@@ -175,7 +246,20 @@
       "typicalDate": "Multiple times per year (Feb, Apr, Jul, Aug, Oct, Dec)",
       "url": "https://www.ataminews.gr.jp/",
       "note": "Held year-round in Atami Bay. The bowl-shaped bay amplifies sound and creates a spectacular visual. An easy day trip from Tokyo.",
-      "attendance": 30000
+      "attendance": 30000,
+      "when": {
+        "type": "several",
+        "months": [
+          2,
+          4,
+          7,
+          8,
+          10,
+          12
+        ]
+      },
+      "place": "Atami Bay, Shizuoka",
+      "summary": "Fireworks over Atami Bay on several nights a year, an easy day trip from Tokyo."
     },
     {
       "id": "fw_toya",
@@ -198,7 +282,14 @@
       "typicalDate": "Every night Apr 28 – Oct 31 at 8:45PM",
       "url": "https://toyako.biz/",
       "note": "Japan's most unique fireworks: launched over Lake Toya every single night for 6 months. Small but intimate; can be seen from lakeside ryokan.",
-      "attendance": 500
+      "attendance": 500,
+      "when": {
+        "type": "season",
+        "start": "04-28",
+        "end": "10-31"
+      },
+      "place": "Lake Toya, Hokkaido",
+      "summary": "A short fireworks show over Lake Toya every night for six months, visible from the lakeside inns."
     },
     {
       "id": "fw_edogawa",
@@ -215,7 +306,16 @@
       "typicalDate": "Last Saturday of July",
       "url": "https://www.city.edogawa.tokyo.jp/",
       "note": "Held the same night as Sumida River Fireworks: a great alternative with fewer crowds. 14,000 fireworks along the Edogawa river.",
-      "attendance": 700000
+      "attendance": 700000,
+      "when": {
+        "type": "weekday",
+        "month": 7,
+        "weekday": 6,
+        "n": -1,
+        "days": 1
+      },
+      "place": "Edogawa River, Tokyo",
+      "summary": "About 14,000 fireworks along the Edogawa River, often on the same night as Sumida."
     },
     {
       "id": "mat_gion",
@@ -232,7 +332,14 @@
       "typicalDate": "July 1–31 (Yamaboko Junko procession: Jul 17 & 24)",
       "url": "https://www.gionmatsuri.or.jp/",
       "note": "One of Japan's three greatest festivals. Giant decorated floats (yamaboko) parade through Kyoto. The evening Yoiyama stalls are equally unmissable.",
-      "attendance": 1000000
+      "attendance": 1000000,
+      "when": {
+        "type": "fixed",
+        "start": "07-01",
+        "end": "07-31"
+      },
+      "place": "Central Kyoto",
+      "summary": "A month of events in Kyoto, with giant decorated floats (yamaboko) paraded on July 17 and 24."
     },
     {
       "id": "mat_tenjin",
@@ -249,7 +356,14 @@
       "typicalDate": "July 24–25",
       "url": "https://www.osakatemmangu.or.jp/",
       "note": "One of Japan's three great festivals. A river procession of 100+ boats, torchlight, and fireworks on the Okawa River. Starts at Osaka Tenmangu Shrine.",
-      "attendance": 1300000
+      "attendance": 1300000,
+      "when": {
+        "type": "fixed",
+        "start": "07-24",
+        "end": "07-25"
+      },
+      "place": "Okawa River, Osaka",
+      "summary": "A procession of more than 100 boats with torches and fireworks, starting at Osaka Tenmangu Shrine."
     },
     {
       "id": "mat_nebuta",
@@ -266,7 +380,14 @@
       "typicalDate": "August 2–7",
       "url": "https://www.nebuta.jp/",
       "note": "Towering illuminated floats depicting warriors and mythological figures parade through Aomori city at night. One of Tohoku's most spectacular summer festivals.",
-      "attendance": 3000000
+      "attendance": 3000000,
+      "when": {
+        "type": "fixed",
+        "start": "08-02",
+        "end": "08-07"
+      },
+      "place": "Aomori city",
+      "summary": "Huge lit floats of warriors and mythical figures parade through Aomori at night."
     },
     {
       "id": "mat_kanto",
@@ -283,7 +404,14 @@
       "typicalDate": "August 3–6",
       "url": "https://www.kantou.gr.jp/english/",
       "note": "Performers balance 12-meter bamboo poles holding 46 lanterns (50kg total!) on their foreheads, shoulders, and hips. Incredible display of skill.",
-      "attendance": 1300000
+      "attendance": 1300000,
+      "when": {
+        "type": "fixed",
+        "start": "08-03",
+        "end": "08-06"
+      },
+      "place": "Akita city",
+      "summary": "Performers balance 12 m bamboo poles hung with 46 lanterns on their foreheads, shoulders and hips."
     },
     {
       "id": "mat_awa_odori",
@@ -300,7 +428,14 @@
       "typicalDate": "August 12–15",
       "url": "https://www.awaodori-kaikan.jp/",
       "note": "Japan's largest dance festival: 100,000 dancers and 1.3M spectators. The famous chant: 'Dancing fools and watching fools, both are fools, so why not dance!'",
-      "attendance": 1300000
+      "attendance": 1300000,
+      "when": {
+        "type": "fixed",
+        "start": "08-12",
+        "end": "08-15"
+      },
+      "place": "Tokushima city",
+      "summary": "Japan's largest dance festival, with about 100,000 dancers in the streets of Tokushima."
     },
     {
       "id": "mat_sendai_tanabata",
@@ -317,7 +452,14 @@
       "typicalDate": "August 6–8",
       "url": "https://www.sendaitanabata.com/en",
       "note": "Japan's largest Tanabata: thousands of elaborate bamboo streamers (kazari) hang over Sendai's shopping arcades. A month after the traditional Jul 7 date.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "fixed",
+        "start": "08-06",
+        "end": "08-08"
+      },
+      "place": "Central Sendai, Miyagi",
+      "summary": "Thousands of paper and bamboo streamers (kazari) hang over Sendai's shopping arcades."
     },
     {
       "id": "mat_yamakasa",
@@ -334,7 +476,14 @@
       "typicalDate": "July 1–15 (Oiyama race: July 15 at 4:59AM)",
       "url": "https://www.hakatayamakasa.com/",
       "note": "Teams race giant decorated floats (kazariyama) through Fukuoka's streets in the pre-dawn Oiyama race. Over 770 years of history.",
-      "attendance": 300000
+      "attendance": 300000,
+      "when": {
+        "type": "fixed",
+        "start": "07-01",
+        "end": "07-15"
+      },
+      "place": "Hakata, Fukuoka",
+      "summary": "Teams race decorated floats through Fukuoka's streets, ending with the pre-dawn Oiyama race on July 15."
     },
     {
       "id": "mat_sanja",
@@ -351,7 +500,16 @@
       "typicalDate": "Third full weekend of May",
       "url": "https://www.asakusajinja.jp/sanjamatsuri/",
       "note": "Tokyo's wildest festival: 100 mikoshi (portable shrines) carried through Asakusa by 2 million spectators. The energy is electric.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "weekday",
+        "month": 5,
+        "weekday": 6,
+        "n": 3,
+        "days": 2
+      },
+      "place": "Asakusa, Tokyo",
+      "summary": "About 100 portable shrines (mikoshi) are carried through Asakusa over a weekend in May."
     },
     {
       "id": "mat_kanda",
@@ -369,7 +527,14 @@
       "url": "https://www.kandamyoujin.or.jp/kandasai/",
       "note": "One of Tokyo's three great festivals, held in odd-numbered years only (next in 2027). Elaborate mikoshi procession through Akihabara and Nihonbashi. Dates back to 1600s.",
       "attendance": 300000,
-      "years": "odd"
+      "years": "odd",
+      "when": {
+        "type": "nearest-weekend",
+        "date": "05-15",
+        "days": 2
+      },
+      "place": "Akihabara and Nihonbashi, Tokyo",
+      "summary": "A procession of portable shrines through Akihabara and Nihonbashi, held in odd-numbered years."
     },
     {
       "id": "mat_aoi",
@@ -386,7 +551,14 @@
       "typicalDate": "May 15",
       "url": "https://kamigamojinja.jp/",
       "note": "One of Kyoto's three great festivals. A slow procession of 500 Heian-era costumed participants from Kyoto Imperial Palace to Kamigamo Shrine.",
-      "attendance": 80000
+      "attendance": 80000,
+      "when": {
+        "type": "fixed",
+        "start": "05-15",
+        "end": "05-15"
+      },
+      "place": "Kyoto Imperial Palace to Kamigamo Shrine",
+      "summary": "A slow procession of about 500 people in Heian-period dress through Kyoto."
     },
     {
       "id": "mat_hakata_dontaku",
@@ -403,7 +575,14 @@
       "typicalDate": "May 3–4",
       "url": "https://www.dontaku.fukunet.or.jp/",
       "note": "Japan's largest attendance festival. Citizens in costume parade through Fukuoka on everyday objects: spatulas, bamboo branches, flower carts. Very joyful.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "fixed",
+        "start": "05-03",
+        "end": "05-04"
+      },
+      "place": "Central Fukuoka",
+      "summary": "Costumed citizens parade through Fukuoka during Golden Week."
     },
     {
       "id": "mat_takayama_spring",
@@ -420,7 +599,14 @@
       "typicalDate": "April 14–15",
       "url": "https://www.hidatakayama.or.jp/",
       "note": "Elaborate floats with mechanical puppets (karakuri) parade through Takayama's historic old town. One of Japan's most beautiful festival settings.",
-      "attendance": 100000
+      "attendance": 100000,
+      "when": {
+        "type": "fixed",
+        "start": "04-14",
+        "end": "04-15"
+      },
+      "place": "Takayama old town, Gifu",
+      "summary": "Floats with mechanical puppets (karakuri) parade through Takayama's old town."
     },
     {
       "id": "mat_takayama_autumn",
@@ -437,7 +623,14 @@
       "typicalDate": "October 9–10",
       "url": "https://www.hidatakayama.or.jp/",
       "note": "Autumn version of the Takayama festival: same spectacular floats but set against autumn foliage. Often considered the more beautiful of the two.",
-      "attendance": 130000
+      "attendance": 130000,
+      "when": {
+        "type": "fixed",
+        "start": "10-09",
+        "end": "10-10"
+      },
+      "place": "Takayama old town, Gifu",
+      "summary": "The autumn Takayama festival, with the same puppet floats among autumn leaves."
     },
     {
       "id": "mat_jidai",
@@ -454,7 +647,14 @@
       "typicalDate": "October 22",
       "url": "https://www.heianjingu.or.jp/",
       "note": "One of Kyoto's three great festivals. 2,000 participants in historical costumes spanning 1,200 years of history march from Kyoto Imperial Palace to Heian Shrine.",
-      "attendance": 120000
+      "attendance": 120000,
+      "when": {
+        "type": "fixed",
+        "start": "10-22",
+        "end": "10-22"
+      },
+      "place": "Kyoto Imperial Palace to Heian Shrine",
+      "summary": "About 2,000 people in costumes from 1,200 years of Kyoto history march to Heian Shrine."
     },
     {
       "id": "mat_kurama_fire",
@@ -471,7 +671,14 @@
       "typicalDate": "October 22",
       "url": "https://www.yukijinjya.jp/",
       "note": "One of Kyoto's most dramatic festivals. Villagers carry torches through the mountain village of Kurama at night. Same date as Jidai Matsuri: do both.",
-      "attendance": 20000
+      "attendance": 20000,
+      "when": {
+        "type": "fixed",
+        "start": "10-22",
+        "end": "10-22"
+      },
+      "place": "Kurama, Kyoto",
+      "summary": "Villagers carry large torches through the mountain village of Kurama at night."
     },
     {
       "id": "mat_kunchi",
@@ -488,7 +695,14 @@
       "typicalDate": "October 7–9",
       "url": "https://www.nagasaki-kunchi.com/",
       "note": "Unique festival showing Nagasaki's Chinese and Dutch heritage: dragon dances, Dutch ship floats, and exotic performances at Suwa Shrine.",
-      "attendance": 700000
+      "attendance": 700000,
+      "when": {
+        "type": "fixed",
+        "start": "10-07",
+        "end": "10-09"
+      },
+      "place": "Suwa Shrine, Nagasaki",
+      "summary": "Dragon dances and ship floats at Suwa Shrine show Nagasaki's Chinese and Dutch heritage."
     },
     {
       "id": "mat_kishiwada",
@@ -505,7 +719,14 @@
       "typicalDate": "September 14–15",
       "url": "https://www.city.kishiwada.lg.jp/",
       "note": "Wild and thrilling: teams pull heavy wooden floats (danjiri) at full speed through narrow streets. People ride on top performing acrobatics. Extremely intense.",
-      "attendance": 600000
+      "attendance": 600000,
+      "when": {
+        "type": "fixed",
+        "start": "09-14",
+        "end": "09-15"
+      },
+      "place": "Kishiwada, Osaka",
+      "summary": "Teams pull heavy wooden floats (danjiri) at full speed through narrow streets."
     },
     {
       "id": "mat_chichibu",
@@ -522,7 +743,14 @@
       "typicalDate": "December 2–3",
       "url": "https://www.chichibu-jinja.or.jp/",
       "note": "Japan's most spectacular winter festival: elaborate floats parade through snowy Chichibu at night with fireworks overhead. Named a UNESCO intangible heritage.",
-      "attendance": 200000
+      "attendance": 200000,
+      "when": {
+        "type": "fixed",
+        "start": "12-02",
+        "end": "12-03"
+      },
+      "place": "Chichibu, Saitama",
+      "summary": "Lit floats parade through Chichibu at night under winter fireworks."
     },
     {
       "id": "mat_omizutori",
@@ -539,7 +767,14 @@
       "typicalDate": "March 1–14 (torch ceremony: Mar 12–14)",
       "url": "https://www.todaiji.or.jp/",
       "note": "1,260-year-old Buddhist rite at Todai-ji's Nigatsu-do. Monks wave giant blazing torches from the veranda: sparks are said to ward off evil. Free to view.",
-      "attendance": 100000
+      "attendance": 100000,
+      "when": {
+        "type": "fixed",
+        "start": "03-01",
+        "end": "03-14"
+      },
+      "place": "Todai-ji, Nara",
+      "summary": "A Buddhist rite at Todai-ji's Nigatsu-do, where monks swing large burning torches from the veranda."
     },
     {
       "id": "mat_tanabata",
@@ -556,7 +791,14 @@
       ],
       "typicalDate": "July 7 (traditional); Sendai celebrates Aug 6-8",
       "url": "https://www.jnto.go.jp/",
-      "note": "Nationwide festival celebrating two stars (Vega & Altair) meeting once a year. People write wishes on paper strips (tanzaku) and hang on bamboo. Celebrated everywhere."
+      "note": "Nationwide festival celebrating two stars (Vega & Altair) meeting once a year. People write wishes on paper strips (tanzaku) and hang on bamboo. Celebrated everywhere.",
+      "when": {
+        "type": "fixed",
+        "start": "07-07",
+        "end": "07-07"
+      },
+      "place": "Across Japan",
+      "summary": "The star festival, when people write wishes on paper strips and hang them on bamboo."
     },
     {
       "id": "mat_obon",
@@ -572,7 +814,14 @@
       ],
       "typicalDate": "August 13–16",
       "url": "https://www.jnto.go.jp/",
-      "note": "National holiday when ancestors' spirits return. Local bon odori dances, lantern floating (toro nagashi) on rivers/lakes, and family gatherings across Japan."
+      "note": "National holiday when ancestors' spirits return. Local bon odori dances, lantern floating (toro nagashi) on rivers/lakes, and family gatherings across Japan.",
+      "when": {
+        "type": "fixed",
+        "start": "08-13",
+        "end": "08-16"
+      },
+      "place": "Across Japan",
+      "summary": "The days when ancestors' spirits are said to return, marked with bon odori dances and floating lanterns."
     },
     {
       "id": "mat_sanno",
@@ -590,7 +839,14 @@
       "url": "https://www.hiejinja.net/",
       "note": "One of Tokyo's three great festivals, held in even-numbered years only. The grand procession passes through Akasaka and the Imperial Palace area.",
       "attendance": 300000,
-      "years": "even"
+      "years": "even",
+      "when": {
+        "type": "approx",
+        "start": "06-11",
+        "end": "06-20"
+      },
+      "place": "Akasaka, Tokyo",
+      "summary": "A grand procession through Akasaka and around the Imperial Palace, held in even-numbered years."
     },
     {
       "id": "mat_hanagasa",
@@ -607,7 +863,14 @@
       "typicalDate": "August 5–7",
       "url": "https://www.hanagasa.jp/",
       "note": "10,000 dancers parade through Yamagata waving flower-decorated straw hats (hanagasa) to the rhythmic Yamagata Hanagasa song. One of Tohoku's five major festivals.",
-      "attendance": 1000000
+      "attendance": 1000000,
+      "when": {
+        "type": "fixed",
+        "start": "08-05",
+        "end": "08-07"
+      },
+      "place": "Yamagata city",
+      "summary": "About 10,000 dancers parade through Yamagata waving straw hats decorated with flowers."
     },
     {
       "id": "win_sapporo_snow",
@@ -624,7 +887,14 @@
       "typicalDate": "First week of February (7 days)",
       "url": "https://www.snowfes.com/en/",
       "note": "Japan's most famous winter event: over 200 massive snow and ice sculptures in Odori Park, including replicas of world landmarks. 2+ million visitors.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "approx",
+        "start": "02-01",
+        "end": "02-11"
+      },
+      "place": "Odori Park, Sapporo",
+      "summary": "More than 200 large snow and ice sculptures in Odori Park."
     },
     {
       "id": "win_yokote",
@@ -641,7 +911,14 @@
       "typicalDate": "February 15–16",
       "url": "https://www.yokotekamakura.com/",
       "note": "Children build igloo-like kamakura snow houses and invite passersby in for sweet sake and rice cakes. Magical winter scene of 100+ glowing kamakura at night.",
-      "attendance": 90000
+      "attendance": 90000,
+      "when": {
+        "type": "fixed",
+        "start": "02-15",
+        "end": "02-16"
+      },
+      "place": "Yokote, Akita",
+      "summary": "Children build snow huts (kamakura) and invite passers-by in for sweet sake and rice cakes."
     },
     {
       "id": "win_asahikawa",
@@ -658,7 +935,14 @@
       "typicalDate": "Second week of February",
       "url": "https://asahikawa-winterfes.jp/",
       "note": "Hokkaido's second-largest winter festival with giant snow sculptures, ice slides, and the world's largest snow sculpture competition.",
-      "attendance": 800000
+      "attendance": 800000,
+      "when": {
+        "type": "approx",
+        "start": "02-08",
+        "end": "02-14"
+      },
+      "place": "Asahikawa, Hokkaido",
+      "summary": "Giant snow sculptures, ice slides and a snow sculpture competition."
     },
     {
       "id": "win_shirakawago",
@@ -676,7 +960,16 @@
       "typicalDate": "Selected Saturdays Jan–Feb",
       "url": "https://shirakawa-go.gr.jp/",
       "note": "UNESCO World Heritage village lit up in winter. Snow-covered thatched-roof (gassho-zukuri) farmhouses glow against the night sky. Shuttle bus required: reserve well ahead.",
-      "attendance": 5000
+      "attendance": 5000,
+      "when": {
+        "type": "several",
+        "months": [
+          1,
+          2
+        ]
+      },
+      "place": "Shirakawa-go, Gifu",
+      "summary": "The thatched farmhouses of Shirakawa-go are lit up on selected winter evenings; shuttle buses need booking."
     },
     {
       "id": "win_dosojin",
@@ -693,7 +986,14 @@
       "typicalDate": "January 15",
       "url": "https://nozawakanko.jp/",
       "note": "One of Japan's three great fire festivals. A dramatic battle between young men defending a sacred shrine made of wood and torchbearers trying to set it alight.",
-      "attendance": 15000
+      "attendance": 15000,
+      "when": {
+        "type": "fixed",
+        "start": "01-15",
+        "end": "01-15"
+      },
+      "place": "Nozawa Onsen, Nagano",
+      "summary": "Young men defend a wooden shrine while torch-bearers try to set it alight."
     },
     {
       "id": "win_otaru",
@@ -710,7 +1010,14 @@
       "typicalDate": "Mid-February (10 days)",
       "url": "https://otaru.gr.jp/",
       "note": "Thousands of snow lanterns and floating candles line the Otaru Canal and historic streets. More intimate than Sapporo: a romantic winter escape.",
-      "attendance": 400000
+      "attendance": 400000,
+      "when": {
+        "type": "approx",
+        "start": "02-11",
+        "end": "02-20"
+      },
+      "place": "Otaru Canal, Hokkaido",
+      "summary": "Snow lanterns and floating candles line the Otaru Canal and old streets."
     },
     {
       "id": "win_namahage",
@@ -727,7 +1034,16 @@
       "typicalDate": "Second weekend of February",
       "url": "https://www.namahage.co.jp/namahagesedo/english/",
       "note": "Demonic Namahage figures (men in straw costumes and ogre masks) descend from the mountains at Shinzan Shrine by torchlight. An ancient purification tradition of Oga Peninsula.",
-      "attendance": 10000
+      "attendance": 10000,
+      "when": {
+        "type": "weekday",
+        "month": 2,
+        "weekday": 6,
+        "n": 2,
+        "days": 2
+      },
+      "place": "Shinzan Shrine, Oga, Akita",
+      "summary": "Men in straw costumes and ogre masks (namahage) come down from the mountain by torchlight."
     },
     {
       "id": "win_sapporo_white",
@@ -748,7 +1064,14 @@
       "typicalDate": "Late November – March",
       "url": "https://white-illumination.jp/",
       "note": "One of Japan's oldest winter illuminations: Odori Park and Ekimae-dori transformed with hundreds of thousands of lights. Free to enjoy.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "season",
+        "start": "11-21",
+        "end": "03-31"
+      },
+      "place": "Odori Park, Sapporo",
+      "summary": "Hundreds of thousands of lights along Odori Park and Ekimae-dori, free to see."
     },
     {
       "id": "mat_hanami_ueno",
@@ -766,7 +1089,14 @@
       "typicalDate": "Late March – Early April (peak bloom dependent)",
       "url": "https://www.kensetsu.metro.tokyo.lg.jp/jimusho/toubuk/ueno/",
       "note": "Japan's most famous hanami spot: 1,000+ cherry trees line the paths. Blue tarp picnic parties fill every inch of space. The quintessential Tokyo sakura experience.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "approx",
+        "start": "03-21",
+        "end": "04-10"
+      },
+      "place": "Ueno Park, Tokyo",
+      "summary": "Picnics under more than 1,000 cherry trees in Ueno Park, timed by the bloom."
     },
     {
       "id": "mat_hirosaki",
@@ -784,7 +1114,14 @@
       "typicalDate": "Late April – Early May",
       "url": "https://www.hirosakipark.jp/",
       "note": "Japan's most beautiful sakura festival: 2,600 trees in Hirosaki Castle park. The 'petal snowstorm' (hanabuki) moment when petals fill the moat is world-famous.",
-      "attendance": 2000000
+      "attendance": 2000000,
+      "when": {
+        "type": "approx",
+        "start": "04-21",
+        "end": "05-10"
+      },
+      "place": "Hirosaki Castle, Aomori",
+      "summary": "About 2,600 cherry trees around Hirosaki Castle, where fallen petals cover the moat."
     },
     {
       "id": "mat_shichi_go_san",
@@ -800,7 +1137,14 @@
       ],
       "typicalDate": "November 15 (celebrated throughout Nov)",
       "url": "https://www.jnto.go.jp/",
-      "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children."
+      "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children.",
+      "when": {
+        "type": "fixed",
+        "start": "11-15",
+        "end": "11-15"
+      },
+      "place": "Shrines across Japan",
+      "summary": "Children aged 3, 5 and 7 visit shrines in kimono to pray for healthy growth; families go all through November."
     }
   ],
   "verified": "2026-04-20"

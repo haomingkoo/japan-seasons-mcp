@@ -860,7 +860,7 @@ const MODE_TITLES = {
 };
 
 // Views that moved to their own page.
-const MODE_PAGES = { fruit: '/fruit' };
+const MODE_PAGES = { fruit: '/fruit', whatson: '/festivals' };
 
 function setMode(m) {
   if (MODE_PAGES[m]) { location.assign(MODE_PAGES[m]); return; }
@@ -2949,7 +2949,7 @@ function detectSeasonMode() {
   if (m >= 10 && m <= 12) return 'koyo';    // Oct–Dec
   if (m === 6 || m === 7) return 'flowers'; // Jun–Jul (hydrangea, lavender)
   if (m === 8 || m === 9) return 'flowers'; // Aug–Sep (sunflower, cosmos)
-  return 'whatson'; // Jan (winter festivals, plum blossom)
+  return 'flowers'; // Jan (plum blossom)
 }
 
 // ── Init ──
