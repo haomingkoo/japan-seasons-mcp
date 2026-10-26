@@ -128,8 +128,13 @@ function initMap() {
   }
 }
 
+// Filters re-lay out the symbol layers, so only touch them when the sets change, not every frame.
+let lastMapKey = '';
 function updateMap(activeIdx, soonIdx) {
   if (!mapReady) return;
+  const key = `${activeIdx}|${soonIdx}|${state.selected}`;
+  if (key === lastMapKey) return;
+  lastMapKey = key;
   map.setFilter('fest-active', ['in', ['get', 'i'], ['literal', activeIdx]]);
   map.setFilter('fest-soon', ['in', ['get', 'i'], ['literal', soonIdx]]);
   map.setFilter('fest-selected', ['==', ['get', 'i'], state.selected ?? -1]);
@@ -157,7 +162,7 @@ function render() {
   $('tl-sub').textContent = active.length ? `${active.length} festival${active.length === 1 ? '' : 's'} on` : 'No festivals in the calendar on this day';
   $('tl-note').textContent = soon.length ? `${soon.length} more in the next three weeks` : '';
   renderDayList(iso, active, soon, month);
-  renderLegend(active.length, soon.length);
+  renderLegend();
   renderLaneCursor();
 }
 
@@ -197,8 +202,12 @@ function renderDayList(iso, active, soon, month) {
   el.innerHTML = html;
 }
 
-function renderLegend(nActive, nSoon) {
+let legendKey = '';
+function renderLegend() {
   const el = $('legend');
+  const key = [...state.types].join();
+  if (key === legendKey) return;
+  legendKey = key;
   el.hidden = false;
   el.innerHTML = `<ul>${Object.entries(TYPES).filter(([k]) => state.types.has(k)).map(([, t]) => `<li><span class="sw sq" style="background:${t.color}"></span>${esc(t.plural)}</li>`).join('')}</ul>
     <div class="lg-note"><span><span class="sw sq" style="background:var(--text-2)"></span>On this date</span><span><span class="sw sq ring" style="color:var(--text-2)"></span>Within three weeks</span></div>`;
@@ -249,18 +258,24 @@ function renderLanes() {
       }).join('')}</div></div>`);
   }
   lanes.innerHTML = html.join('') + '<i class="cal-cursor lane-cursor" aria-hidden="true"></i>';
+  laneGeom = null;
   $('lanes-key').innerHTML = '<span><i style="background:var(--text-2)"></i>Fixed or likely dates</span><span><i class="approx" style="background-color:color-mix(in srgb, var(--text-2) 60%, #e9e1d3)"></i>Rough timing, check the year</span>';
   renderLaneCursor();
 }
 
+// Track geometry is measured once per layout, so scrubbing never forces a reflow.
+let laneGeom = null;
 function renderLaneCursor() {
   const lanes = $('lanes');
   const cur = lanes.querySelector('.lane-cursor');
   const track = lanes.querySelector('.lane-track');
   if (!cur || !track) return;
-  const box = lanes.getBoundingClientRect();
-  const t = track.getBoundingClientRect();
-  cur.style.left = `${t.left - box.left + ((state.day - 1) / 364) * t.width}px`;
+  if (!laneGeom) {
+    const box = lanes.getBoundingClientRect();
+    const t = track.getBoundingClientRect();
+    laneGeom = { left: t.left - box.left, width: t.width };
+  }
+  cur.style.transform = `translateX(${laneGeom.left + ((state.day - 1) / 364) * laneGeom.width}px)`;
 }
 
 // ---------- detail ----------
@@ -392,7 +407,7 @@ function wire() {
       tabs[next].focus();
     });
   });
-  addEventListener('resize', renderLaneCursor);
+  addEventListener('resize', () => { laneGeom = null; renderLaneCursor(); });
 }
 
 async function start() {
