@@ -285,6 +285,7 @@ const STATIC_FILE_MAP: Record<string, { file: string; mime: string }> = {
   "/developers/":  { file: "japan-seasonal-travel-mcp.html", mime: "text/html; charset=utf-8" },
   "/terms":        { file: "terms.html",                    mime: "text/html; charset=utf-8" },
   "/terms/":       { file: "terms.html",                    mime: "text/html; charset=utf-8" },
+  "/404.html":     { file: "404.html",                      mime: "text/html; charset=utf-8" },
   "/favicon.svg":  { file: "favicon.svg",                   mime: "image/svg+xml" },
   "/fonts/shippori-mincho-latin-500.woff2": { file: "fonts/shippori-mincho-latin-500.woff2", mime: "font/woff2" },
   "/fonts/shippori-mincho-latin-700.woff2": { file: "fonts/shippori-mincho-latin-700.woff2", mime: "font/woff2" },
@@ -2670,6 +2671,12 @@ async function startHttpServer() {
       return;
     }
 
+    const notFoundPage = STATIC_FILES["/404.html"];
+    if (notFoundPage && String(req.headers.accept ?? "").includes("text/html")) {
+      res.writeHead(404, { "Content-Type": notFoundPage.mime, "Cache-Control": "no-store" });
+      res.end(renderSiteTemplate(notFoundPage.body, notFoundPage.mime));
+      return;
+    }
     res.writeHead(404).end("Not found");
     } catch (e) {
       if (isClientDisconnectError(e) || req.destroyed || res.destroyed || res.writableEnded) {
