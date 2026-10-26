@@ -12,6 +12,19 @@ const URL = (x, y) => `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/$
 
 let pending = null;
 
+// Fetch in CORS mode like MapLibre does, so both share cache entries. If a cached copy lacks the
+// CORS header (S3 only sends it when asked), retry once past the cache.
+export async function loadTile(url) {
+  let res;
+  try {
+    res = await fetch(url, { mode: 'cors' });
+  } catch {
+    res = await fetch(url, { mode: 'cors', cache: 'reload' });
+  }
+  if (!res.ok) throw new Error(`terrain tile ${res.status}`);
+  return createImageBitmap(await res.blob());
+}
+
 export function loadDem() {
   if (pending) return pending;
   pending = (async () => {
@@ -24,13 +37,7 @@ export function loadDem() {
     const jobs = [];
     for (let tx = Math.floor(x0 / TILE); tx <= Math.floor(x1 / TILE); tx++) {
       for (let ty = Math.floor(y0 / TILE); ty <= Math.floor(y1 / TILE); ty++) {
-        jobs.push(new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => { ctx.drawImage(img, tx * TILE - x0, ty * TILE - y0); resolve(); };
-          img.onerror = () => reject(new Error('terrain tile failed'));
-          img.src = URL(tx, ty);
-        }));
+        jobs.push(loadTile(URL(tx, ty)).then((bmp) => ctx.drawImage(bmp, tx * TILE - x0, ty * TILE - y0)));
       }
     }
     await Promise.all(jobs);
