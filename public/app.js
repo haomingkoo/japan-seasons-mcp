@@ -876,6 +876,7 @@ function setMode(m) {
     if (k === m) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
   });
   const sel = document.getElementById('mode-select'); if (sel) sel.value = m;
+  updateExploreLink(m);
   if (m !== 'sakura') { const bf = $('bloom-filters'); if (bf) bf.hidden = true; }
   $('koyo-filters').hidden = m !== 'koyo';
   $('koyo-dates').hidden = m !== 'koyo';
@@ -888,6 +889,20 @@ function setMode(m) {
   if (m === 'flowers') loadFlowers();
   if (m === 'whatson') loadWhatsOn();
   pushUrlState({ mode: m });
+}
+
+// The 3D link follows the season on screen: autumn opens the colour front, everything else the
+// season of the month.
+function updateExploreLink(m) {
+  const month = new Date().getMonth();
+  const koyo = m === 'koyo' || (m !== 'sakura' && (month >= 8 || month === 0));
+  const label = koyo ? 'Autumn colour 3D' : 'Bloom front 3D';
+  document.querySelectorAll('a[href^="/explore"]').forEach((a) => {
+    a.href = `/explore?season=${koyo ? 'koyo' : 'sakura'}`;
+    const span = a.querySelector('span');
+    if (span) span.textContent = label;
+    if (a.classList.contains('explore-link')) a.setAttribute('aria-label', koyo ? 'Colour front, a 3D view of autumn leaves moving across Japan' : 'Bloom front, a 3D view of cherry blossom moving across Japan');
+  });
 }
 
 function handleModeSelect(val) {

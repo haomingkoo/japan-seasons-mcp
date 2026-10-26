@@ -15,7 +15,7 @@ const TREE_RAMPS = {
   ],
   koyo: [
     [0.0, 0.27, 0.45, 0.24], [0.8, 0.40, 0.52, 0.22], [1.0, 0.70, 0.62, 0.20], [1.6, 0.90, 0.66, 0.18],
-    [2.1, 0.90, 0.38, 0.13], [2.8, 0.74, 0.17, 0.13], [3.4, 0.52, 0.31, 0.19], [4.0, 0.45, 0.38, 0.33],
+    [2.1, 0.95, 0.30, 0.10], [2.8, 0.84, 0.14, 0.11], [3.4, 0.52, 0.31, 0.19], [4.0, 0.45, 0.38, 0.33],
   ],
 };
 
@@ -57,7 +57,7 @@ vec3 ramp(float v) {
 void main() {
   float v = phase(a_dates, u_day);
   // Bare sakura and bare maples carry a thin crown; leaves and blossom fill it out.
-  float crown = u_kind == 0 ? mix(0.62, 1.0, smoothstep(0.2, 1.2, v)) : mix(1.0, 0.6, smoothstep(3.3, 4.0, v));
+  float crown = u_kind == 0 ? mix(0.62, 1.0, smoothstep(0.2, 1.2, v)) : mix(1.0, 0.38, smoothstep(3.2, 4.0, v));
   vec3 p = a_pos;
   vec3 n = a_normal;
   if (a_part > 0.5) {

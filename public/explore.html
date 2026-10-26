@@ -24,7 +24,7 @@
       <span class="brand-name">Japan in Seasons</span>
     </a>
     <div class="page-title">
-      <h1>Bloom front</h1>
+      <h1 id="page-h1">Bloom front</h1>
       <p class="brand-sub" id="intro">Watch the bloom move north. Drag the date.</p>
     </div>
     <div class="seg season-seg" role="group" aria-label="Season">
@@ -41,6 +41,7 @@
         <option value="chubu">Chubu</option>
         <option value="kanto">Kanto</option>
         <option value="fuji">Mt Fuji</option>
+        <option value="alps">Japan Alps</option>
         <option value="tohoku">Tohoku</option>
         <option value="hokkaido">Hokkaido</option>
       </select>
@@ -54,10 +55,15 @@
         <div id="map" role="region" aria-label="3D map of Japan with the bloom front. Use the date slider or arrow keys to change the date."></div>
         <canvas id="static-map" class="static-map" hidden aria-hidden="true"></canvas>
         <div id="map-status" class="map-status" role="status" aria-live="polite">Loading forecast data…</div>
-        <button id="compass" class="compass" type="button" aria-label="Reset view to north">
+        <button id="compass" class="compass" type="button" aria-label="Compass. Click to face north, drag to turn the map" title="Drag to turn, click for north">
           <span aria-hidden="true">N</span>
           <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5"/><path class="needle" d="M20 7 L26 27 L20 23 L14 27 Z"/></svg>
         </button>
+        <div class="tilt-ctl" role="group" aria-label="Tilt">
+          <button type="button" id="tilt-up" class="tilt-btn" aria-label="Tilt up (W)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10l4-4 4 4"/></svg></button>
+          <button type="button" id="tilt-down" class="tilt-btn" aria-label="Tilt down (S)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg></button>
+        </div>
+        <p class="orbit-hint" id="orbit-hint" hidden>Drag with Shift or right-click to rotate. Q and E turn, W and S tilt.</p>
         <div id="cursor-tip" class="cursor-tip" hidden></div>
         <div class="map-legend" id="map-legend" aria-hidden="true"></div>
         <div class="map-controls">
@@ -148,6 +154,7 @@
             <p><strong>Dates.</strong> City dates come from the Japan Meteorological Agency (JMA) observation trees once recorded, otherwise from the <a href="https://n-kishou.com/" target="_blank" rel="noopener">Japan Meteorological Corporation (JMC)</a> forecast. Spot dates are JMC forecasts. Averages are the normal dates published with the forecast. For autumn leaves, JMC gives only the difference from normal.</p>
             <p><strong>Okinawa, Amami and five Hokkaido cities</strong> are not in the JMC forecast. Their dates are this year's JMA observations. Okinawa and Amami watch the Taiwan cherry, which blooms in winter; most of Hokkaido watches the Sargent cherry.</p>
             <p><strong>Maple and ginkgo.</strong> JMC forecasts both per city, and they turn at different times. Most forecast spots are maple; the ginkgo colour at maple and mixed spots is estimated by shifting each spot's maple dates by the nearby cities' ginkgo-to-maple gap. Ginkgo trees stand only at ginkgo and mixed spots. Three cities have no ginkgo forecast.</p>
+            <p><strong>Autumn colour and height.</strong> Leaves turn on the ridges first and the colour works down the valleys. The autumn wash adds a height term: each spot and city is reduced to a sea-level date and the map's own height is added back, at a rate fitted from mountain spots against the cities around them (<span id="lapse-note">about 2.5 days per 100 m</span>, kept within the 1 to 4 days that JMA describes). Heights come from the same terrain tiles, about 2 km apart, so this is an estimate between spots.</p>
             <p><strong>Snow on high peaks</strong> is a seasonal tint by month, not an observation: white above about 2,000 m from December to February, rising to about 2,800 m in May, none from June to September.</p>
             <p><strong>Shading.</strong> Colour between spots is estimated from the six nearest spots and cities. It fades out 28 km from the nearest one, so open sea and empty mountains stay plain. Each group of trees stands on a real forecast spot.</p>
             <p><strong>Front speed</strong> is how fast the estimated arrival line moves, averaged over a week.</p>

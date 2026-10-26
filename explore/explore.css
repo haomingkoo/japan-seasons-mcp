@@ -254,3 +254,11 @@ select { appearance: none; border: 1px solid var(--line); background: var(--pane
 .legend-row + .legend-row { margin-top: 4px; }
 .tl-event.ginkgo::before { border-top-color: #b07d0a; }
 .tl-event.maple::before { border-top-color: var(--koyo); }
+
+/* Orbit controls: tilt arrows under the compass and a one-time hint. */
+.compass { cursor: grab; touch-action: none; }
+.tilt-ctl { position: absolute; top: 60px; left: 12px; display: flex; flex-direction: column; gap: 4px; }
+.tilt-btn { width: 40px; height: 32px; border: 0; border-radius: var(--r-control); background: var(--chip); display: grid; place-items: center; padding: 0; }
+.tilt-btn svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.orbit-hint { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); margin: 0; background: var(--chip); color: #fff; font-size: 12.5px; padding: 6px 12px; border-radius: var(--r-control); box-shadow: var(--float); white-space: nowrap; pointer-events: none; z-index: 4; }
+@media (max-width: 960px) { .orbit-hint { white-space: normal; width: calc(100% - 32px); text-align: center; } }
