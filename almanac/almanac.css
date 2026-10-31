@@ -96,6 +96,12 @@ select { appearance: none; background: var(--panel) url("data:image/svg+xml,%3Cs
 .tip { position: absolute; pointer-events: none; background: var(--chip); color: #fff; border-radius: var(--r-control); padding: 6px 9px; font-size: 12px; line-height: 1.4; z-index: 4; box-shadow: var(--float); max-width: 260px; }
 .tip b { font-weight: 600; }
 .tip .sub { color: #e2dbd0; }
+.farm-popup .maplibregl-popup-content { min-width: 0; overflow-wrap: anywhere; background: var(--panel); color: var(--text); border-radius: var(--r-card); box-shadow: var(--float); padding: 16px 28px 16px 16px; font: 13px/1.5 var(--font); }
+.farm-popup p { margin: 4px 0 10px; color: var(--text-2); }
+.farm-popup .links { display: flex; gap: 12px; flex-wrap: wrap; }
+.farm-popup a { color: var(--accent); text-underline-offset: 3px; }
+.farm-popup .maplibregl-popup-close-button { min-width: 28px; min-height: 28px; color: var(--text); cursor: pointer; }
+.farm-popup a:focus-visible, .farm-popup button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Bottom: timeline and calendar */
 .bottom { flex: none; background: var(--bg); border-top: 1px solid var(--line); }

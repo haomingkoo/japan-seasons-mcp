@@ -1,5 +1,5 @@
 // /fruit and /fruit/<slug>: which farms are open for which fruit, through the year.
-import { createMap, setTerrain, fitRegion, hasWebGL } from './map.js';
+import { createMap, setTerrain, fitRegion, hasWebGL, maplibregl } from './map.js';
 import { FRUIT_COLORS as COLORS } from './colors.js';
 import { createTimeline, fmtDayOfYear, monthName, pct } from './timeline.js';
 import { dayOfYear, isoToDayOfYear, rangeLabel, tripDays, daysInMonthCovered } from '../src/lib/fruit-seasons.ts';
@@ -17,6 +17,7 @@ const state = {
 };
 let map = null;
 let mapReady = false;
+let farmPopup = null;
 let timeline = null;
 let open = [];          // per farm: Uint16Array(366) of fruit bits open on each day
 let monthBits = [];     // per farm: per fruit index, 12-bit mask of months open 10+ days
@@ -157,6 +158,7 @@ function initMap() {
     if (!f) { tip.hidden = true; return; }
     const farm = state.farms[f.id];
     map.getCanvas().style.cursor = 'pointer';
+    if (farm.i === state.farm && farmPopup?.isOpen()) { tip.hidden = true; return; }
     const names = openFruitNames(farm);
     tip.innerHTML = `<b>${esc(farm.name)}</b><br><span class="sub">${esc(farm.pref)} · ${esc(names.join(', ') || 'Out of season')}</span>`;
     tip.hidden = false;
@@ -363,6 +365,12 @@ function selectFarm(i, fly = true) {
   if (mapReady) {
     map.setFilter('farm-selected', ['==', ['id'], i]);
     if (fly) map.flyTo({ center: [farm.lon, farm.lat], zoom: Math.max(map.getZoom(), 10), duration: reducedMotion ? 0 : 900 });
+    $('tip').hidden = true;
+    farmPopup?.remove();
+    farmPopup = new maplibregl.Popup({ closeOnClick: false, offset: 12, maxWidth: '280px', className: 'farm-popup' })
+      .setLngLat([farm.lon, farm.lat])
+      .setHTML(`<b>${esc(farm.name)}</b><p>${esc(farm.pref)}</p><div class="links"><a href="${esc(farm.url)}" target="_blank" rel="noopener">Farm page on Jalan</a><a href="https://www.google.com/maps/search/?api=1&query=${farm.lat},${farm.lon}" target="_blank" rel="noopener">Google Maps</a></div>`)
+      .addTo(map);
   }
   const card = $('farm-card');
   const mask = openMaskFor(i);
@@ -382,7 +390,7 @@ function selectFarm(i, fly = true) {
     <div class="links"><a href="${esc(farm.url)}" target="_blank" rel="noopener">Farm page on Jalan</a><a href="${gmaps}" target="_blank" rel="noopener">Google Maps</a></div>
     ${farm.period ? `<p class="period">The listing says: <span lang="ja">${esc(farm.period)}</span></p>` : ''}`;
   card.hidden = false;
-  if (matchMedia('(max-width: 960px)').matches) card.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+  if (fly && matchMedia('(max-width: 960px)').matches) card.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
 }
 
 let farmListTimer = 0;
