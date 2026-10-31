@@ -8,10 +8,11 @@ import { z } from "zod";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "http";
 import { gzipSync } from "zlib";
-import { readFileSync, existsSync, readdirSync } from "fs";
-import { join, dirname, resolve } from "path";
+import { readFileSync, readdirSync } from "fs";
+import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { logger } from "./lib/logger.js";
+import { STATIC_DATA as STATIC_MCP } from "./lib/static-data.js";
 import { DailyUniqueVisitors } from "./lib/unique-visitors.js";
 import { VERSION as SERVER_VERSION } from "./lib/version.js";
 import { handleApiRequest, warmSpotsCache } from "./api.js";
@@ -124,21 +125,6 @@ function isClientDisconnectError(error: unknown): boolean {
     /aborted|socket hang up|premature close/i.test(message)
   );
 }
-
-// ─── Static JSON: load once at startup, reused across all MCP tool calls ─────
-// Resolves relative to the package root (dist/../public) so it works correctly
-// whether the server is run via npx, node dist/index.js, or from any CWD.
-const __publicDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
-function loadStaticJSON(filename: string) {
-  const p = join(__publicDir, filename);
-  try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; }
-}
-const STATIC_MCP = {
-  flowers:   loadStaticJSON("flowers.json"),
-  festivals: loadStaticJSON("festivals.json"),
-  farms:     loadStaticJSON("fruit-farms.json"),
-  farmSeasons: loadStaticJSON("fruit-farm-seasons.json"),
-};
 
 let farmModel: ReturnType<typeof buildFarms> | null = null;
 function farmSeasonModel() {

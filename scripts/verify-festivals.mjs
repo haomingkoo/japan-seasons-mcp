@@ -3,7 +3,7 @@
 // Checks all festival URLs for 200 responses, validates required fields,
 // and flags biennial events + any data consistency issues.
 //
-// Usage: node verify-festivals.mjs
+// Usage from the repository root: node scripts/verify-festivals.mjs
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
