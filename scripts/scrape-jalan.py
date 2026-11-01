@@ -3,7 +3,7 @@ Jalan.net fruit-picking farms → public/fruit-farms.json
 One keyword search per picking term (coordinates are only on search pages, as
 data-lat/data-lng), deduped by spot id and kept only when Jalan files the spot
 under a fruit-picking genre. Exits non-zero, without writing, on an incomplete scrape.
-Run: python3 scrape-jalan.py
+Run from the repository root: python3 scripts/scrape-jalan.py
 Weekly refresh: .github/workflows/scrape-fruit-farms.yml
 """
 from __future__ import annotations

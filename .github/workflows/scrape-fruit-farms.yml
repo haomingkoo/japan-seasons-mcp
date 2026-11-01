@@ -28,7 +28,7 @@ jobs:
       # Navitime was dropped: its AWS WAF returns 403 to GitHub runners (and to any automated client).
       # scrape-jalan.py exits non-zero without writing if any search is incomplete or the count drops.
       - name: Scrape Jalan
-        run: python3 scrape-jalan.py
+        run: python3 scripts/scrape-jalan.py
         timeout-minutes: 20
 
       - uses: actions/setup-node@v4

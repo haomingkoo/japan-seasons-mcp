@@ -22,7 +22,7 @@ jobs:
           node-version: '20'
 
       - name: Run festival verification
-        run: node verify-festivals.mjs
+        run: node scripts/verify-festivals.mjs
 
       - name: Open issue on failure
         if: failure()
@@ -30,7 +30,7 @@ jobs:
         with:
           script: |
             const title = `Festival data issues found — ${new Date().toISOString().slice(0,10)}`;
-            const body = `The monthly festival verification found problems.\n\nRun \`node verify-festivals.mjs\` locally to see the full report, or check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).\n\nCommon issues:\n- A URL returned 404 (festival website moved)\n- A biennial event year is wrong\n- Missing required fields\n\nFix in \`public/festivals.json\` and update the \`verified\` date.`;
+            const body = `The monthly festival verification found problems.\n\nRun \`node scripts/verify-festivals.mjs\` locally to see the full report, or check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).\n\nCommon issues:\n- A URL returned 404 (festival website moved)\n- A biennial event year is wrong\n- Missing required fields\n\nFix in \`public/festivals.json\` and update the \`verified\` date.`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

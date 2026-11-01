@@ -1,6 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync } from "fs";
-import { resolve } from "path";
+import { STATIC_DATA as STATIC } from "./lib/static-data.js";
 import {
   getSakuraForecast,
   getSakuraSpots,
@@ -22,19 +21,6 @@ import { buildFarms, PICKING_FRUITS, REGIONS, type RawFarm, type RawFarmSeason }
 
 // ── Minimal shared spot type ──────────────────────────────────────────────────
 interface SpotRecord { lat?: number; lon?: number; name?: string; [key: string]: unknown; }
-
-// ── Static JSON: read once at startup, served from memory on every request ──
-// These files change only when you deploy new data — no need to re-read from disk.
-function loadStatic(filename: string): unknown {
-  const p = resolve(process.cwd(), "public", filename);
-  try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; }
-}
-const STATIC = {
-  flowers:   loadStatic("flowers.json"),
-  festivals: loadStatic("festivals.json"),
-  farms:     loadStatic("fruit-farms.json"),
-  farmSeasons: loadStatic("fruit-farm-seasons.json"),
-};
 
 let fruitSeasonsJson: string | null = null;
 function fruitSeasonsPayload(): string {

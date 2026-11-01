@@ -4,7 +4,7 @@
 - `npm run build`: `tsc` to `dist/`, bundles `/explore` and the `almanac/` pages (`/fruit`, `/festivals`, `/plan`) into `public/`, then `scripts/check-site-copy.mjs` checks public copy against `src/lib/site-config.ts`. A copy mismatch fails the build.
 - `npx vitest run`: tests (`npm test` starts Vitest in watch mode).
 - `npm run start:http` (or any `PORT` set) serves the site, `/api/*` and the remote MCP endpoint `/mcp`. Without it the server runs stdio MCP.
-- No lint script. CI only runs `npm ci && npm run build`, plus a daily probe of the upstream JMC and weather APIs.
+- No lint script. CI builds and runs Vitest, plus a daily probe of the upstream JMC and weather APIs.
 
 ## Deploys
 - Railway service `japan-sakura-koyo-mcp` auto-deploys every push to main (Docker, health check `/health`). Any merge, docs included, redeploys production.
@@ -15,4 +15,5 @@
 ## Gotchas
 - Release: `npm version` syncs the version into `server.json` (MCP registry metadata). Do not hand-edit versions in `server.json`.
 - JMC publishes forecasts daily at 9 AM JST. The all-spots cache keys off that time, so stale data before 9 AM JST is expected.
-- The HTTP server is raw `http.createServer` in `src/index.ts`, not Express, despite the dependency.
+- The HTTP server uses `http.createServer` in `src/index.ts`. API and MCP datasets share the package-relative loader in `src/lib/static-data.ts`.
+- Maintenance scripts live in `scripts/`; run them from the repository root. See `scripts/README.md` for the refresh and verification commands.

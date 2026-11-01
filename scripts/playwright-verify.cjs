@@ -1,4 +1,4 @@
-// playwright-verify.cjs — run against production: node playwright-verify.cjs [url]
+// Run against production from the repository root: node scripts/playwright-verify.cjs [url]
 const { chromium } = require('playwright');
 
 const BASE = process.argv[2] || 'https://seasons.kooexperience.com';
