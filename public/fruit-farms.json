@@ -1,11 +1,11 @@
 {
-  "scraped_at": "2026-10-25T07:17:30.497124+00:00",
+  "scraped_at": "2026-11-01T20:53:22.309167+00:00",
   "sources": [
     "Jalan.net"
   ],
   "source_url": "https://www.jalan.net/kankou/",
-  "total": 2121,
-  "with_coords": 2108,
+  "total": 2122,
+  "with_coords": 2109,
   "spots": [
     {
       "id": "jalan_000000108097",
@@ -5359,18 +5359,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000192623",
-      "name": "いせや農場いちご園",
-      "address": "徳島県鳴門市大麻町東馬詰字壱番越1-1",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000192623/",
-      "lat": 34.144503,
-      "lon": 134.557181,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000192624",
       "name": "三浦イチゴ園",
       "address": "大分県豊後大野市三重町宮野965",
@@ -6117,7 +6105,7 @@
     {
       "id": "jalan_000000193179",
       "name": "馥郁農園",
-      "address": "岐阜県恵那市武並町竹折199-226",
+      "address": "岐阜県恵那市武並町竹折199-289",
       "fruits": [
         "Strawberry"
       ],
@@ -11396,18 +11384,6 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000208559/",
       "lat": 35.746656,
       "lon": 140.02432,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_000000208560",
-      "name": "かぐらばの里ブルーベリー園",
-      "address": "福島県いわき市渡辺町田部字清水232-3",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000208560/",
-      "lat": 36.953373,
-      "lon": 140.826695,
       "source": "jalan"
     },
     {
@@ -18457,18 +18433,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000220974",
-      "name": "田口ファミリーファーム 北方ぶどう狩り",
-      "address": "宮崎県延岡市北方町蔵田79-1",
-      "fruits": [
-        "Grape"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000220974/",
-      "lat": 32.584961,
-      "lon": 131.510564,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000220988",
       "name": "Aska Strawberry Field",
       "address": "奈良県奈良市中町325-1",
@@ -20033,13 +19997,13 @@
     {
       "id": "jalan_000000225034",
       "name": "サンベリー農園",
-      "address": "千葉県千葉市若葉区金親町817",
+      "address": "千葉県千葉市緑区平山町1049",
       "fruits": [
         "Strawberry"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000225034/",
-      "lat": 35.6225,
-      "lon": 140.208875,
+      "lat": 35.564968,
+      "lon": 140.202204,
       "source": "jalan"
     },
     {
@@ -20307,13 +20271,13 @@
     {
       "id": "jalan_000000225574",
       "name": "Strawberry Minori",
-      "address": "滋賀県野洲市吉川5362番地",
+      "address": "滋賀県野洲市吉川5359番地",
       "fruits": [
         "Strawberry"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000225574/",
-      "lat": 35.128432,
-      "lon": 135.980735,
+      "lat": 35.128566,
+      "lon": 135.981053,
       "source": "jalan"
     },
     {
@@ -22084,6 +22048,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000230952",
+      "name": "幸苺",
+      "address": "滋賀県甲賀市土山町北土山522-1",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000230952/",
+      "lat": 34.927962,
+      "lon": 136.294959,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000230993",
       "name": "THEFARM_strawberryベジフルファームいちご農園",
       "address": "福岡県古賀市薦野",
@@ -22313,6 +22289,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000231902",
+      "name": "湘南ストロベリーパーク",
+      "address": "神奈川県小田原市栢山1170",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231902/",
+      "lat": 35.301554,
+      "lon": 139.148546,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000231939",
       "name": "Berry Days Goi",
       "address": "千葉県市原市根田806",
@@ -22322,6 +22310,34 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000231939/",
       "lat": 35.504351,
       "lon": 140.104808,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000231985",
+      "name": "君田いちごハウス",
+      "address": "広島県三次市君田町西入君756",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231985/",
+      "lat": 34.886086,
+      "lon": 132.848413,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000231986",
+      "name": "堀内果実園Land",
+      "address": "奈良県五條市西河内町1219-1",
+      "fruits": [
+        "Strawberry",
+        "Blueberry",
+        "Grape",
+        "Mandarin Orange",
+        "Persimmon"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231986/",
+      "lat": 34.37834,
+      "lon": 135.7035,
       "source": "jalan"
     },
     {
@@ -22526,7 +22542,7 @@
     {
       "id": "jalan_05209cb3512045147",
       "name": "かづの精果園",
-      "address": "秋田県鹿角市花輪字合ノ野308-2",
+      "address": "秋田県鹿角市花輪字合ノ野",
       "fruits": [
         "Blueberry"
       ],
@@ -25330,6 +25346,7 @@
       "name": "福田フルーツパーク",
       "address": "山口県周南市須万2780",
       "fruits": [
+        "Strawberry",
         "Japanese Pear"
       ],
       "url": "https://www.jalan.net/kankou/spt_35215cb3512031115/",
