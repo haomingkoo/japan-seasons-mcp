@@ -1,11 +1,11 @@
 {
-  "scraped_at": "2026-11-01T20:53:22.309167+00:00",
+  "scraped_at": "2026-11-08T20:50:49.689349+00:00",
   "sources": [
     "Jalan.net"
   ],
   "source_url": "https://www.jalan.net/kankou/",
-  "total": 2122,
-  "with_coords": 2109,
+  "total": 2126,
+  "with_coords": 2113,
   "spots": [
     {
       "id": "jalan_000000108097",
@@ -1830,18 +1830,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000186195",
-      "name": "蕎麦道楽百古里庵（そばどうらく　すがりあん）",
-      "address": "静岡県浜松市天竜区横川160",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000186195/",
-      "lat": 34.887112,
-      "lon": 137.872032,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000186196",
       "name": "みよしぱくぱくファーム",
       "address": "愛知県みよし市明知町平成283",
@@ -2673,7 +2661,7 @@
     },
     {
       "id": "jalan_000000187769",
-      "name": "いちごきらり",
+      "name": "いちごきらり 北野",
       "address": "福岡県久留米市北野町中2414",
       "fruits": [
         "Strawberry"
@@ -16020,6 +16008,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000215652",
+      "name": "観光農園いちのさと",
+      "address": "佐賀県唐津市浜玉町横田上453",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000215652/",
+      "lat": 33.435141,
+      "lon": 130.045398,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000215659",
       "name": "ファーム八千代 八千代店",
       "address": "茨城県結城郡八千代町菅谷2251",
@@ -18326,14 +18326,14 @@
     },
     {
       "id": "jalan_000000220672",
-      "name": "トマト農園唐津",
-      "address": "佐賀県唐津市宇木107",
+      "name": "いちご狩り唐津農園",
+      "address": "佐賀県唐津市宇木1210-1",
       "fruits": [
         "Strawberry"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000220672/",
-      "lat": 33.409233,
-      "lon": 130.016782,
+      "lat": 33.409242,
+      "lon": 130.016736,
       "source": "jalan"
     },
     {
@@ -20788,6 +20788,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000227275",
+      "name": "光月いちご園",
+      "address": "兵庫県佐用郡佐用町下秋里43-4",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000227275/",
+      "lat": 34.965755,
+      "lon": 134.32599,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000227287",
       "name": "島原観光いちご園 ほおばるファーム",
       "address": "長崎県島原市鎌田町丁1830-1",
@@ -21356,7 +21368,8 @@
       "name": "ベリープラント喜平",
       "address": "大阪府和泉市仏並町2040番地",
       "fruits": [
-        "Blueberry"
+        "Blueberry",
+        "Grape"
       ],
       "url": "https://www.jalan.net/kankou/spt_guide000000229456/",
       "lat": 34.401821,
@@ -22277,6 +22290,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000231883",
+      "name": "島の隠れ果 MILACA",
+      "address": "兵庫県洲本市五色町鮎原中邑",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231883/",
+      "lat": 34.409917,
+      "lon": 134.838382,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000231890",
       "name": "蒼空と苺 - Sora to Ichigo -",
       "address": "奈良県葛城市山田144-1",
@@ -22338,6 +22363,30 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000231986/",
       "lat": 34.37834,
       "lon": 135.7035,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000231998",
+      "name": "Farmer’s Square",
+      "address": "奈良県葛城市大畑331",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231998/",
+      "lat": 34.502464,
+      "lon": 135.713609,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000232040",
+      "name": "いちご狩り 野田苺園",
+      "address": "福岡県久留米市城島町六町原142",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000232040/",
+      "lat": 33.248691,
+      "lon": 130.432706,
       "source": "jalan"
     },
     {
