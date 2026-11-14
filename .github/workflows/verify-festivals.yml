@@ -2,8 +2,9 @@ name: Verify Festival Data
 
 on:
   schedule:
-    # First Monday of every month at 3am JST (Sunday 18:00 UTC)
-    - cron: '0 18 1-7 * 0'
+    # Every Sunday 18:00 UTC (Monday 03:00 JST); the job only verifies on the first Monday JST.
+    # Cron ORs day-of-month with day-of-week, so '0 18 1-7 * 0' also fired daily on the 1st-7th.
+    - cron: '0 18 * * 0'
   workflow_dispatch: # allow manual trigger
 
 permissions:
@@ -14,14 +15,24 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      - name: Skip unless first Monday of the month (JST)
+        id: gate
+        if: github.event_name == 'schedule'
+        run: |
+          day=$(TZ=Asia/Tokyo date +%-d)
+          if [ "$day" -le 7 ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "Not the first Monday JST (day $day); skipping."; fi
+
       - uses: actions/checkout@v4
+        if: github.event_name != 'schedule' || steps.gate.outputs.run == 'true'
 
       - name: Set up Node.js
+        if: github.event_name != 'schedule' || steps.gate.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Run festival verification
+        if: github.event_name != 'schedule' || steps.gate.outputs.run == 'true'
         run: node scripts/verify-festivals.mjs
 
       - name: Open issue on failure
