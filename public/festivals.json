@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-20",
+  "updated": "2026-11-14",
   "total": 46,
   "spots": [
     {
@@ -41,7 +41,7 @@
         8
       ],
       "typicalDate": "August 2–3",
-      "url": "https://nagaokamatsuri.com/",
+      "url": "https://www.japan.travel/en/spot/256/",
       "note": "One of Japan's top 3 fireworks festivals: famous for the Phoenix (鳳凰) spread 2km wide. A memorial for WWII victims. Tickets sell out within minutes.",
       "attendance": 800000,
       "when": {
@@ -790,7 +790,7 @@
         8
       ],
       "typicalDate": "July 7 (traditional); Sendai celebrates Aug 6-8",
-      "url": "https://www.jnto.go.jp/",
+      "url": "https://www.japan.travel/en/sg/story/tanabata-a-wish-upon-a-star/",
       "note": "Nationwide festival celebrating two stars (Vega & Altair) meeting once a year. People write wishes on paper strips (tanzaku) and hang on bamboo. Celebrated everywhere.",
       "when": {
         "type": "fixed",
@@ -813,7 +813,7 @@
         8
       ],
       "typicalDate": "August 13–16",
-      "url": "https://www.jnto.go.jp/",
+      "url": "https://www.japan.travel/en/sg/story/how-much-do-you-know-about-summer-traditions-japan/",
       "note": "National holiday when ancestors' spirits return. Local bon odori dances, lantern floating (toro nagashi) on rivers/lakes, and family gatherings across Japan.",
       "when": {
         "type": "fixed",
@@ -1136,7 +1136,7 @@
         11
       ],
       "typicalDate": "November 15 (celebrated throughout Nov)",
-      "url": "https://www.jnto.go.jp/",
+      "url": "https://asset.japan.travel/image/upload/v1762259805/pdf/2025_TIC/202511/Calendar-Events-Nov.2025.pdf",
       "note": "Children aged 3, 5, and 7 visit shrines in kimono to pray for healthy growth. Autumn in Japan means shrines are filled with beautifully dressed children.",
       "when": {
         "type": "fixed",
@@ -1147,5 +1147,5 @@
       "summary": "Children aged 3, 5 and 7 visit shrines in kimono to pray for healthy growth; families go all through November."
     }
   ],
-  "verified": "2026-04-20"
+  "verified": "2026-11-14"
 }
