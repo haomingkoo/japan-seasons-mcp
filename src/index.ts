@@ -2229,6 +2229,7 @@ function formatCityResults(cities: SakuraCity[], outputConfig: OutputConfig): st
 }
 
 function renderSakuraSpotsMarkdown(result: SakuraSpotResult, outputConfig: OutputConfig): string {
+  if (result.note) return `# Sakura Spots — ${result.prefecture}\n\n${result.note}\n`;
   const freshObservationCount = result.spots.filter((spot) => spot.statusSource === "observation").length;
   let output = `# Sakura Spots — ${result.prefecture}\nForecast updated: ${formatSakuraDate(result.lastUpdated, outputConfig)}`;
   if (result.observationUpdated) {
@@ -2287,6 +2288,7 @@ function koyoStatusLines(spot: KoyoSpot): string {
 }
 
 function renderKoyoSpotsMarkdown(result: KoyoSpotResult, outputConfig: OutputConfig): string {
+  if (result.note) return `# Autumn Leaves — ${result.prefecture}\n\n${result.note}\n`;
   let output = `# Autumn Leaves — ${result.prefecture}\nSource: ${result.source}\nTotal spots: ${result.spots.length}\n\n`;
   const freshnessNote = priorSeasonKoyoSpotNote(result.spots);
   if (freshnessNote) output += `**Data freshness:** ${freshnessNote}\n\n`;

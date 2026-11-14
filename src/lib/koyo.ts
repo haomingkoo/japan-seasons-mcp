@@ -6,7 +6,7 @@ import { tokyoDatumToWGS84 } from "./areas.js";
 import { DAY_MS, daysFromTodayJst, formatMonthDayJst, parseDateInputJst } from "./dates.js";
 import { SITE_CONFIG } from "./site-config.js";
 export { parseJmcScheduleEntry, koyoForecastFreshness, koyoFreshnessLine } from "./koyo-freshness.js";
-import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN, getSpotObservations, isFreshObservation, type SpotObservationMap } from "./sakura-forecast.js";
+import { PREF_NAMES_EN, PREF_CODE_TO_NAME_EN, PREFS_WITHOUT_SPOT_LIST, noSpotListNote, getSpotObservations, isFreshObservation, type SpotObservationMap } from "./sakura-forecast.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,6 +75,7 @@ export interface KoyoSpotResult {
   prefecture: string;
   reportsAvailable: boolean;     // false when the JMC report feed could not be fetched
   spots: KoyoSpot[];
+  note?: string;                 // set when JMC publishes no spot list for the prefecture
 }
 
 // JMC spot report states (tenki.jp legend: 青葉, 色づき始め, 紅葉見頃, 色あせ始め, 落葉).
@@ -227,6 +228,15 @@ export async function getKoyoForecast(): Promise<KoyoForecastResult> {
 // ─── Koyo spots (687 spots across Japan) ─────────────────────────────────────
 
 export async function getKoyoSpots(prefCode: string): Promise<KoyoSpotResult> {
+  if (PREFS_WITHOUT_SPOT_LIST.has(prefCode)) {
+    return {
+      source: "Japan Meteorological Corporation (n-kishou.co.jp)",
+      prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? prefCode,
+      reportsAvailable: false,
+      spots: [],
+      note: noSpotListNote("koyo", prefCode),
+    };
+  }
   const cacheKey = `koyo-spots:${prefCode}`;
   return cache.getOrFetch(cacheKey, TTL.SPOTS, async () => {
     logger.info(`Fetching koyo spots for prefecture ${prefCode}`);

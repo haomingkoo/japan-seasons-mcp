@@ -82,6 +82,7 @@ export interface SakuraSpotResult {
     fullNormal: string | null;
   } | null;
   spots: SakuraSpot[];
+  note?: string;                     // set when JMC publishes no spot list for the prefecture
 }
 
 interface SakuraRateStage {
@@ -171,6 +172,15 @@ export const PREF_CODE_TO_NAME_EN: Record<string, string> = Object.fromEntries(
 
 const NKISHOU_SAKURA_API = "https://other-api-prod.n-kishou.co.jp/get-sakura-hw";
 const NKISHOU_SPOTS_API = "https://other-api-prod.n-kishou.co.jp/list-jr-points";
+
+// list-jr-points has no sakura or koyo spot list for Okinawa. It answers HTTP 400
+// with the same body it gives malformed requests ({"error":"1001","message":"common error"}),
+// so the gap is known by prefecture code rather than read from the reply.
+export const PREFS_WITHOUT_SPOT_LIST: ReadonlySet<string> = new Set(["47"]);
+
+export function noSpotListNote(kind: "sakura" | "koyo", prefCode: string): string {
+  return `Japan Meteorological Corporation publishes no ${kind} spot list for ${PREF_CODE_TO_NAME_EN[prefCode] ?? prefCode}, so there are no viewing spots to show.`;
+}
 
 // ─── Spot observation layer ───────────────────────────────────────────────────
 // JMC publishes a separate current-status layer for many spots.
@@ -429,6 +439,17 @@ export function findPrefCode(query: string): string | null {
 }
 
 export async function getSakuraSpots(prefCode: string, options: { includeObservations?: boolean } = {}): Promise<SakuraSpotResult> {
+  if (PREFS_WITHOUT_SPOT_LIST.has(prefCode)) {
+    return {
+      source: "Japan Meteorological Corporation (n-kishou.co.jp)",
+      prefecture: PREF_CODE_TO_NAME_EN[prefCode] ?? prefCode,
+      lastUpdated: "",
+      observationUpdated: null,
+      jmaStation: null,
+      spots: [],
+      note: noSpotListNote("sakura", prefCode),
+    };
+  }
   const includeObservations = options.includeObservations !== false;
   const cacheKey = `sakura-spots:${prefCode}:${includeObservations ? "observed" : "forecast"}`;
   return cache.getOrFetch(cacheKey, TTL.SPOTS, async () => {
