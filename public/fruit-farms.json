@@ -1,11 +1,11 @@
 {
-  "scraped_at": "2026-11-08T20:50:49.689349+00:00",
+  "scraped_at": "2026-11-15T21:23:47.232287+00:00",
   "sources": [
     "Jalan.net"
   ],
   "source_url": "https://www.jalan.net/kankou/",
-  "total": 2126,
-  "with_coords": 2113,
+  "total": 2128,
+  "with_coords": 2115,
   "spots": [
     {
       "id": "jalan_000000108097",
@@ -8660,18 +8660,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000202822",
-      "name": "MASHIKO　STRAWBERRY　FARM",
-      "address": "栃木県芳賀郡益子町長堤2271",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000202822/",
-      "lat": 36.431162,
-      "lon": 140.072426,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000202823",
       "name": "松延いちご園",
       "address": "茨城県石岡市辻54",
@@ -13777,6 +13765,18 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000211644/",
       "lat": 35.302788,
       "lon": 139.94462,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000211655",
+      "name": "谷嶋いちご園",
+      "address": "千葉県白井市十余一",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000211655/",
+      "lat": 35.81298,
+      "lon": 140.086953,
       "source": "jalan"
     },
     {
@@ -18913,7 +18913,7 @@
     },
     {
       "id": "jalan_000000222846",
-      "name": "ICHIGOHOUSE HITACHINAKA",
+      "name": "いちごpaletteひたちなか",
       "address": "茨城県ひたちなか市部田野128",
       "fruits": [
         "Strawberry"
@@ -20197,18 +20197,6 @@
       "source": "jalan"
     },
     {
-      "id": "jalan_000000225395",
-      "name": "BLUEBERRY BASE MOKA(ブルーベリーベースおもか)",
-      "address": "栃木県真岡市上大田和3111",
-      "fruits": [
-        "Blueberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_guide000000225395/",
-      "lat": 36.486705,
-      "lon": 140.006297,
-      "source": "jalan"
-    },
-    {
       "id": "jalan_000000225399",
       "name": "株式会社小笠原ファーム",
       "address": "山梨県北斗市高根町清里3466-125",
@@ -20621,7 +20609,7 @@
     {
       "id": "jalan_000000227123",
       "name": "オアシスファーム所沢三ケ島",
-      "address": "埼玉県所沢市三ケ島4-2170-1",
+      "address": "埼玉県所沢市三ケ島4丁目2170-1",
       "fruits": [
         "Strawberry"
       ],
@@ -21978,7 +21966,7 @@
     },
     {
       "id": "jalan_000000230628",
-      "name": "RedJewelFarm",
+      "name": "ファームかもけい",
       "address": "北海道石狩郡当別町当別太774番1",
       "fruits": [
         "Strawberry"
@@ -22290,6 +22278,21 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000231865",
+      "name": "豊平どんぐり農園",
+      "address": "広島県山県郡北広島町阿坂4827番地1",
+      "fruits": [
+        "Strawberry",
+        "Cherry",
+        "Blueberry",
+        "Grape"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231865/",
+      "lat": 34.630496,
+      "lon": 132.445968,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000231883",
       "name": "島の隠れ果 MILACA",
       "address": "兵庫県洲本市五色町鮎原中邑",
@@ -22366,6 +22369,18 @@
       "source": "jalan"
     },
     {
+      "id": "jalan_000000231989",
+      "name": "三村いちご農園",
+      "address": "岐阜県本巣市文殊字南当門道北492ｰ3",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000231989/",
+      "lat": 35.480469,
+      "lon": 136.682163,
+      "source": "jalan"
+    },
+    {
       "id": "jalan_000000231998",
       "name": "Farmer’s Square",
       "address": "奈良県葛城市大畑331",
@@ -22375,6 +22390,30 @@
       "url": "https://www.jalan.net/kankou/spt_guide000000231998/",
       "lat": 34.502464,
       "lon": 135.713609,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000232006",
+      "name": "berry’s park しろさと",
+      "address": "茨城県東茨城郡城里町御前山1800",
+      "fruits": [
+        "Blueberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000232006/",
+      "lat": 36.536487,
+      "lon": 140.346779,
+      "source": "jalan"
+    },
+    {
+      "id": "jalan_000000232009",
+      "name": "菅原いちご製作所",
+      "address": "大阪府豊能郡豊能町牧",
+      "fruits": [
+        "Strawberry"
+      ],
+      "url": "https://www.jalan.net/kankou/spt_guide000000232009/",
+      "lat": 34.939004,
+      "lon": 135.497093,
       "source": "jalan"
     },
     {
@@ -25107,18 +25146,6 @@
       "url": "https://www.jalan.net/kankou/spt_28646cb3510141013/",
       "lat": 35.213617,
       "lon": 135.14244,
-      "source": "jalan"
-    },
-    {
-      "id": "jalan_28703ah3330152083",
-      "name": "淡路ファームパーク　イングランドの丘",
-      "address": "兵庫県南あわじ市八木養宜上1402",
-      "fruits": [
-        "Strawberry"
-      ],
-      "url": "https://www.jalan.net/kankou/spt_28703ah3330152083/",
-      "lat": 34.30754,
-      "lon": 134.799846,
       "source": "jalan"
     },
     {
